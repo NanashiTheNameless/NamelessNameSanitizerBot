@@ -133,11 +133,11 @@ class Database:
                 """
                 CREATE TABLE IF NOT EXISTS guild_settings (
                     guild_id BIGINT PRIMARY KEY,
-                    check_n INTEGER NOT NULL DEFAULT 0,
-                    min_len INTEGER NOT NULL DEFAULT 2,
-                    max_len INTEGER NOT NULL DEFAULT 32,
+                    check_length INTEGER NOT NULL DEFAULT 0,
+                    min_nick_length INTEGER NOT NULL DEFAULT 2,
+                    max_nick_length INTEGER NOT NULL DEFAULT 32,
                     preserve_spaces BOOLEAN NOT NULL DEFAULT TRUE,
-                    cooldown_sec INTEGER NOT NULL DEFAULT 60,
+                    cooldown_seconds INTEGER NOT NULL DEFAULT 60,
                     sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE,
                     enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     logging_channel_id BIGINT,
@@ -306,17 +306,17 @@ class Database:
         assert self.pool is not None
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
-                "SELECT guild_id, check_n, min_len, max_len, preserve_spaces, cooldown_sec, sanitize_emoji, enabled, logging_channel_id, bypass_role_id, fallback_label, enforce_bots FROM guild_settings WHERE guild_id=$1",
+                "SELECT guild_id, check_length, min_nick_length, max_nick_length, preserve_spaces, cooldown_seconds, sanitize_emoji, enabled, logging_channel_id, bypass_role_id, fallback_label, enforce_bots FROM guild_settings WHERE guild_id=$1",
                 guild_id,
             )
             if row:
                 return GuildSettings(
                     guild_id=row["guild_id"],
-                    check_length=row["check_n"],
-                    min_nick_length=row["min_len"],
-                    max_nick_length=row["max_len"],
+                    check_length=row["check_length"],
+                    min_nick_length=row["min_nick_length"],
+                    max_nick_length=row["max_nick_length"],
                     preserve_spaces=row["preserve_spaces"],
-                    cooldown_seconds=row["cooldown_sec"],
+                    cooldown_seconds=row["cooldown_seconds"],
                     sanitize_emoji=row["sanitize_emoji"],
                     enabled=row["enabled"],
                     logging_channel_id=row.get("logging_channel_id"),
@@ -338,11 +338,11 @@ class Database:
             raise ValueError("Attempt to modify a protected variable")
 
         columns = {
-            "check_length": "check_n",
-            "min_nick_length": "min_len",
-            "max_nick_length": "max_len",
+            "check_length": "check_length",
+            "min_nick_length": "min_nick_length",
+            "max_nick_length": "max_nick_length",
             "preserve_spaces": "preserve_spaces",
-            "cooldown_seconds": "cooldown_sec",
+            "cooldown_seconds": "cooldown_seconds",
             "sanitize_emoji": "sanitize_emoji",
             "enabled": "enabled",
             "logging_channel_id": "logging_channel_id",
@@ -647,7 +647,7 @@ class SanitizerBot(discord.Client):
         @app_commands.describe(
             key="Policy key to change (ignored if 'pairs' is provided)",
             value="New value for the policy key (leave empty to view current)",
-            pairs="Multiple key=value pairs separated by spaces, e.g. 'min_len=3 max_len=24'",
+            pairs="Multiple key=value pairs separated by spaces, e.g. 'min_nick_length=3 max_nick_length=24'",
         )
         @app_commands.autocomplete(key=self._ac_policy_key, value=self._ac_policy_value)
         async def _set_policy(
@@ -666,27 +666,27 @@ class SanitizerBot(discord.Client):
         async def _set_check_count(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
-            await self.cmd_set_check_n(interaction, value)
+            await self.cmd_set_check_length(interaction, value)
 
         @self.tree.command(
             name="set-min-length",
             description="Bot Admin Only: Set or view the minimum allowed nickname length",
         )
         @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_min_length(
+        async def _set_min_nick_lengthgth(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
-            await self.cmd_set_min_len(interaction, value)
+            await self.cmd_set_min_nick_length(interaction, value)
 
         @self.tree.command(
             name="set-max-length",
             description="Bot Admin Only: Set or view the maximum allowed nickname length",
         )
         @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_max_length(
+        async def _set_max_nick_lengthgth(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
-            await self.cmd_set_max_len(interaction, value)
+            await self.cmd_set_max_nick_length(interaction, value)
 
         @self.tree.command(
             name="set-keep-spaces",
@@ -705,7 +705,7 @@ class SanitizerBot(discord.Client):
         async def _set_cooldown(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
-            await self.cmd_set_cooldown_sec(interaction, value)
+            await self.cmd_set_cooldown_seconds(interaction, value)
 
         @self.tree.command(
             name="set-emoji-sanitization",
@@ -1220,14 +1220,14 @@ class SanitizerBot(discord.Client):
         key = (key or "").lower()
 
         aliases = {
-            "check_length": "check_n",
-            "min_nick_length": "min_len",
-            "max_nick_length": "max_len",
-            "cooldown_seconds": "cooldown_sec",
+            "check_length": "check_length",
+            "min_nick_length": "min_nick_length",
+            "max_nick_length": "max_nick_length",
+            "cooldown_seconds": "cooldown_seconds",
             "fallback_label": "fallback_label",
         }
         key = aliases.get(key, key)
-        if key in {"check_n", "min_len", "max_len", "cooldown_sec"}:
+        if key in {"check_length", "min_nick_length", "max_nick_length", "cooldown_seconds"}:
 
             choices = await self._ac_int_value(interaction, current)
             return [
@@ -1268,10 +1268,10 @@ class SanitizerBot(discord.Client):
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
 
         key_alias = {
-            "check_length": "check_n",
-            "min_nick_length": "min_len",
-            "max_nick_length": "max_len",
-            "cooldown_seconds": "cooldown_sec",
+            "check_length": "check_length",
+            "min_nick_length": "min_nick_length",
+            "max_nick_length": "max_nick_length",
+            "cooldown_seconds": "cooldown_seconds",
             "fallback_label": "fallback_label",
             "enforce_bots": "enforce_bots",
         }
@@ -1306,7 +1306,7 @@ class SanitizerBot(discord.Client):
                 k = key_alias.get(raw_k, raw_k)
                 v_raw = v_raw.strip()
                 try:
-                    if k in {"check_n", "min_len", "max_len", "cooldown_sec"}:
+                    if k in {"check_length", "min_nick_length", "max_nick_length", "cooldown_seconds"}:
                         v = int(v_raw)
                     elif k in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
                         v = parse_bool_str(v_raw)
@@ -1362,15 +1362,15 @@ class SanitizerBot(discord.Client):
 
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)
-            if key == "check_n":
+            if key == "check_length":
                 cur = s.check_length
-            elif key == "min_len":
+            elif key == "min_nick_length":
                 cur = s.min_nick_length
-            elif key == "max_len":
+            elif key == "max_nick_length":
                 cur = s.max_nick_length
             elif key == "preserve_spaces":
                 cur = s.preserve_spaces
-            elif key == "cooldown_sec":
+            elif key == "cooldown_seconds":
                 cur = s.cooldown_seconds
             elif key == "sanitize_emoji":
                 cur = s.sanitize_emoji
@@ -1391,7 +1391,7 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(text, ephemeral=True)
             return
         try:
-            if key in {"check_n", "min_len", "max_len", "cooldown_sec"}:
+            if key in {"check_length", "min_nick_length", "max_nick_length", "cooldown_seconds"}:
                 v = int(value)
             elif key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
                 v = parse_bool_str(value)
@@ -1464,7 +1464,7 @@ class SanitizerBot(discord.Client):
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_set_check_n(
+    async def cmd_set_check_length(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
         if value is None:
@@ -1475,7 +1475,7 @@ class SanitizerBot(discord.Client):
             return
         await self.cmd_set_setting(interaction, "check_length", str(value))
 
-    async def cmd_set_min_len(
+    async def cmd_set_min_nick_length(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
         if value is None:
@@ -1486,7 +1486,7 @@ class SanitizerBot(discord.Client):
             return
         await self.cmd_set_setting(interaction, "min_nick_length", str(value))
 
-    async def cmd_set_max_len(
+    async def cmd_set_max_nick_length(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
         if value is None:
@@ -1510,7 +1510,7 @@ class SanitizerBot(discord.Client):
             interaction, "preserve_spaces", "true" if value else "false"
         )
 
-    async def cmd_set_cooldown_sec(
+    async def cmd_set_cooldown_seconds(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
         if value is None:
