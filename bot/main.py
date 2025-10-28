@@ -18,18 +18,18 @@ Documentation-only edits should not modify runtime behavior.
 import asyncio
 import logging
 import os
-import regex as re
+import regex as re # type: ignore
 import signal
 import time
 
-import asyncpg
-import discord
-from discord import app_commands
-from discord.ext import tasks
+import asyncpg # type: ignore
+import discord # type: ignore
+from discord import app_commands # type: ignore
+from discord.ext import tasks # type: ignore
 import sys
 from dataclasses import dataclass
 from typing import Optional
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
 log = logging.getLogger("sanitizerbot")
 logging.basicConfig(level=logging.INFO)
@@ -429,7 +429,7 @@ intents.guilds = True
 intents.message_content = False
 intents.presences = False
 
-_validate_discord_token(DISCORD_TOKEN)
+_validate_discord_token(DISCORD_TOKEN) # type: ignore
 
 class SanitizerBot(discord.Client):
     def __init__(self):
@@ -593,7 +593,7 @@ class SanitizerBot(discord.Client):
             log.warning("[STATUS] No guilds detected. Bot is not in any servers.")
 
         log.info("[STATUS] Starting member sweep background task.")
-        self.member_sweep.start()
+        self.member_sweep.start() # type: ignore
 
     async def on_guild_join(self, guild: discord.Guild):
         log.info(f"[EVENT] Bot joined new guild: {guild.name} ({guild.id})")
@@ -683,7 +683,7 @@ class SanitizerBot(discord.Client):
                         ch = None
                 if isinstance(ch, (discord.TextChannel, discord.Thread)):
                     try:
-                        await ch.send(f"Nickname updated: {member.mention} — '{name_now}' → '{candidate}' (via {source})")
+                        await ch.send(f"Nickname updated: {member.mention} — '{name_now}' → '{candidate}' (via {source})") # type: ignore
                     except Exception:
                         pass
         except discord.Forbidden:
@@ -722,7 +722,7 @@ class SanitizerBot(discord.Client):
         await self.wait_until_ready()
 
     async def close(self):
-        self.member_sweep.cancel()
+        self.member_sweep.cancel() # type: ignore
         await super().close()
 
     def _is_guild_admin(self, member: discord.Member) -> bool:
@@ -1007,42 +1007,42 @@ class SanitizerBot(discord.Client):
 
     async def cmd_set_check_n(self, interaction: discord.Interaction, value: Optional[int] = None):
         if value is None:
-            s = await self.db.get_settings(interaction.guild.id)
+            s = await self.db.get_settings(interaction.guild.id) # type: ignore
             await interaction.response.send_message(f"Current check_length: {s.check_length}", ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "check_n", str(value))
 
     async def cmd_set_min_len(self, interaction: discord.Interaction, value: Optional[int] = None):
         if value is None:
-            s = await self.db.get_settings(interaction.guild.id)
+            s = await self.db.get_settings(interaction.guild.id) # type: ignore
             await interaction.response.send_message(f"Current min_nick_length: {s.min_nick_length}", ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "min_len", str(value))
 
     async def cmd_set_max_len(self, interaction: discord.Interaction, value: Optional[int] = None):
         if value is None:
-            s = await self.db.get_settings(interaction.guild.id)
+            s = await self.db.get_settings(interaction.guild.id) # type: ignore
             await interaction.response.send_message(f"Current max_nick_length: {s.max_nick_length}", ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "max_len", str(value))
 
     async def cmd_set_preserve_spaces(self, interaction: discord.Interaction, value: Optional[bool] = None):
         if value is None:
-            s = await self.db.get_settings(interaction.guild.id)
+            s = await self.db.get_settings(interaction.guild.id) # type: ignore
             await interaction.response.send_message(f"Current preserve_spaces: {s.preserve_spaces}", ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "preserve_spaces", "true" if value else "false")
 
     async def cmd_set_cooldown_sec(self, interaction: discord.Interaction, value: Optional[int] = None):
         if value is None:
-            s = await self.db.get_settings(interaction.guild.id)
+            s = await self.db.get_settings(interaction.guild.id) # type: ignore
             await interaction.response.send_message(f"Current cooldown_seconds: {s.cooldown_seconds}", ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "cooldown_sec", str(value))
 
     async def cmd_set_sanitize_emoji(self, interaction: discord.Interaction, value: Optional[bool] = None):
         if value is None:
-            s = await self.db.get_settings(interaction.guild.id)
+            s = await self.db.get_settings(interaction.guild.id) # type: ignore
             await interaction.response.send_message(f"Current sanitize_emoji: {s.sanitize_emoji}", ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "sanitize_emoji", "true" if value else "false")
@@ -1307,7 +1307,7 @@ class SanitizerBot(discord.Client):
                     ch = None
             if isinstance(ch, (discord.TextChannel, discord.Thread)):
                 try:
-                    await ch.send(content)
+                    await ch.send(content) # type: ignore
                     sent += 1
                 except Exception:
                     pass
