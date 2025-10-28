@@ -84,6 +84,7 @@ MAX_NICK_LENGTH = getenv_int("MAX_NICK_LENGTH", 32)
 PRESERVE_SPACES = getenv_bool("PRESERVE_SPACES", True)
 SANITIZE_EMOJI = getenv_bool("SANITIZE_EMOJI", True)
 ENFORCE_BOTS = getenv_bool("ENFORCE_BOTS", False)
+COOLDOWN_TTL_SEC = getenv_int("COOLDOWN_TTL_SEC", max(86400, COOLDOWN_SECONDS * 10))
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID", "221701506561212416") or "221701506561212416")
@@ -230,6 +231,74 @@ class Database:
                 );
                 """
             )
+
+    async def delete_user_data_global(self, user_id: int) -> tuple[int, int]:
+        """Delete stored data for a user across all guilds.
+
+        Returns (cooldowns_deleted, admin_rows_deleted).
+        """
+        assert self.pool is not None
+        async with self.pool.acquire() as conn:
+            res1 = await conn.execute(
+                "DELETE FROM user_cooldowns WHERE user_id=$1", user_id
+            )
+            res2 = await conn.execute(
+                "DELETE FROM guild_admins WHERE user_id=$1", user_id
+            )
+            try:
+                n1 = int(res1.split()[-1])
+            except Exception:
+                n1 = 0
+            try:
+                n2 = int(res2.split()[-1])
+            except Exception:
+                n2 = 0
+            return n1, n2
+
+    async def delete_user_data_in_guild(self, guild_id: int, user_id: int) -> tuple[int, int]:
+        """Delete stored data for a user in a single guild.
+
+        Cooldowns are global, so this also clears any cooldown entry if present.
+        Returns (cooldowns_deleted, admin_rows_deleted_in_guild).
+        """
+        assert self.pool is not None
+        async with self.pool.acquire() as conn:
+            res1 = await conn.execute(
+                "DELETE FROM user_cooldowns WHERE user_id=$1", user_id
+            )
+            res2 = await conn.execute(
+                "DELETE FROM guild_admins WHERE guild_id=$1 AND user_id=$2",
+                guild_id,
+                user_id,
+            )
+            try:
+                n1 = int(res1.split()[-1])
+            except Exception:
+                n1 = 0
+            try:
+                n2 = int(res2.split()[-1])
+            except Exception:
+                n2 = 0
+            return n1, n2
+
+    async def clear_all_user_data(self) -> tuple[int, int]:
+        """Delete all user-related data across all servers.
+
+        Returns (cooldowns_deleted, admin_rows_deleted).
+        """
+        assert self.pool is not None
+        async with self.pool.acquire() as conn:
+            res1 = await conn.execute("DELETE FROM user_cooldowns")
+            res2 = await conn.execute("DELETE FROM guild_admins")
+            try:
+                n1 = int(res1.split()[-1])
+            except Exception:
+                n1 = 0
+            try:
+                n2 = int(res2.split()[-1])
+            except Exception:
+                n2 = 0
+            return n1, n2
 
     async def get_settings(self, guild_id: int) -> GuildSettings:
         assert self.pool is not None
@@ -550,28 +619,28 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="enable-sanitizer",
-            description="Enable the sanitizer in this server (bot admin only)",
+            description="Bot Admin Only: Enable the sanitizer in this server",
         )
         async def _enable(interaction: discord.Interaction):
             await self.cmd_start(interaction)
 
         @self.tree.command(
             name="disable-sanitizer",
-            description="Disable the sanitizer in this server (bot admin only)",
+            description="Bot Admin Only: Disable the sanitizer in this server",
         )
         async def _disable(interaction: discord.Interaction):
             await self.cmd_stop(interaction)
 
         @self.tree.command(
             name="sanitize-user",
-            description="Clean up a member's nickname now (requires Manage Nicknames or bot admin)",
+            description="Manage Nicknames Required: Clean up a member's nickname now",
         )
         async def _sanitize(interaction: discord.Interaction, member: discord.Member):
             await self.cmd_sanitize(interaction, member)
 
         @self.tree.command(
             name="set-policy",
-            description="Set or view policy values; supports multiple updates (bot admin only)",
+            description="Bot Admin Only: Set or view policy values; supports multiple updates",
         )
         @app_commands.describe(
             key="Policy key to change (ignored if 'pairs' is provided)",
@@ -589,7 +658,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-check-count",
-            description="Set or view the number of leading characters (grapheme clusters) to sanitize (bot admin only)",
+            description="Bot Admin Only: Set or view the number of leading characters (grapheme clusters) to sanitize",
         )
         @app_commands.autocomplete(value=self._ac_int_value)
         async def _set_check_count(
@@ -599,7 +668,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-min-length",
-            description="Set or view the minimum allowed nickname length (bot admin only)",
+            description="Bot Admin Only: Set or view the minimum allowed nickname length",
         )
         @app_commands.autocomplete(value=self._ac_int_value)
         async def _set_min_length(
@@ -609,7 +678,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-max-length",
-            description="Set or view the maximum allowed nickname length (bot admin only)",
+            description="Bot Admin Only: Set or view the maximum allowed nickname length",
         )
         @app_commands.autocomplete(value=self._ac_int_value)
         async def _set_max_length(
@@ -619,7 +688,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-keep-spaces",
-            description="Set or view whether to keep original spacing (true) or normalize spaces (false) (bot admin only)",
+            description="Set or view whether to keep original spacing (true) or normalize spaces (false)",
         )
         async def _set_keep_spaces(
             interaction: discord.Interaction, value: Optional[bool] = None
@@ -628,7 +697,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-cooldown-seconds",
-            description="Set or view the cooldown (in seconds) between nickname edits per user (bot admin only)",
+            description="Bot Admin Only: Set or view the cooldown (in seconds) between nickname edits per user",
         )
         @app_commands.autocomplete(value=self._ac_int_value)
         async def _set_cooldown(
@@ -638,7 +707,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-emoji-sanitization",
-            description="Enable/disable removing emoji in nicknames or view current value (bot admin only)",
+            description="Bot Admin Only: Enable/disable removing emoji in nicknames or view current value",
         )
         async def _set_emoji(
             interaction: discord.Interaction, value: Optional[bool] = None
@@ -647,7 +716,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-enforce-bots",
-            description="Enable/disable enforcing nickname rules on other bots or view current value (bot admin only)",
+            description="Bot Admin Only: Enable/disable enforcing nickname rules on other bots or view current value",
         )
         async def _set_enforce_bots(
             interaction: discord.Interaction, value: Optional[bool] = None
@@ -656,7 +725,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-logging-channel",
-            description="Set or view the channel to receive nickname change logs (bot admin only)",
+            description="Bot Admin Only: Set or view the channel to receive nickname change logs",
         )
         async def _set_logging_channel(
             interaction: discord.Interaction,
@@ -666,7 +735,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-bypass-role",
-            description="Set or view a role that bypasses nickname sanitization (bot admin only)",
+            description="Bot Admin Only: Set or view a role that bypasses nickname sanitization",
         )
         async def _set_bypass_role(
             interaction: discord.Interaction, role: Optional[discord.Role] = None
@@ -675,56 +744,56 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="clear-logging-channel",
-            description="Clear the logging channel (bot admin only)",
+            description="Bot Admin Only: Clear the logging channel",
         )
         async def _clear_logging_channel(interaction: discord.Interaction):
             await self.cmd_clear_logging_channel(interaction)
 
         @self.tree.command(
             name="clear-bypass-role",
-            description="Clear the bypass role (bot admin only)",
+            description="Bot Admin Only: Clear the bypass role",
         )
         async def _clear_bypass_role(interaction: discord.Interaction):
             await self.cmd_clear_bypass_role(interaction)
 
         @self.tree.command(
             name="nuke-bot-admins",
-            description="Remove all bot admins in this server (owner only)",
+            description="Bot Owner Only: Remove all bot admins in this server",
         )
         async def _nuke_admins(interaction: discord.Interaction):
             await self.cmd_nuke_bot_admins(interaction)
 
         @self.tree.command(
             name="global-bot-disable",
-            description="Disable the sanitizer bot in all servers (owner only)",
+            description="Bot Owner Only: Disable the sanitizer bot in all servers",
         )
         async def _global_disable(interaction: discord.Interaction):
             await self.cmd_global_bot_disable(interaction)
 
         @self.tree.command(
             name="global-nuke-bot-admins",
-            description="Remove all bot admins in all servers (owner only)",
+            description="Bot Owner Only: Remove all bot admins in all servers",
         )
         async def _global_nuke_admins(interaction: discord.Interaction):
             await self.cmd_global_nuke_bot_admins(interaction)
 
         @self.tree.command(
             name="add-bot-admin",
-            description="Add a bot admin for this server (owner only)",
+            description="Bot Owner Only: Add a bot admin for this server",
         )
         async def _add_admin(interaction: discord.Interaction, user: discord.Member):
             await self.cmd_add_admin(interaction, user)
 
         @self.tree.command(
             name="remove-bot-admin",
-            description="Remove a bot admin for this server (owner only)",
+            description="Bot Owner Only: Remove a bot admin for this server",
         )
         async def _remove_admin(interaction: discord.Interaction, user: discord.Member):
             await self.cmd_remove_admin(interaction, user)
 
         @self.tree.command(
             name="set-fallback-label",
-            description="Set or view the fallback nickname used when a name is fully illegal (bot admin only)",
+            description="Bot Admin Only: Set or view the fallback nickname used when a name is fully illegal",
         )
         async def _set_fallback_label(
             interaction: discord.Interaction, value: Optional[str] = None
@@ -733,24 +802,49 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="clear-fallback-label",
-            description="Clear the fallback nickname (bot admin only)",
+            description="Bot Admin Only: Clear the fallback nickname",
         )
         async def _clear_fallback_label(interaction: discord.Interaction):
             await self.cmd_clear_fallback_label(interaction)
 
         @self.tree.command(
             name="reset-settings",
-            description="Reset all sanitizer settings to defaults for this server (bot admin only)",
+            description="Bot Admin Only: Reset all sanitizer settings to defaults for this server",
         )
         async def _reset_settings(interaction: discord.Interaction):
             await self.cmd_reset_settings(interaction)
 
         @self.tree.command(
             name="global-reset-settings",
-            description="Reset all sanitizer settings to defaults across all servers (owner only)",
+            description="Bot Owner Only: Reset all sanitizer settings to defaults across all servers",
         )
         async def _global_reset_settings(interaction: discord.Interaction):
             await self.cmd_global_reset_settings(interaction)
+
+        @self.tree.command(
+            name="delete-my-data",
+            description="Everyone: Delete any of your data stored by the bot in this server (cooldowns/admin entries)",
+        )
+        async def _delete_my_data(interaction: discord.Interaction):
+            await self.cmd_delete_my_data(interaction)
+
+        @self.tree.command(
+            name="delete-user-data",
+            description="Bot Owner Only: Delete a user's stored data across all servers (cooldowns/admin entries)",
+        )
+        async def _owner_delete_user_data(
+            interaction: discord.Interaction, user: discord.User
+        ):
+            await self.cmd_delete_user_data(interaction, user)
+
+        @self.tree.command(
+            name="global-delete-user-data",
+            description="Bot Owner Only: Delete all user data across all servers and announce in configured logging channels",
+        )
+        async def _global_delete_user_data(
+            interaction: discord.Interaction,
+        ):
+            await self.cmd_global_delete_user_data(interaction)
 
     async def setup_hook(self) -> None:
 
@@ -900,6 +994,13 @@ class SanitizerBot(discord.Client):
     async def member_sweep(self):
         total = 0
         for guild in list(self.guilds):
+
+            # Periodically clear expired cooldowns to minimize data retention
+            if self.db:
+                try:
+                    await self.db.clear_expired_cooldowns(COOLDOWN_TTL_SEC)
+                except Exception as e:
+                    log.debug("clear_expired_cooldowns failed: %s", e)
 
             settings = GuildSettings(guild_id=guild.id)
             if self.db:
@@ -1617,6 +1718,86 @@ class SanitizerBot(discord.Client):
             f"Reset settings to defaults across {count} server(s). Pre-reset alert sent to {sent} guild(s).",
             ephemeral=True,
         )
+
+    async def cmd_delete_my_data(self, interaction: discord.Interaction):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        try:
+            c1, c2 = await self.db.delete_user_data_in_guild(
+                interaction.guild.id, interaction.user.id
+            )
+            await interaction.response.send_message(
+                f"Deleted your stored entries in this server (cooldowns: {c1}, admin entries: {c2}).",
+                ephemeral=True,
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to delete your data: {e}", ephemeral=True
+            )
+
+    async def cmd_delete_user_data(
+        self, interaction: discord.Interaction, user: discord.User
+    ):
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        try:
+            n1, n2 = await self.db.delete_user_data_global(user.id)
+            await interaction.response.send_message(
+                f"Deleted data for {user.mention} across all servers (cooldowns: {n1}, admin entries: {n2}).",
+                ephemeral=True,
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to delete data for {user.mention}: {e}", ephemeral=True
+            )
+
+    async def cmd_global_delete_user_data(
+        self, interaction: discord.Interaction,
+    ):
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        try:
+            n1, n2 = await self.db.clear_all_user_data()
+            # Announce to configured logging channels that a global purge occurred
+            try:
+                sent = await self._broadcast_to_log_channels(
+                    f"Global action by owner {interaction.user.mention}: Deleted ALL stored user data across all servers (cooldowns cleared: {n1}, admin entries removed: {n2})."
+                )
+                log.info("Announced user data deletion to %d guild(s).", sent)
+            except Exception as be:
+                log.debug("Failed to broadcast deletion announcement: %s", be)
+            await interaction.response.send_message(
+                f"Deleted ALL stored user data across all servers (cooldowns: {n1}, admin entries: {n2}). Announcement sent to logging channels where configured.",
+                ephemeral=True,
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to delete all user data: {e}", ephemeral=True
+            )
 
     async def cmd_nuke_bot_admins(self, interaction: discord.Interaction):
         if not interaction.guild:

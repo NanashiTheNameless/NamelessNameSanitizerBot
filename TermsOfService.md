@@ -20,18 +20,22 @@ You agree not to:
 - Use the Bot in violation of any law or regulation.
 - Use the Bot to harass, discriminate, or otherwise harm individuals or communities.
 - Attempt to disrupt, reverse engineer, or exploit the Bot.
+- Bypass or misuse Discord’s API, rate limits, or policies. You must comply with Discord Developer Terms and Policies at all times.
 
 ## 4. Permissions and Data
 
 - The Bot requires certain permissions (e.g., Manage Nicknames) to function correctly.
 - The Bot processes and stores minimal configuration data as described in the Privacy Policy.
 - The Bot does not read or store message content.
+- You must not store or export Bot data for purposes unrelated to moderation without appropriate notice and legal basis.
+- You must inform server members that nickname changes may be enforced by automation (e.g., via server rules or announcements).
 
 ## 5. Availability and Updates
 
 - The Bot is provided on an "as is" and "as available" basis. Uptime is not guaranteed.
 - Features may change, be added, or be removed at any time.
 - We may update these Terms at any time. Continued use indicates acceptance.
+- Material changes will be reflected by the "Last updated" date. Continued use after changes constitutes acceptance.
 
 ## 6. Limitation of Liability
 
@@ -54,3 +58,7 @@ You agree to indemnify and hold harmless the maintainers and contributors from a
 ## 10. Contact
 
 For questions about these Terms, open an issue on the repository or contact the server owner/operator.
+
+## 11. Governing Law
+
+These Terms are governed by the laws of the operator’s jurisdiction unless otherwise required by applicable law.

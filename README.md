@@ -40,6 +40,7 @@ Policy defaults (used until changed per-guild via commands)
 - COOLDOWN_SECONDS: integer, default 60 — cooldown between edits per user
 - SANITIZE_EMOJI: true|false, default true — if true, emoji are removed
 - ENFORCE_BOTS: true|false, default false — default toggle for enforcing nickname rules on other bot accounts. The bot never sanitizes its own account.
+- COOLDOWN_TTL_SEC: integer, default max(86400, COOLDOWN_SECONDS*10) — retention for per-user cooldown entries; older entries are purged automatically.
 
 Runtime
 
@@ -107,6 +108,8 @@ Owner-only
 - /global-bot-disable — disable the bot across all servers
 - /global-nuke-bot-admins — remove all bot admins across all servers
 - /global-reset-settings — reset sanitizer settings to defaults across all servers
+- /delete-user-data user:@User — delete that user's stored data across all servers (cooldowns/admin entries)
+- /global-delete-user-data — delete ALL user data across all servers and announce in configured logging channels
 
 Bot admin
 
@@ -127,6 +130,9 @@ Bot admin
 - /set-fallback-label [value:str] — set or view the fallback nickname used when a name is fully illegal (1–20 characters: letters, numbers, spaces, or dashes)
 - /clear-fallback-label — clear the fallback nickname
 - /reset-settings — reset this server’s sanitizer settings to defaults
+User controls
+
+- /delete-my-data — deletes your stored data in the current server (cooldowns/admin entries)
 
 Guild/Server Admin
 
@@ -161,6 +167,8 @@ Notes
 
 - The bot does not log message content and doesn’t require the Message Content intent.
 - Logging channel (if set) only receives a short notice when a nickname is changed.
+- Minimal data storage: per-guild config and per-user cooldown timestamps. Cooldowns are purged automatically after COOLDOWN_TTL_SEC.
+- Users can request deletion via /delete-my-data; bot owners can execute /owner-delete-user-data when legally required.
 
 Related policies:
 

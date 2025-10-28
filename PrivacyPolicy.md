@@ -25,6 +25,7 @@ The Bot does not process or store message content and does not require the Messa
 - No message content is stored.
 - Configuration is retained until modified or deleted by server administrators or the operator.
 - Cooldown entries expire automatically based on the configured cooldown interval.
+- Additionally, old cooldown entries are purged automatically after `COOLDOWN_TTL_SEC` (environment variable) to minimize retention.
 
 ## Data Sharing
 
@@ -44,6 +45,7 @@ The Bot does not process or store message content and does not require the Messa
   - Configure a logging channel and bypass role.
   - Manage bot admins.
 - Users may contact the server administrators or the operator to request changes to their nickname or to raise concerns.
+  - Users can run `/delete-my-data` to delete any of their stored entries in a server (cooldowns/admin entries). The bot owner may run `/delete-user-data` to delete a specific user's data across servers, and `/global-delete-user-data` deletes ALL user data across servers and may announce the action in configured logging channels for audit transparency.
 
 ## International Transfers
 
