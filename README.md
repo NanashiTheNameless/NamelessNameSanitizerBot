@@ -169,7 +169,7 @@ Related policies:
 
 ## License & Credits
 
-See `license.md`.
+See [license.md](<./license.md>).
 
 [All Major Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanatizerBot/blob/main/CONTRIBUTORS.md>)
 
