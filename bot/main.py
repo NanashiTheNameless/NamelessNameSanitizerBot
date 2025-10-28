@@ -170,7 +170,6 @@ class Database:
             await conn.execute(
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE"
             )
-            # Backwards-compatibility: rename legacy columns if present
             cols = await conn.fetch(
                 """
                 SELECT column_name FROM information_schema.columns
@@ -178,7 +177,6 @@ class Database:
                 """
             )
             colset = {r[0] for r in cols}
-            # Map of old_name -> new_name
             renames = {
                 "check_n": "check_length",
                 "min_len": "min_nick_length",
@@ -191,11 +189,9 @@ class Database:
                         await conn.execute(
                             f"ALTER TABLE guild_settings RENAME COLUMN {old} TO {new}"
                         )
-                        # reflect rename
                         colset.remove(old)
                         colset.add(new)
                     except Exception:
-                        # If rename fails (permissions or race), continue; subsequent queries may still work if both exist
                         pass
             await conn.execute(
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE"
