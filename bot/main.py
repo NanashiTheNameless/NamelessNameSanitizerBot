@@ -1801,13 +1801,6 @@ class SanitizerBot(discord.Client):
             return
         try:
             n1, n2 = await self.db.clear_all_user_data()
-            if (n1 or 0) + (n2 or 0) == 0:
-                await interaction.response.send_message(
-                    "No user data existed to delete across all servers; nothing changed.",
-                    ephemeral=True,
-                )
-                return
-            # Announce to configured logging channels that a global purge occurred
             try:
                 sent = await self._broadcast_to_log_channels(
                     f"Global action by owner {interaction.user.mention}: Deleted ALL stored user data across all servers (cooldowns cleared: {n1}, admin entries removed: {n2})."
