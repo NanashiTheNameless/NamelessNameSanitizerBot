@@ -17,6 +17,8 @@ jobs:
 
       - name: Install typos
         uses: crate-ci/typos@80c8a4945eec0f6d464eaf9e65ed98ef085283d1
+        env:
+          INSTALL_DIR: ${{ runner.temp }}
         with:
           files: .
           config: typos.toml
