@@ -255,7 +255,9 @@ class Database:
                 n2 = 0
             return n1, n2
 
-    async def delete_user_data_in_guild(self, guild_id: int, user_id: int) -> tuple[int, int]:
+    async def delete_user_data_in_guild(
+        self, guild_id: int, user_id: int
+    ) -> tuple[int, int]:
         """Delete stored data for a user in a single guild.
 
         Cooldowns are global, so this also clears any cooldown entry if present.
@@ -1768,7 +1770,8 @@ class SanitizerBot(discord.Client):
             )
 
     async def cmd_global_delete_user_data(
-        self, interaction: discord.Interaction,
+        self,
+        interaction: discord.Interaction,
     ):
         if not self.db:
             await interaction.response.send_message(
