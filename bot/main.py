@@ -389,7 +389,7 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
         candidate = f"user{int(time.time() * 1000) % 10000:04d}"
 
     if len(candidate) > settings.max_nick_length:
-    candidate = candidate[:settings.max_nick_length]
+        candidate = candidate[:settings.max_nick_length]
 
     return candidate
 
