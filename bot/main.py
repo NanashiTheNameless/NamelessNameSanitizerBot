@@ -96,6 +96,7 @@ class GuildSettings:
     logging_channel_id: Optional[int] = None
     bypass_role_id: Optional[int] = None
     fallback_label: Optional[str] = None
+    enforce_bots: bool = False
 
 class Database:
     def __init__(self, dsn: str):
@@ -123,7 +124,8 @@ class Database:
                     enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     logging_channel_id BIGINT,
                     bypass_role_id BIGINT,
-                    fallback_label TEXT
+                    fallback_label TEXT,
+                    enforce_bots BOOLEAN NOT NULL DEFAULT FALSE
                 );
                 """
             )
@@ -149,6 +151,7 @@ class Database:
             await conn.execute("ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT")
             await conn.execute("ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT")
             await conn.execute("ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT")
+            await conn.execute("ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE")
     async def get_cooldown(self, user_id: int) -> Optional[float]:
         assert self.pool is not None
         async with self.pool.acquire() as conn:
@@ -184,7 +187,7 @@ class Database:
         assert self.pool is not None
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
-                "SELECT guild_id, check_n, min_len, max_len, preserve_spaces, cooldown_sec, sanitize_emoji, enabled, logging_channel_id, bypass_role_id, fallback_label FROM guild_settings WHERE guild_id=$1",
+                "SELECT guild_id, check_n, min_len, max_len, preserve_spaces, cooldown_sec, sanitize_emoji, enabled, logging_channel_id, bypass_role_id, fallback_label, enforce_bots FROM guild_settings WHERE guild_id=$1",
                 guild_id,
             )
             if row:
@@ -200,6 +203,7 @@ class Database:
                     logging_channel_id=row.get("logging_channel_id"),
                     bypass_role_id=row.get("bypass_role_id"),
                     fallback_label=row.get("fallback_label"),
+                    enforce_bots=row.get("enforce_bots", False),
                 )
             return GuildSettings(guild_id=guild_id)
 
@@ -221,6 +225,7 @@ class Database:
             "logging_channel_id": "logging_channel_id",
             "bypass_role_id": "bypass_role_id",
             "fallback_label": "fallback_label",
+            "enforce_bots": "enforce_bots",
         }
         col = columns.get(key)
         if not col:
@@ -418,6 +423,7 @@ class SanitizerBot(discord.Client):
             discord.app_commands.Choice(name="cooldown_seconds (integer)", value="cooldown_seconds"),
             discord.app_commands.Choice(name="sanitize_emoji (true/false)", value="sanitize_emoji"),
             discord.app_commands.Choice(name="fallback_label (1-20, letters/numbers/spaces/dashes)", value="fallback_label"),
+            discord.app_commands.Choice(name="enforce_bots (true/false)", value="enforce_bots"),
         ]
 
     def _register_all_commands(self):
@@ -554,7 +560,12 @@ class SanitizerBot(discord.Client):
 
     async def on_member_join(self, member: discord.Member):
         if member.bot:
-            return
+            try:
+                settings = await self.db.get_settings(member.guild.id) if self.db else GuildSettings(guild_id=member.guild.id)
+            except Exception:
+                settings = GuildSettings(guild_id=member.guild.id)
+            if not settings.enforce_bots:
+                return
         await self._sanitize_member(member, source="join")
 
     async def on_message(self, message: discord.Message):
@@ -563,7 +574,12 @@ class SanitizerBot(discord.Client):
             return
 
         if message.author.bot:
-            return
+            try:
+                settings = await self.db.get_settings(message.guild.id) if self.db else GuildSettings(guild_id=message.guild.id)
+            except Exception:
+                settings = GuildSettings(guild_id=message.guild.id)
+            if not settings.enforce_bots:
+                return
 
         m = message.author
         if isinstance(m, discord.Member):
@@ -645,7 +661,7 @@ class SanitizerBot(discord.Client):
             processed = 0
             try:
                 async for member in guild.fetch_members(limit=None):
-                    if member.bot:
+                    if member.bot and not settings.enforce_bots:
                         continue
                     await self._sanitize_member(member, source="sweep")
                     processed += 1
@@ -788,6 +804,7 @@ class SanitizerBot(discord.Client):
             "max_nick_length": "max_len",
             "cooldown_seconds": "cooldown_sec",
             "fallback_label": "fallback_label",
+            "enforce_bots": "enforce_bots",
         }
         allowed_user_keys = {
             "check_length",
@@ -799,6 +816,7 @@ class SanitizerBot(discord.Client):
             "logging_channel_id",
             "bypass_role_id",
             "fallback_label",
+            "enforce_bots",
         }
 
         if pairs:
@@ -819,10 +837,12 @@ class SanitizerBot(discord.Client):
                 v_raw = v_raw.strip()
                 try:
                     if k in {"check_n", "min_len", "max_len", "cooldown_sec"}:
-                        v = int(v_raw)
+                        choices = await self._ac_int_value(interaction, current)
                     elif k == "preserve_spaces":
                         v = v_raw.lower() in ("1", "true", "yes", "on")
-                    elif k == "sanitize_emoji":
+                    if key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
+                        v = v_raw.lower() in ("1", "true", "yes", "on")
+                    elif k == "enforce_bots":
                         v = v_raw.lower() in ("1", "true", "yes", "on")
                     elif k in {"logging_channel_id", "bypass_role_id"}:
                         v = int(v_raw) if v_raw.lower() not in {"none", "null", "unset"} else None
@@ -876,6 +896,8 @@ class SanitizerBot(discord.Client):
                 cur = s.cooldown_seconds
             elif key == "sanitize_emoji":
                 cur = s.sanitize_emoji
+            elif key == "enforce_bots":
+                cur = s.enforce_bots
             elif key == "logging_channel_id":
                 cur = s.logging_channel_id
             elif key == "bypass_role_id":
@@ -894,6 +916,8 @@ class SanitizerBot(discord.Client):
             elif key == "preserve_spaces":
                 v = value.strip().lower() in ("1", "true", "yes", "on")
             elif key == "sanitize_emoji":
+                v = value.strip().lower() in ("1", "true", "yes", "on")
+            elif key == "enforce_bots":
                 v = value.strip().lower() in ("1", "true", "yes", "on")
             elif key in {"logging_channel_id", "bypass_role_id"}:
                 v = int(value) if value.strip().lower() not in {"none", "null", "unset"} else None
@@ -1169,6 +1193,11 @@ class SanitizerBot(discord.Client):
             try:
                 settings = await self.db.get_settings(guild.id)
             except Exception:
+                if member.bot:
+                    if self.user and member.id == self.user.id:
+                        return
+                    if not settings.enforce_bots:
+                        return
                 continue
             ch_id = getattr(settings, "logging_channel_id", None)
             if not ch_id:
