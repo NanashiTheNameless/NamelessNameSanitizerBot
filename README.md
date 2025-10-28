@@ -11,6 +11,7 @@ Discord bot that keeps member nicknames clean and consistent, with Unicode-aware
 - Optional logging channel for every nickname change
 - Optional bypass role so trusted members aren’t modified
 - Docker- and compose-friendly deployment with Postgres
+- Optional enforcement for bot accounts (disabled by default)
 
 ## Requirements
 
@@ -38,6 +39,7 @@ Policy defaults (used until changed per-guild via commands)
 - PRESERVE_SPACES: true|false, default true — keep or normalize spaces
 - COOLDOWN_SECONDS: integer, default 60 — cooldown between edits per user
 - SANITIZE_EMOJI: true|false, default true — if true, emoji are removed
+- ENFORCE_BOTS: true|false, default false — default toggle for enforcing nickname rules on other bot accounts. The bot never sanitizes its own account.
 
 Runtime
 
@@ -91,6 +93,8 @@ The bot sanitizes the leading part of nicknames using Unicode-aware rules:
 - Respects grapheme clusters so combined glyphs aren’t split
 - Applies length and spacing policies
 
+By default, other bots are not targeted. If you set `enforce_bots` to true for a guild, the bot will include bot accounts in sanitization actions. It will never attempt to change its own nickname.
+
 Policies are stored per guild in Postgres; defaults are derived from `.env` until you run commands to set them for a guild. The bot is disabled by default per guild; a bot admin must enable it in each server.
 
 ## Command reference
@@ -130,7 +134,7 @@ Notes
 
 - All command output is ephemeral.
 - /set-policy without a value shows the current value.
-- /set-policy pairs accepts keys: `check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label`.
+- /set-policy pairs accepts keys: `check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label, enforce_bots`.
 - Protected (cannot be set via commands): `OWNER_ID, DISCORD_TOKEN, SWEEP_BATCH, APPLICATION_ID`.
 - You can modify settings while the bot is disabled; changes will apply once you run `/enable-sanitizer` in the server.
 

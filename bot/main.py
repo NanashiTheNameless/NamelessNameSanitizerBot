@@ -70,6 +70,7 @@ MIN_NICK_LENGTH = getenv_int("MIN_NICK_LENGTH", 2)
 MAX_NICK_LENGTH = getenv_int("MAX_NICK_LENGTH", 32)
 PRESERVE_SPACES = getenv_bool("PRESERVE_SPACES", True)
 SANITIZE_EMOJI = getenv_bool("SANITIZE_EMOJI", True)
+ENFORCE_BOTS = getenv_bool("ENFORCE_BOTS", False)
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID", "221701506561212416") or "221701506561212416")
@@ -96,7 +97,7 @@ class GuildSettings:
     logging_channel_id: Optional[int] = None
     bypass_role_id: Optional[int] = None
     fallback_label: Optional[str] = None
-    enforce_bots: bool = False
+    enforce_bots: bool = ENFORCE_BOTS
 
 class Database:
     def __init__(self, dsn: str):
