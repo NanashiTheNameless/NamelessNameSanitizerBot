@@ -146,6 +146,10 @@ Guild/Server Admin
 
 - /sanitize-user member:Member — sanitize someone immediately (requires Manage Nicknames, or to be a bot admin)
 
+Public
+
+- /botinfo — shows instance owner, developer, and links to source, terms, and privacy
+
 Notes
 
 - All command output is ephemeral.

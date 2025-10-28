@@ -740,6 +740,27 @@ class SanitizerBot(discord.Client):
             await self.cmd_set_sanitize_emoji(interaction, value)
 
         @self.tree.command(
+            name="botinfo",
+            description="Show bot information, owner, developer, source and policies",
+        )
+        async def _botinfo(interaction: discord.Interaction):
+            try:
+                owner_mention = f"<@{OWNER_ID}>" if OWNER_ID else "Not configured"
+                dev_mention = "<@221701506561212416> (NamelessNanashi)"
+                msg = (
+                    f"**Instance Owner: {owner_mention}**\n"
+                    f"**Bot Developer: {dev_mention}**\n"
+                    f"[Source Code](<https://sanitizerbot.namelessnanashi.dev>)\n"
+                    f"[Terms Of Service](<https://sanitizerbottos.namelessnanashi.dev>)\n"
+                    f"[Privacy Policy](<https://sanitizerbotprivacy.namelessnanashi.dev>)"
+                )
+                await interaction.response.send_message(msg, ephemeral=True)
+            except Exception as e:
+                await interaction.response.send_message(
+                    f"Failed to fetch bot info: {e}", ephemeral=True
+                )
+
+        @self.tree.command(
             name="set-enforce-bots",
             description="Bot Admin Only: Enable/disable enforcing nickname rules on other bots or view current value",
         )
