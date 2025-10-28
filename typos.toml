@@ -1,0 +1,19 @@
+[default]
+# Fail CI if typos are found (job will still proceed to create PR when using --write-changes in the workflow)
+binary = false
+
+[files]
+# Exclude directories with generated or binary content
+extend-exclude = [
+  "pgdata/**",
+  "data/**",
+  ".git/**",
+]
+
+[default.extend-words]
+# Project-specific proper nouns and terms to accept
+NamelessName = "NamelessName"
+Nanashi = "Nanashi"
+
+# You can add additional accepted terms here as needed, e.g.:
+# APIKeys = "APIKeys"

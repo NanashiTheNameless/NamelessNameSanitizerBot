@@ -4,3 +4,5 @@ __pycache__
 .env
 # Experimental command cleaner  (contains secrets)
 clearcommands.py
+# megalinter files (uninteresting for most users)
+megalinter-reports/

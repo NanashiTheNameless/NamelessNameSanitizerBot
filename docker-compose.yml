@@ -5,7 +5,7 @@
 services:
   bot:
     build: .
-    container_name: NamelessNameSanatizerBot
+    container_name: NamelessNameSanitizerBot
     env_file:
       - .env
     restart: unless-stopped
