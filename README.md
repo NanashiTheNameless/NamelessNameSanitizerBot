@@ -106,12 +106,12 @@ Owner-only
 - /nuke-bot-admins — remove all bot admins in the current server
 - /global-bot-disable — disable the bot across all servers
 - /global-nuke-bot-admins — remove all bot admins across all servers
+- /global-reset-settings — reset sanitizer settings to defaults across all servers
 
-Bot admin (per guild)
+Bot admin
 
 - /enable-sanitizer — enable the bot for this server
 - /disable-sanitizer — disable the bot for this server
-- /sanitize-user member:Member — sanitize someone immediately (requires Manage Nicknames, or be a bot admin)
 - /set-policy key:key [value:value] [pairs:"k=v k=v ..."] — view or set policy; supports multi-update
 - /set-check-count [value:int]
 - /set-min-length [value:int]
@@ -119,22 +119,25 @@ Bot admin (per guild)
 - /set-keep-spaces [value:bool]
 - /set-cooldown-seconds [value:int]
 - /set-emoji-sanitization [value:bool]
+- /set-enforce-bots [value:bool]
 - /set-logging-channel [channel:#channel] — set or view logging channel
 - /clear-logging-channel — clear logging channel
 - /set-bypass-role [role:@Role] — set or view bypass role
 - /clear-bypass-role — clear bypass role
 - /set-fallback-label [value:str] — set or view the fallback nickname used when a name is fully illegal (1–20 characters: letters, numbers, spaces, or dashes)
 - /clear-fallback-label — clear the fallback nickname
+- /reset-settings — reset this server’s sanitizer settings to defaults
 
-Guild admin
+Guild/Server Admin
 
-- /sanitize-user member:Member — sanitize someone immediately (requires Manage Nicknames, or be a bot admin)
+- /sanitize-user member:Member — sanitize someone immediately (requires Manage Nicknames, or to be a bot admin)
 
 Notes
 
 - All command output is ephemeral.
 - /set-policy without a value shows the current value.
 - /set-policy pairs accepts keys: `check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label, enforce_bots`.
+- Boolean inputs for commands accept true/false, yes/no, on/off, and 1/0 (case-insensitive).
 - Protected (cannot be set via commands): `OWNER_ID, DISCORD_TOKEN, SWEEP_BATCH, APPLICATION_ID`.
 - You can modify settings while the bot is disabled; changes will apply once you run `/enable-sanitizer` in the server.
 

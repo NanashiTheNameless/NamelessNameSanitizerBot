@@ -64,6 +64,17 @@ def getenv_int_alias(keys, default):
                 break
     return default
 
+def parse_bool_str(val: str) -> bool:
+    """Parse a case-insensitive boolean string; accepts 1/0, true/false, yes/no, on/off.
+    Unrecognized values default to False.
+    """
+    v = (val or "").strip().lower()
+    if v in ("1", "true", "yes", "on", "t", "y"):
+        return True
+    if v in ("0", "false", "no", "off", "f", "n"):
+        return False
+    return False
+
 COOLDOWN_SECONDS = getenv_int("COOLDOWN_SECONDS", 60)
 CHECK_LENGTH = getenv_int("CHECK_LENGTH", 0)
 MIN_NICK_LENGTH = getenv_int("MIN_NICK_LENGTH", 2)
@@ -310,6 +321,26 @@ class Database:
             except Exception:
                 return 0
 
+    async def reset_guild_settings(self, guild_id: int) -> int:
+        """Delete settings row for a guild so defaults apply next time. Returns rows deleted."""
+        assert self.pool is not None
+        async with self.pool.acquire() as conn:
+            res = await conn.execute("DELETE FROM guild_settings WHERE guild_id=$1", guild_id)
+            try:
+                return int(res.split()[-1])
+            except Exception:
+                return 0
+
+    async def reset_all_settings(self) -> int:
+        """Delete all guild settings so defaults apply for all guilds. Returns rows deleted."""
+        assert self.pool is not None
+        async with self.pool.acquire() as conn:
+            res = await conn.execute("DELETE FROM guild_settings")
+            try:
+                return int(res.split()[-1])
+            except Exception:
+                return 0
+
 r"""Nickname sanitization helpers using the 'regex' package for Unicode handling."""
 
 _rm_marks = re.compile(r"[\p{Cf}\p{Cc}\p{Mn}\p{Me}]")
@@ -480,6 +511,10 @@ class SanitizerBot(discord.Client):
         async def _set_emoji(interaction: discord.Interaction, value: Optional[bool] = None):
             await self.cmd_set_sanitize_emoji(interaction, value)
 
+        @self.tree.command(name="set-enforce-bots", description="Enable/disable enforcing nickname rules on other bots or view current value (bot admin only)")
+        async def _set_enforce_bots(interaction: discord.Interaction, value: Optional[bool] = None):
+            await self.cmd_set_enforce_bots(interaction, value)
+
         @self.tree.command(name="set-logging-channel", description="Set or view the channel to receive nickname change logs (bot admin only)")
         async def _set_logging_channel(interaction: discord.Interaction, channel: Optional[discord.TextChannel] = None):
             await self.cmd_set_logging_channel(interaction, channel)
@@ -523,6 +558,14 @@ class SanitizerBot(discord.Client):
         @self.tree.command(name="clear-fallback-label", description="Clear the fallback nickname (bot admin only)")
         async def _clear_fallback_label(interaction: discord.Interaction):
             await self.cmd_clear_fallback_label(interaction)
+
+        @self.tree.command(name="reset-settings", description="Reset all sanitizer settings to defaults for this server (bot admin only)")
+        async def _reset_settings(interaction: discord.Interaction):
+            await self.cmd_reset_settings(interaction)
+
+        @self.tree.command(name="global-reset-settings", description="Reset all sanitizer settings to defaults across all servers (owner only)")
+        async def _global_reset_settings(interaction: discord.Interaction):
+            await self.cmd_global_reset_settings(interaction)
 
     async def setup_hook(self) -> None:
 
@@ -594,6 +637,12 @@ class SanitizerBot(discord.Client):
                 settings = await self.db.get_settings(member.guild.id)
             except Exception as e:
                 log.debug("Failed to get settings for guild %s: %s", member.guild.id, e)
+
+        if member.bot:
+            if self.user and member.id == self.user.id:
+                return
+            if not settings.enforce_bots:
+                return
 
         if not settings.enabled:
             return
@@ -750,6 +799,8 @@ class SanitizerBot(discord.Client):
             discord.app_commands.Choice(name="no", value="no"),
             discord.app_commands.Choice(name="on", value="on"),
             discord.app_commands.Choice(name="off", value="off"),
+            discord.app_commands.Choice(name="1", value="1"),
+            discord.app_commands.Choice(name="0", value="0"),
         ]
         current_l = (current or "").lower()
         return [c for c in opts if current_l in c.name][:25]
@@ -778,7 +829,7 @@ class SanitizerBot(discord.Client):
 
             choices = await self._ac_int_value(interaction, current)
             return [discord.app_commands.Choice(name=c.name, value=str(c.value)) for c in choices]
-        if key in {"preserve_spaces", "sanitize_emoji"}:
+        if key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
             return await self._ac_bool_value(interaction, current)
         return []
 
@@ -821,7 +872,6 @@ class SanitizerBot(discord.Client):
         }
 
         if pairs:
-
             tokens = [t for t in pairs.split() if "=" in t]
             if not tokens:
                 await interaction.response.send_message("No valid key=value pairs provided.", ephemeral=True)
@@ -838,13 +888,9 @@ class SanitizerBot(discord.Client):
                 v_raw = v_raw.strip()
                 try:
                     if k in {"check_n", "min_len", "max_len", "cooldown_sec"}:
-                        choices = await self._ac_int_value(interaction, current)
-                    elif k == "preserve_spaces":
-                        v = v_raw.lower() in ("1", "true", "yes", "on")
-                    if key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
-                        v = v_raw.lower() in ("1", "true", "yes", "on")
-                    elif k == "enforce_bots":
-                        v = v_raw.lower() in ("1", "true", "yes", "on")
+                        v = int(v_raw)
+                    elif k in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
+                        v = parse_bool_str(v_raw)
                     elif k in {"logging_channel_id", "bypass_role_id"}:
                         v = int(v_raw) if v_raw.lower() not in {"none", "null", "unset"} else None
                     elif k == "fallback_label":
@@ -852,7 +898,6 @@ class SanitizerBot(discord.Client):
                         if lab.lower() in {"none", "null", "unset"}:
                             v = None
                         else:
-
                             if not (1 <= len(lab) <= 20) or not re.fullmatch(r"[A-Za-z0-9 \-]+", lab):
                                 raise ValueError("fallback_label must be 1-20 characters: letters, numbers, spaces, or dashes")
                             v = lab
@@ -914,12 +959,8 @@ class SanitizerBot(discord.Client):
         try:
             if key in {"check_n", "min_len", "max_len", "cooldown_sec"}:
                 v = int(value)
-            elif key == "preserve_spaces":
-                v = value.strip().lower() in ("1", "true", "yes", "on")
-            elif key == "sanitize_emoji":
-                v = value.strip().lower() in ("1", "true", "yes", "on")
-            elif key == "enforce_bots":
-                v = value.strip().lower() in ("1", "true", "yes", "on")
+            elif key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
+                v = parse_bool_str(value)
             elif key in {"logging_channel_id", "bypass_role_id"}:
                 v = int(value) if value.strip().lower() not in {"none", "null", "unset"} else None
             elif key == "fallback_label":
@@ -941,6 +982,32 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(text, ephemeral=True)
         except Exception as e:
             await interaction.response.send_message(f"Failed to update setting: {e}", ephemeral=True)
+
+    async def cmd_set_enforce_bots(self, interaction: discord.Interaction, value: Optional[bool] = None):
+        if not interaction.guild:
+            await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
+            return
+        if not self.db:
+            await interaction.response.send_message("Database not configured.", ephemeral=True)
+            return
+        if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
+            await interaction.response.send_message("Only bot admins can modify settings.", ephemeral=True)
+            return
+        s = await self.db.get_settings(interaction.guild.id)
+        warn_disabled = None
+        if not s.enabled:
+            warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after you run /enable-sanitizer."
+        if value is None:
+            text = f"Current enforce_bots: {s.enforce_bots}"
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
+            return
+        await self.db.set_setting(interaction.guild.id, "enforce_bots", bool(value))
+        text = f"enforce_bots set to {bool(value)}."
+        if warn_disabled:
+            text = f"{text}\n{warn_disabled}"
+        await interaction.response.send_message(text, ephemeral=True)
 
     async def cmd_set_check_n(self, interaction: discord.Interaction, value: Optional[int] = None):
         if value is None:
@@ -1131,6 +1198,44 @@ class SanitizerBot(discord.Client):
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
 
+    async def cmd_reset_settings(self, interaction: discord.Interaction):
+        if not interaction.guild:
+            await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
+            return
+        if not self.db:
+            await interaction.response.send_message("Database not configured.", ephemeral=True)
+            return
+        if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
+            await interaction.response.send_message("Only bot admins can modify settings.", ephemeral=True)
+            return
+        deleted = await self.db.reset_guild_settings(interaction.guild.id)
+        note = "The sanitizer is disabled by default; run /enable-sanitizer to re-enable."
+        await interaction.response.send_message(f"Reset settings to defaults for this server. {note}", ephemeral=True)
+
+    async def cmd_global_reset_settings(self, interaction: discord.Interaction):
+        if not self.db:
+            await interaction.response.send_message("Database not configured.", ephemeral=True)
+            return
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message("Only the bot owner can perform this action.", ephemeral=True)
+            return
+        # First, attempt to notify configured logging channels in all guilds
+        sent = 0
+        try:
+            sent = await self._broadcast_to_log_channels(
+                f"Global action by owner {interaction.user.mention}: All bot settings will be reset to defaults across all servers. You **_WILL_** need to re-set them."
+            )
+            if sent:
+                log.info("Broadcasted pre-reset alert to %d guild(s).", sent)
+        except Exception as e:
+            log.debug("Failed to broadcast pre-reset alert: %s", e)
+        # Then perform the reset
+        count = await self.db.reset_all_settings()
+        await interaction.response.send_message(
+            f"Reset settings to defaults across {count} server(s). Pre-reset alert sent to {sent} guild(s).",
+            ephemeral=True,
+        )
+
     async def cmd_nuke_bot_admins(self, interaction: discord.Interaction):
         if not interaction.guild:
             await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
@@ -1191,16 +1296,12 @@ class SanitizerBot(discord.Client):
             return 0
         sent = 0
         for guild in list(self.guilds):
+            # Fetch the logging channel configured for this guild
             try:
                 settings = await self.db.get_settings(guild.id)
+                ch_id = settings.logging_channel_id
             except Exception:
-                if member.bot:
-                    if self.user and member.id == self.user.id:
-                        return
-                    if not settings.enforce_bots:
-                        return
-                continue
-            ch_id = getattr(settings, "logging_channel_id", None)
+                ch_id = None
             if not ch_id:
                 continue
             ch = guild.get_channel(ch_id)

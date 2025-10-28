@@ -11,7 +11,7 @@
 
 ## Reporting a Vulnerability
 
-***Please note: As this is a free tool which offers no income for me I am not offering a Bug-Bounnty of any kind at this time.***
+**_Please note: As this is a free bot which offers no income for me I am not offering a Bug-Bounnty of any kind at this time._**
 
 Please open an [Issue](<https://github.com/NanashiTheNameless/discord-sanitizer-bot/issues>) or start a [PR](<https://github.com/NanashiTheNameless/discord-sanitizer-bot/pulls>) if you have identified any issues!
 
