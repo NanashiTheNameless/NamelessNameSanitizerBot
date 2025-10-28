@@ -1462,7 +1462,18 @@ class SanitizerBot(discord.Client):
                 )
                 return
             await self.db.set_setting(interaction.guild.id, key, v)
-            text = f"Updated {key}."
+            # Build a friendly display of the value that was set
+            if key == "logging_channel_id":
+                display = f"<#{v}>" if v else "None"
+            elif key == "bypass_role_id":
+                display = f"<@&{v}>" if v else "None"
+            elif isinstance(v, bool):
+                display = "true" if v else "false"
+            elif isinstance(v, str) or v is None:
+                display = f"'{v}'" if isinstance(v, str) else "None"
+            else:
+                display = str(v)
+            text = f"Updated {key} to {display}."
             if warn_disabled:
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
@@ -1672,7 +1683,7 @@ class SanitizerBot(discord.Client):
         if not settings.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
         await self.db.set_setting(interaction.guild.id, "logging_channel_id", None)
-        text = "Logging channel cleared."
+        text = "Logging channel cleared (set to default)."
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
@@ -1698,7 +1709,7 @@ class SanitizerBot(discord.Client):
         if not settings.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
         await self.db.set_setting(interaction.guild.id, "bypass_role_id", None)
-        text = "Bypass role cleared."
+        text = "Bypass role cleared (set to default)."
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
@@ -1766,7 +1777,7 @@ class SanitizerBot(discord.Client):
         if not settings.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
         await self.db.set_setting(interaction.guild.id, "fallback_label", None)
-        text = "fallback_label cleared."
+        text = "fallback_label cleared (set to default)."
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
