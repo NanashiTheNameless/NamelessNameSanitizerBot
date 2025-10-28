@@ -2,7 +2,7 @@
 
 Last updated: 2025-10-28
 
-These Terms govern your use of the discord-sanitizer-bot ("the Bot"). By adding or using the Bot in your Discord server, you agree to these Terms.
+These Terms govern your use of NamelessNameSanatizerBot ("the Bot"). By adding or using the Bot in your Discord server, you agree to these Terms.
 
 ## 1. Service Description
 

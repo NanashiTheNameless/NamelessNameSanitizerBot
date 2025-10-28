@@ -2,7 +2,7 @@
 
 Last updated: 2025-10-28
 
-This Privacy Policy explains what information the discord-sanitizer-bot ("the Bot") processes and how it is used. By using the Bot, you agree to this Policy.
+This Privacy Policy explains what information NamelessNameSanatizerBot ("the Bot") processes and how it is used. By using the Bot, you agree to this Policy.
 
 ## Summary
 

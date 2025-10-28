@@ -1,4 +1,4 @@
-# discord-sanitizer-bot
+# NamelessNameSanatizerBot
 
 Discord bot that keeps member nicknames clean and consistent, with Unicode-aware sanitization, per-server policies, and admin controls. Built for Docker and backed by PostgreSQL.
 
@@ -171,6 +171,6 @@ Related policies:
 
 See `license.md`.
 
-[All Major Contributors](<https://github.com/NanashiTheNameless/discord-sanitizer-bot/blob/main/CONTRIBUTORS.md>)
+[All Major Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanatizerBot/blob/main/CONTRIBUTORS.md>)
 
-[All Other Contributors](<https://github.com/NanashiTheNameless/discord-sanitizer-bot/graphs/contributors>)
+[All Other Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanatizerBot/graphs/contributors>)

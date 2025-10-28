@@ -5,7 +5,7 @@
 services:
   bot:
     build: .
-    container_name: discord-sanitizer-bot
+    container_name: NamelessNameSanatizerBot
     env_file:
       - .env
     restart: unless-stopped
