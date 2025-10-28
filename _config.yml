@@ -1,0 +1,6 @@
+title: Nameless Name Sanitizer Bot
+description: Discord bot that keeps member nicknames clean and consistent.
+theme: jekyll-theme-cayman
+# Site URL should match your custom domain. With a custom domain, baseurl should be empty.
+url: https://NamelessNameSanitizerBot.NamelessNanashi.dev
+baseurl: ""
