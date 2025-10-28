@@ -365,8 +365,8 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
     tail = ""
     if settings.check_length > 0:
         clusters = re.findall(r"\X", name)
-        head = "".join(clusters[: settings.check_length])
-        tail = "".join(clusters[settings.check_length :])
+        head = "".join(clusters[:settings.check_length])
+        tail = "".join(clusters[settings.check_length:])
 
     head = remove_marks_and_controls(head)
     head = filter_allowed_chars(head, settings.sanitize_emoji)
@@ -386,7 +386,7 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
         candidate = normalize_spaces(candidate)
 
     if not candidate or len(candidate) < settings.min_nick_length:
-        candidate = f"user{int(time.time()*1000)%10000:04d}"
+        candidate = f"user{int(time.time() * 1000) % 10000:04d}"
 
     if len(candidate) > settings.max_nick_length:
         candidate = candidate[: settings.max_nick_length]
@@ -456,7 +456,6 @@ class SanitizerBot(discord.Client):
         ]
 
     def _register_all_commands(self):
-        from discord import app_commands
 
         @self.tree.command(name="enable-sanitizer", description="Enable the sanitizer in this server (bot admin only)")
         async def _enable(interaction: discord.Interaction):
@@ -1205,7 +1204,6 @@ class SanitizerBot(discord.Client):
         if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
             await interaction.response.send_message("Only bot admins can modify settings.", ephemeral=True)
             return
-        deleted = await self.db.reset_guild_settings(interaction.guild.id)
         note = "The sanitizer is disabled by default; A bot admin needs to run `/enable-sanitizer` to re-enable it."
         await interaction.response.send_message(f"Reset settings to defaults for this server. {note}", ephemeral=True)
 
