@@ -1070,7 +1070,7 @@ class SanitizerBot(discord.Client):
         if not settings.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after you run /enable-sanitizer."
         if value is None:
-            cur = settings.fallback_label or "<not set>"
+            cur = settings.fallback_label or "Illegal Name"
             text = f"Current fallback_label: {cur}"
             if warn_disabled:
                 text = f"{text}\n{warn_disabled}"
