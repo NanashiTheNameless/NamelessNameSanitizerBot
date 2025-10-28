@@ -168,6 +168,36 @@ class Database:
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE"
             )
             await conn.execute(
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+            # Backwards-compatibility: rename legacy columns if present
+            cols = await conn.fetch(
+                """
+                SELECT column_name FROM information_schema.columns
+                WHERE table_name = 'guild_settings'
+                """
+            )
+            colset = {r[0] for r in cols}
+            # Map of old_name -> new_name
+            renames = {
+                "check_n": "check_length",
+                "min_len": "min_nick_length",
+                "max_len": "max_nick_length",
+                "cooldown_sec": "cooldown_seconds",
+            }
+            for old, new in renames.items():
+                if old in colset and new not in colset:
+                    try:
+                        await conn.execute(
+                            f"ALTER TABLE guild_settings RENAME COLUMN {old} TO {new}"
+                        )
+                        # reflect rename
+                        colset.remove(old)
+                        colset.add(new)
+                    except Exception:
+                        # If rename fails (permissions or race), continue; subsequent queries may still work if both exist
+                        pass
+            await conn.execute(
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE"
             )
             await conn.execute(
