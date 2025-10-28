@@ -62,7 +62,7 @@ Replace `YOUR_APP_ID` with your APPLICATION_ID. Adjust `permissions` as needed, 
 
 Click to install the bot to your server:
 
-[Install NamelessNameSanitizerBot](<https://installsanitizerbot.namelessnanashi.dev/>)
+[Install NamelessNameSanitizerBot](<https://namelessnamesanitizerbot.namelessnanashi.dev/install/>)
 
 ## Run with Docker Compose
 
@@ -184,13 +184,13 @@ Notes
 
 Related policies:
 
-- [Privacy Policy](<./PrivacyPolicy.md>)
-- [Terms of Service](<./TermsOfService.md>)
+- [Privacy Policy](<https://namelessnamesanitizerbot.namelessnanashi.dev/PrivacyPolicy/>)
+- [Terms of Service](<https://namelessnamesanitizerbot.namelessnanashi.dev/TermsOfService/>)
 
 ## License & Credits
 
 See [license.md](<./license.md>).
 
-[All Major Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/CONTRIBUTORS.md>)
+[All Major Contributors](<./CONTRIBUTORS.md>)
 
 [All Other Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/graphs/contributors>)
