@@ -1866,7 +1866,7 @@ class SanitizerBot(discord.Client):
             )
             if (c1 or 0) + (c2 or 0) == 0:
                 await interaction.response.send_message(
-                    "No stored entries found for you in this server.",
+                    "No stored data found for you in this server.",
                     ephemeral=True,
                 )
             else:
