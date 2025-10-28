@@ -529,13 +529,6 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
 
     head = remove_marks_and_controls(head)
     head = filter_allowed_chars(head, settings.sanitize_emoji)
-
-    if not head.strip():
-        candidate = settings.fallback_label or "Illegal Name"
-        if len(candidate) > settings.max_nick_length:
-            candidate = candidate[: settings.max_nick_length]
-        return candidate
-
     if not settings.preserve_spaces:
         head = normalize_spaces(head)
 
@@ -544,7 +537,11 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
     if not settings.preserve_spaces:
         candidate = normalize_spaces(candidate)
 
-    if not candidate or len(candidate) < settings.min_nick_length:
+    # If entire result is empty after filtering, use the configured fallback label
+    if not candidate or not candidate.strip():
+        candidate = settings.fallback_label or "Illegal Name"
+
+    if len(candidate) < settings.min_nick_length:
         candidate = f"user{int(time.time() * 1000) % 10000:04d}"
 
     if len(candidate) > settings.max_nick_length:
