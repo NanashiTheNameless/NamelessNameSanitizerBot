@@ -11,6 +11,12 @@
   ],
   "language": "en",
   "noConfigSearch": true,
-  "words": ["megalinter", "oxsecurity", "Nanashi", "NamelessNameSanitizerBot", "NamelessName"],
+  "words": [
+    "megalinter",
+    "oxsecurity",
+    "Nanashi",
+    "NamelessNameSanitizerBot",
+    "NamelessName"
+  ],
   "version": "0.2"
 }
