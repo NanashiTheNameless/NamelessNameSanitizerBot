@@ -1736,13 +1736,21 @@ class SanitizerBot(discord.Client):
             c1, c2 = await self.db.delete_user_data_in_guild(
                 interaction.guild.id, interaction.user.id
             )
-            await interaction.response.send_message(
-                f"Deleted your stored entries in this server (cooldowns: {c1}, admin entries: {c2}).",
-                ephemeral=True,
-            )
+            if (c1 or 0) + (c2 or 0) == 0:
+                await interaction.response.send_message(
+                    "No stored entries found for you in this server.",
+                    ephemeral=True,
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Deleted your stored entries in this server (cooldowns: {c1}, admin entries: {c2}).",
+                    ephemeral=True,
+                )
         except Exception as e:
+            msg = str(e).strip()
+            detail = f": {msg}" if msg else "."
             await interaction.response.send_message(
-                f"Failed to delete your data: {e}", ephemeral=True
+                f"Failed to delete your data{detail}", ephemeral=True
             )
 
     async def cmd_delete_user_data(
@@ -1760,13 +1768,21 @@ class SanitizerBot(discord.Client):
             return
         try:
             n1, n2 = await self.db.delete_user_data_global(user.id)
-            await interaction.response.send_message(
-                f"Deleted data for {user.mention} across all servers (cooldowns: {n1}, admin entries: {n2}).",
-                ephemeral=True,
-            )
+            if (n1 or 0) + (n2 or 0) == 0:
+                await interaction.response.send_message(
+                    f"No stored data found for {user.mention} across all servers.",
+                    ephemeral=True,
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Deleted data for {user.mention} across all servers (cooldowns: {n1}, admin entries: {n2}).",
+                    ephemeral=True,
+                )
         except Exception as e:
+            msg = str(e).strip()
+            detail = f": {msg}" if msg else "."
             await interaction.response.send_message(
-                f"Failed to delete data for {user.mention}: {e}", ephemeral=True
+                f"Failed to delete data for {user.mention}{detail}", ephemeral=True
             )
 
     async def cmd_global_delete_user_data(
@@ -1785,10 +1801,16 @@ class SanitizerBot(discord.Client):
             return
         try:
             n1, n2 = await self.db.clear_all_user_data()
+            if (n1 or 0) + (n2 or 0) == 0:
+                await interaction.response.send_message(
+                    "No user data existed to delete across all servers; nothing changed.",
+                    ephemeral=True,
+                )
+                return
             # Announce to configured logging channels that a global purge occurred
             try:
                 sent = await self._broadcast_to_log_channels(
-                    f"Global action by owner {interaction.user.mention}: Deleted ALL stored user data across all servers."
+                    f"Global action by owner {interaction.user.mention}: Deleted ALL stored user data across all servers (cooldowns cleared: {n1}, admin entries removed: {n2})."
                 )
                 log.info("Announced user data deletion to %d guild(s).", sent)
             except Exception as be:
@@ -1798,8 +1820,10 @@ class SanitizerBot(discord.Client):
                 ephemeral=True,
             )
         except Exception as e:
+            msg = str(e).strip()
+            detail = f": {msg}" if msg else "."
             await interaction.response.send_message(
-                f"Failed to delete all user data: {e}", ephemeral=True
+                f"Failed to delete all user data{detail}", ephemeral=True
             )
 
     async def cmd_nuke_bot_admins(self, interaction: discord.Interaction):
