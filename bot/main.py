@@ -1473,7 +1473,7 @@ class SanitizerBot(discord.Client):
                 f"Current check_length: {s.check_length}", ephemeral=True
             )
             return
-        await self.cmd_set_setting(interaction, "check_n", str(value))
+        await self.cmd_set_setting(interaction, "check_length", str(value))
 
     async def cmd_set_min_len(
         self, interaction: discord.Interaction, value: Optional[int] = None
@@ -1484,7 +1484,7 @@ class SanitizerBot(discord.Client):
                 f"Current min_nick_length: {s.min_nick_length}", ephemeral=True
             )
             return
-        await self.cmd_set_setting(interaction, "min_len", str(value))
+        await self.cmd_set_setting(interaction, "min_nick_length", str(value))
 
     async def cmd_set_max_len(
         self, interaction: discord.Interaction, value: Optional[int] = None
@@ -1495,7 +1495,7 @@ class SanitizerBot(discord.Client):
                 f"Current max_nick_length: {s.max_nick_length}", ephemeral=True
             )
             return
-        await self.cmd_set_setting(interaction, "max_len", str(value))
+        await self.cmd_set_setting(interaction, "max_nick_length", str(value))
 
     async def cmd_set_preserve_spaces(
         self, interaction: discord.Interaction, value: Optional[bool] = None
@@ -1519,7 +1519,7 @@ class SanitizerBot(discord.Client):
                 f"Current cooldown_seconds: {s.cooldown_seconds}", ephemeral=True
             )
             return
-        await self.cmd_set_setting(interaction, "cooldown_sec", str(value))
+        await self.cmd_set_setting(interaction, "cooldown_seconds", str(value))
 
     async def cmd_set_sanitize_emoji(
         self, interaction: discord.Interaction, value: Optional[bool] = None
