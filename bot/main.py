@@ -1803,7 +1803,7 @@ class SanitizerBot(discord.Client):
             n1, n2 = await self.db.clear_all_user_data()
             try:
                 sent = await self._broadcast_to_log_channels(
-                    f"Global action by owner {interaction.user.mention}: Deleted ALL stored user data across all servers (cooldowns cleared: {n1}, admin entries removed: {n2})."
+                    f"Global action by owner {interaction.user.mention}: Deleted ALL stored user data across all servers"
                 )
                 log.info("Announced user data deletion to %d guild(s).", sent)
             except Exception as be:
