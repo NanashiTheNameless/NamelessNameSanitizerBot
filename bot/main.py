@@ -848,6 +848,13 @@ class SanitizerBot(discord.Client):
         ):
             await self.cmd_global_delete_user_data(interaction)
 
+        @self.tree.command(
+            name="sweep-now",
+            description="Bot Admin Only: Immediately sweep and sanitize members in this server",
+        )
+        async def _sweep_now(interaction: discord.Interaction):
+            await self.cmd_sweep_now(interaction)
+
     async def setup_hook(self) -> None:
 
         self._register_all_commands()
@@ -1121,6 +1128,57 @@ class SanitizerBot(discord.Client):
         await self._sanitize_member(member, source="command")
         await interaction.response.send_message(
             f"Sanitization attempted for {member.mention}.", ephemeral=True
+        )
+
+    async def cmd_sweep_now(self, interaction: discord.Interaction):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        # Admin check (bot admin only)
+        if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
+            await interaction.response.send_message(
+                "Only bot admins can use this command.",
+                ephemeral=True,
+            )
+            return
+        # Check settings enabled
+        settings = await self.db.get_settings(interaction.guild.id)
+        if not settings.enabled:
+            await interaction.response.send_message(
+                "The sanitizer is currently disabled in this server. Enable it with `/enable-sanitizer`.",
+                ephemeral=True,
+            )
+            return
+        # Defer while sweeping
+        await interaction.response.defer(ephemeral=True)
+        processed = 0
+        changed = 0
+        try:
+            async for member in interaction.guild.fetch_members(limit=None):
+                if member.bot and not settings.enforce_bots:
+                    continue
+                before = member.nick or member.name
+                await self._sanitize_member(member, source="manual-sweep")
+                after = member.nick or member.name
+                if before != after:
+                    changed += 1
+                processed += 1
+        except discord.HTTPException as e:
+            await interaction.followup.send(
+                f"Sweep encountered an HTTP error after processing {processed} member(s): {e}",
+                ephemeral=True,
+            )
+            return
+        await interaction.followup.send(
+            f"Sweep complete. Processed {processed} member(s); changed {changed} nickname(s).",
+            ephemeral=True,
         )
 
     async def _ac_policy_key(self, interaction: discord.Interaction, current: str):

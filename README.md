@@ -136,6 +136,7 @@ Bot admin
 - /set-fallback-label [value:str] — set or view the fallback nickname used when a name is fully illegal (1–20 characters: letters, numbers, spaces, or dashes)
 - /clear-fallback-label — clear the fallback nickname
 - /reset-settings — reset this server’s sanitizer settings to defaults
+- /sweep-now — immediately sweep and sanitize members in this server (bot admin only)
 
 User controls
 
@@ -186,6 +187,6 @@ Related policies:
 
 See [license.md](<./license.md>).
 
-[All Major Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanatizerBot/blob/main/CONTRIBUTORS.md>)
+[All Major Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/CONTRIBUTORS.md>)
 
-[All Other Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanatizerBot/graphs/contributors>)
+[All Other Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/graphs/contributors>)
