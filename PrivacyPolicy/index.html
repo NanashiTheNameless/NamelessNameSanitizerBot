@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy • NamelessNameSanitizerBot</title>
+    <meta name="color-scheme" content="dark light" />
+    <style>
+      :root { color-scheme: dark; }
+      body { margin:0; padding:24px; background:#070a12; color:#e6edf3; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+      a { color:#8ab4ff; }
+      .container { max-width: 900px; margin: 0 auto; }
+      .card { background: rgba(13,18,28,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 22px; }
+      h1 { margin-top:0; }
+      header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+      nav a { margin-right:12px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <a href="/" style="font-weight:800;color:#fff;text-decoration:none;">NamelessNameSanitizerBot</a>
+        <nav>
+          <a href="/install">Install</a>
+          <a href="/TermsOfService/">Terms</a>
+          <a href="/license/">License</a>
+        </nav>
+      </header>
+      <div class="card">
+        <h1>Privacy Policy</h1>
+        <p><em>Last updated: 2025-10-28</em></p>
+        <div>
+          <!-- Content from PrivacyPolicy.md -->
+          <p>This Privacy Policy explains what information NamelessNameSanitizerBot ("the Bot") processes and how it is used. By using the Bot, you agree to this Policy.</p>
+          <h2>Summary</h2>
+          <ul>
+            <li>The Bot does not read or store message content.</li>
+            <li>The Bot processes basic Discord metadata in memory to operate (e.g., user IDs, guild IDs, nicknames) and may store minimal per-guild configuration in a database.</li>
+            <li>Optionally, the Bot can post nickname-change notifications to a configured logging channel in your server.</li>
+          </ul>
+          <h2>Data the Bot Processes</h2>
+          <p>Guild and Member metadata from Discord APIs (e.g., guild ID, user ID, roles, current nickname, permissions) to determine whether and how to sanitize nicknames. Per-guild configuration settings and cooldown timestamps may be stored to ensure proper operation.</p>
+          <h2>Data Storage and Retention</h2>
+          <ul>
+            <li>Per-guild settings and admin lists may be stored in a database.</li>
+            <li>Cooldown entries are purged automatically after a retention period.</li>
+            <li>No message content is stored.</li>
+          </ul>
+          <h2>Data Sharing</h2>
+          <p>We do not sell or share data with third parties. Hosting providers may process infrastructure data subject to their policies.</p>
+          <h2>User Rights and Controls</h2>
+          <ul>
+            <li>Admins can enable/disable the bot, update policies, and manage admins.</li>
+            <li>Users can run <code>/delete-my-data</code>; bot owners can execute global deletion commands.</li>
+          </ul>
+          <h2>Security</h2>
+          <p>Reasonable measures are used to protect configuration data. Operators should secure credentials and access.</p>
+          <h2>Contact</h2>
+          <p>Open an issue on GitHub or contact the server owner/operator.</p>
+          <h2>Changes</h2>
+          <p>We may update this Policy over time. Continued use indicates acceptance.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
