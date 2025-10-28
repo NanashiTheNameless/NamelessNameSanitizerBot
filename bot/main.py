@@ -16,12 +16,10 @@ Documentation-only edits should not modify runtime behavior.
 """
 
 import asyncio
-import json
 import logging
 import os
 import regex as re
 import signal
-from pathlib import Path
 import time
 
 import asyncpg
@@ -30,12 +28,11 @@ from discord import app_commands
 from discord.ext import tasks
 import sys
 from dataclasses import dataclass
-from typing import Optional, Dict, Tuple
+from typing import Optional
+from dotenv import load_dotenv
 
 log = logging.getLogger("sanitizerbot")
 logging.basicConfig(level=logging.INFO)
-
-from dotenv import load_dotenv
 load_dotenv()
 
 _LOG_LEVEL_NAME = os.getenv("LOG_LEVEL", "INFO").strip().upper()

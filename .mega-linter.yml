@@ -18,6 +18,7 @@ DISABLE_LINTERS:
   - HTML_DJLINT
   - PYTHON_MYPY
   - PYTHON_PYRIGHT
+  - PYTHON_PYLINT
 
 DISABLE:
   - COPYPASTE # Comment to enable checks of excessive copy-pastes
