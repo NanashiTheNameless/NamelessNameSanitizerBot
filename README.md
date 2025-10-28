@@ -108,8 +108,8 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 
 Owner-only
 
-- /add-bot-admin user:Member — add a per-guild bot admin
-- /remove-bot-admin user:Member — remove a per-guild bot admin
+- /add-bot-admin user:Member — add a bot admin
+- /remove-bot-admin user:Member — remove a bot admin
 - /nuke-bot-admins — remove all bot admins in the current server
 - /global-bot-disable — disable the bot across all servers
 - /global-nuke-bot-admins — remove all bot admins across all servers
