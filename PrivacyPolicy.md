@@ -25,7 +25,7 @@ The Bot does not process or store message content and does not require the Messa
 - No message content is stored.
 - Configuration is retained until modified or deleted by server administrators or the operator.
 - Cooldown entries expire automatically based on the configured cooldown interval.
-- Additionally, old cooldown entries are purged automatically after `COOLDOWN_TTL_SEC` (environment variable) to minimize retention.
+- Additionally, old cooldown entries are purged automatically after `COOLDOWN_TTL_SEC` (environment variable, defaults to 864000) to minimize retention.
 
 ## Data Sharing
 
