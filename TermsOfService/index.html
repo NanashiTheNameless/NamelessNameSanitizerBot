@@ -5,27 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Terms of Service • NamelessNameSanitizerBot</title>
     <meta name="color-scheme" content="dark light" />
-    <style>
-      :root { color-scheme: dark; }
-      body { margin:0; padding:24px; background:#070a12; color:#e6edf3; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
-      a { color:#8ab4ff; }
-      .container { max-width: 900px; margin: 0 auto; }
-      .card { background: rgba(13,18,28,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 22px; }
-      h1 { margin-top:0; }
-      header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-      nav a { margin-right:12px; }
-    </style>
+    <link rel="stylesheet" href="/assets/site.css" />
   </head>
   <body>
-    <div class="container">
-      <header>
-        <a href="/" style="font-weight:800;color:#fff;text-decoration:none;">NamelessNameSanitizerBot</a>
-        <nav>
-          <a href="/install">Install</a>
+    <header class="navbar" role="banner">
+      <div class="navbar-inner">
+        <a class="brand" href="/">NamelessNameSanitizerBot</a>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="/install" class="btn">Install</a>
           <a href="/PrivacyPolicy/">Privacy</a>
           <a href="/license/">License</a>
         </nav>
-      </header>
+      </div>
+    </header>
+    <div class="sky"><canvas id="stars"></canvas></div>
+    <div class="content">
       <div class="card">
         <h1>Terms of Service</h1>
         <p><em>Last updated: 2025-10-28</em></p>
@@ -59,5 +53,6 @@
         </div>
       </div>
     </div>
+    <script src="/assets/stars.js" defer></script>
   </body>
 </html>

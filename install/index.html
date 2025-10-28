@@ -5,70 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Install NamelessNameSanitizerBot</title>
     <meta name="color-scheme" content="dark light" />
-    <style>
-      :root { color-scheme: dark; }
-      html, body { height: 100%; }
-      body {
-        margin: 0;
-        background: #070a12;
-        color: #e6edf3;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-        overflow: hidden;
-      }
-      .sky {
-        position: fixed; inset: 0; overflow: hidden;
-        background: radial-gradient(1200px 800px at 80% -20%, rgba(120,150,255,0.15), rgba(0,0,0,0)),
-                    radial-gradient(1000px 600px at -10% 110%, rgba(255,120,200,0.10), rgba(0,0,0,0)),
-                    #070a12;
-      }
-      canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-      .content {
-        position: relative;
-        z-index: 1;
-        display: grid; place-items: center; height: 100%;
-        padding: 24px;
-        text-align: center;
-      }
-      .card {
-        max-width: 820px;
-        background: rgba(13, 18, 28, 0.6);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 16px;
-        padding: 28px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      }
-  h1 { margin: 0 0 10px; font-size: clamp(26px, 2.6vw, 34px); letter-spacing: 0.3px; }
-  p { margin: 0 0 16px; line-height: 1.65; font-size: clamp(15px, 1.5vw, 18px); }
-      .notice {
-        font-size: clamp(16px, 1.6vw, 19px);
-        color: #c6d2df;
-      }
-      a { color: #8ab4ff; text-decoration: none; }
-      a:hover { text-decoration: underline; }
-      .actions { margin-top: 18px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-      .btn {
-        background: linear-gradient(180deg, #2a77ff, #174ee6);
-        border: 0; color: white; padding: 12px 18px; border-radius: 10px;
-        font-weight: 600; cursor: pointer; font-size: clamp(15px, 1.5vw, 17px);
-        box-shadow: 0 6px 18px rgba(39, 118, 255, 0.35);
-      }
-      .btn[disabled] { filter: grayscale(0.6) brightness(0.8); cursor: not-allowed; }
-      .btn.secondary { background: transparent; border: 1px solid rgba(255,255,255,0.14); color: #e6edf3; box-shadow: none; }
-      .agree-row {
-        margin-top: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        text-align: left;
-      }
-      .agree-row input { margin-top: 0; }
-      .agree-row label { font-size: clamp(15px, 1.6vw, 18px); }
-      .fineprint { opacity: 0.85; font-size: 13px; margin-top: 8px; }
-    </style>
+    <link rel="stylesheet" href="/assets/site.css" />
   </head>
   <body>
+    <header class="navbar" role="banner">
+      <div class="navbar-inner">
+        <a class="brand" href="/">NamelessNameSanitizerBot</a>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="/install" class="btn">Install</a>
+          <a href="/PrivacyPolicy/">Privacy</a>
+          <a href="/TermsOfService/">Terms</a>
+          <a href="/license/">License</a>
+        </nav>
+      </div>
+    </header>
     <div class="sky">
       <canvas id="stars"></canvas>
     </div>
@@ -99,52 +49,13 @@
       // Enable the install button only when the checkbox is checked
       const agree = document.getElementById('agree');
       const install = document.getElementById('install');
-      function update() {
-        install.disabled = !agree.checked;
-      }
+      function update() { install.disabled = !agree.checked; }
       agree.addEventListener('change', update);
       install.addEventListener('click', () => {
-        if (!install.disabled) {
-          // Send directly to the installation URL for the bot
-          window.location.href = 'https://installsanitizerbot.namelessnanashi.dev/';
-        }
+        if (!install.disabled) { window.location.href = 'https://installsanitizerbot.namelessnanashi.dev/'; }
       });
       update();
-
-      // Lightweight starfield
-      const canvas = document.getElementById('stars');
-      const ctx = canvas.getContext('2d');
-      let stars = [];
-      function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        // regenerate stars on resize
-        const count = Math.min(250, Math.floor((canvas.width * canvas.height) / 8000));
-        stars = Array.from({ length: count }, () => ({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          r: Math.random() * 1.1 + 0.2,
-          a: Math.random() * 1,
-          v: (Math.random() * 0.015) + 0.005
-        }));
-      }
-      window.addEventListener('resize', resize);
-      resize();
-      function frame(ts) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (const s of stars) {
-          s.a += s.v;
-          const alpha = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(s.a));
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
     </script>
+    <script src="/assets/stars.js" defer></script>
   </body>
 </html>
