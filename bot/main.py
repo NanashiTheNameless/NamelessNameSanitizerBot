@@ -1227,7 +1227,12 @@ class SanitizerBot(discord.Client):
             "fallback_label": "fallback_label",
         }
         key = aliases.get(key, key)
-        if key in {"check_length", "min_nick_length", "max_nick_length", "cooldown_seconds"}:
+        if key in {
+            "check_length",
+            "min_nick_length",
+            "max_nick_length",
+            "cooldown_seconds",
+        }:
 
             choices = await self._ac_int_value(interaction, current)
             return [
@@ -1306,7 +1311,12 @@ class SanitizerBot(discord.Client):
                 k = key_alias.get(raw_k, raw_k)
                 v_raw = v_raw.strip()
                 try:
-                    if k in {"check_length", "min_nick_length", "max_nick_length", "cooldown_seconds"}:
+                    if k in {
+                        "check_length",
+                        "min_nick_length",
+                        "max_nick_length",
+                        "cooldown_seconds",
+                    }:
                         v = int(v_raw)
                     elif k in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
                         v = parse_bool_str(v_raw)
@@ -1391,7 +1401,12 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(text, ephemeral=True)
             return
         try:
-            if key in {"check_length", "min_nick_length", "max_nick_length", "cooldown_seconds"}:
+            if key in {
+                "check_length",
+                "min_nick_length",
+                "max_nick_length",
+                "cooldown_seconds",
+            }:
                 v = int(value)
             elif key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
                 v = parse_bool_str(value)
