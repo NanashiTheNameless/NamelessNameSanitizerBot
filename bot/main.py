@@ -1788,7 +1788,7 @@ class SanitizerBot(discord.Client):
             # Announce to configured logging channels that a global purge occurred
             try:
                 sent = await self._broadcast_to_log_channels(
-                    f"Global action by owner {interaction.user.mention}: Deleted ALL stored user data across all servers (cooldowns cleared: {n1}, admin entries removed: {n2})."
+                    f"Global action by owner {interaction.user.mention}: Deleted ALL stored user data across all servers."
                 )
                 log.info("Announced user data deletion to %d guild(s).", sent)
             except Exception as be:

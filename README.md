@@ -136,6 +136,7 @@ Bot admin
 - /set-fallback-label [value:str] — set or view the fallback nickname used when a name is fully illegal (1–20 characters: letters, numbers, spaces, or dashes)
 - /clear-fallback-label — clear the fallback nickname
 - /reset-settings — reset this server’s sanitizer settings to defaults
+
 User controls
 
 - /delete-my-data — deletes your stored data in the current server (cooldowns/admin entries)
