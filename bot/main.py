@@ -1920,7 +1920,8 @@ class SanitizerBot(discord.Client):
         except Exception as e:
             log.debug("Failed to broadcast global disable alert: %s", e)
         await interaction.response.send_message(
-            f"Globally disabled sanitizer across {count} server(s). Announcement sent to logging channels where configured.", ephemeral=True
+            f"Globally disabled sanitizer across {count} server(s). Announcement sent to logging channels where configured.",
+            ephemeral=True,
         )
 
     async def cmd_global_nuke_bot_admins(self, interaction: discord.Interaction):
@@ -1945,7 +1946,8 @@ class SanitizerBot(discord.Client):
         except Exception as e:
             log.debug("Failed to broadcast global nuke-admins alert: %s", e)
         await interaction.response.send_message(
-            f"Removed {count} bot admin(s) across all servers. Announcement sent to logging channels where configured.", ephemeral=True
+            f"Removed {count} bot admin(s) across all servers. Announcement sent to logging channels where configured.",
+            ephemeral=True,
         )
 
     async def _broadcast_to_log_channels(self, content: str) -> int:
