@@ -62,7 +62,7 @@ Replace `YOUR_APP_ID` with your APPLICATION_ID. Adjust `permissions` as needed, 
 
 Click to install the bot to your server:
 
-[Install NamelessNameSanitizerBot](https://discord.com/oauth2/authorize?client_id=1432611459476619305)
+[Install NamelessNameSanitizerBot](<https://installsanitizerbot.namelessnanashi.dev/>)
 
 ## Run with Docker Compose
 
