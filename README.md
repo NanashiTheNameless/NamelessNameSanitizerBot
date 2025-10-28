@@ -58,6 +58,12 @@ https://discord.com/oauth2/authorize?client_id=<YOUR_APP_ID>&scope=bot%20applica
 
 Replace `YOUR_APP_ID` with your APPLICATION_ID. Adjust `permissions` as needed, or manage via roles.
 
+### Install
+
+Click to install the bot to your server:
+
+[Install NamelessNameSanitizerBot](https://discord.com/oauth2/authorize?client_id=1432611459476619305)
+
 ## Run with Docker Compose
 
 1) Copy `.env.example` to `.env` and update values. Ensure at minimum `DISCORD_TOKEN` is set. For Compose, the default `DATABASE_URL` already matches the provided Postgres service.
@@ -168,7 +174,7 @@ Notes
 - The bot does not log message content and doesn’t require the Message Content intent.
 - Logging channel (if set) only receives a short notice when a nickname is changed.
 - Minimal data storage: per-guild config and per-user cooldown timestamps. Cooldowns are purged automatically after COOLDOWN_TTL_SEC.
-- Users can request deletion via /delete-my-data; bot owners can execute /owner-delete-user-data when legally required.
+- Users can request deletion via /delete-my-data; bot owners can execute /delete-user-data or /global-delete-user-data when legally required.
 
 Related policies:
 
