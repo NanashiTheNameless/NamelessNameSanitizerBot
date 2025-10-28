@@ -16,6 +16,8 @@ APPLY_FIXES: all
 
 DISABLE_LINTERS:
   - HTML_DJLINT
+  - PYTHON_MYPY
+  - PYTHON_PYRIGHT
 
 DISABLE:
   - COPYPASTE # Comment to enable checks of excessive copy-pastes

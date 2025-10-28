@@ -3,7 +3,6 @@ description: File a bug report to help us improve
 labels:
   - bug
 title: "[Bug]: <short summary>"
-assignees: []
 body:
   - type: markdown
     attributes:
