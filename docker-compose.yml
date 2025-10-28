@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: LicenseRef-OQL-1.2
+# Docker Compose stack for Discord Sanitizer Bot and PostgreSQL.
+# Copy .env.example to .env and set required variables before running.
+
+services:
+  bot:
+    build: .
+    container_name: discord-sanitizer-bot
+    env_file:
+      - .env
+    restart: unless-stopped
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://bot:bot@db:5432/bot
+    volumes:
+      - ./data:/app/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    container_name: discord-sanitizer-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=bot
+      - POSTGRES_USER=bot
+      - POSTGRES_PASSWORD=bot
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

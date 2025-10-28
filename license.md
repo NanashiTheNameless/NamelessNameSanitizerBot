@@ -1,3 +1,9 @@
+SPDX-License-Identifier: LicenseRef-OQL-1.2
+
+This project is licensed under the Opinionated Queer License v1.2 (OQL-1.2)
+
+## Full License Text
+
 # 🏳️‍🌈 Opinionated Queer License v1.2
 
 © Copyright [NamelessNanashi](<https://git.NamelessNanashi.dev/>)
@@ -25,7 +31,7 @@ racism, xenophobia, queerphobia, queer exclusionism, homophobia, transphobia, en
 
 No one may use this Work to inflict or facilitate violence or abuse of human rights,
 as defined in either of the following documents:
-[Universal Declaration of Human Rights](<https://www.un.org/en/about-us/universal-declaration-of-human-rights>),
+[Universal Declaration of Human Rights](<https://www.un.org/en/about-us/universal-declaration-of-human-right>),
 [European Convention on Human Rights](<https://prd-echr.coe.int/web/echr/european-convention-on-human-rights>)
 along with the rulings of the [European Court of Human Rights](<https://www.echr.coe.int/>).
 

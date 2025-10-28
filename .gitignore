@@ -1,0 +1,6 @@
+# Un-needed files
+__pycache__
+# Development environment (contains secrets)
+.env
+# Experimental command cleaner  (contains secrets)
+clearcommands.py
