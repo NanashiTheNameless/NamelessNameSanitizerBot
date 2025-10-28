@@ -62,7 +62,7 @@ Replace `YOUR_APP_ID` with your APPLICATION_ID. Adjust `permissions` as needed, 
 
 Click to install the bot to your server:
 
-[Install NamelessNameSanitizerBot](<https://installsanitizerbot.namelessnanashi.dev/>)
+[Install NamelessNameSanitizerBot](<https://namelessnamesanitizerbot.namelessnanashi.dev/install/>)
 
 ## Run with Docker Compose
 
