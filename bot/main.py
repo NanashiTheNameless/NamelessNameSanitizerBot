@@ -1170,9 +1170,7 @@ class SanitizerBot(discord.Client):
                 pass
         warn_disabled = None
         if not settings.enabled:
-            warn_disabled = (
-                "Note: The sanitizer is currently disabled in this server. Automatic enforcement is paused until an admin runs `/enable-sanitizer`."
-            )
+            warn_disabled = "Note: The sanitizer is currently disabled in this server. Automatic enforcement is paused until an admin runs `/enable-sanitizer`."
 
         if not (
             self._is_guild_admin(interaction.user)
@@ -1187,9 +1185,7 @@ class SanitizerBot(discord.Client):
         candidate = sanitize_name(current_name, settings)
 
         if candidate == current_name:
-            msg = (
-                f"No change needed for {member.mention}; nickname already compliant."
-            )
+            msg = f"No change needed for {member.mention}; nickname already compliant."
             if warn_disabled:
                 msg = f"{msg}\n{warn_disabled}"
             await interaction.response.send_message(msg, ephemeral=True)
@@ -1199,9 +1195,7 @@ class SanitizerBot(discord.Client):
         if did_change:
             msg = f"Nickname updated: '{current_name}' → '{candidate}'."
         else:
-            msg = (
-                f"Attempted to update nickname from '{current_name}' to '{candidate}', but no change was applied (possible cooldown, permissions, or role hierarchy)."
-            )
+            msg = f"Attempted to update nickname from '{current_name}' to '{candidate}', but no change was applied (possible cooldown, permissions, or role hierarchy)."
         if warn_disabled:
             msg = f"{msg}\n{warn_disabled}"
         await interaction.response.send_message(msg, ephemeral=True)
