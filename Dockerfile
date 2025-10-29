@@ -2,18 +2,19 @@
 # Minimal production image for the Discord Sanitizer Bot.
 # Expects a requirements.txt at repository root and runs bot/main.py.
 
-# Use explicit Debian release to safely pin APT package versions
-FROM python:3.12-slim-bookworm
+FROM python:3.14-slim-trixie
 
 WORKDIR /app
 
 # Install minimal OS dependencies (timezone data and CA certs) and clean cache.
 ## Pin APT packages to specific versions for reproducible builds (as of 2025-10-28)
-## - tzdata: https://packages.debian.org/bookworm/tzdata (2025b-0+deb12u2)
-## - ca-certificates: https://packages.debian.org/bookworm/ca-certificates (20230311+deb12u1)
+## - tzdata: https://packages.debian.org/trixie/tzdata (2025b-4+deb13u1)
+## - ca-certificates: https://packages.debian.org/trixie/ca-certificates (20250419)
+## - build-essential: https://packages.debian.org/trixie/build-essential (12.12)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    tzdata=2025b-0+deb12u2 \
-    ca-certificates=20230311+deb12u1 && \
+    tzdata=2025b-4+deb13u1 \
+    ca-certificates=20250419 \
+    build-essential=12.12 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
