@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: LicenseRef-OQL-1.2
+# SPDX-License-Identifier: LicenseRef-OQL-1.3
 # Minimal production image for the Discord Sanitizer Bot.
 # Expects a requirements.txt at repository root and runs bot/main.py.
 

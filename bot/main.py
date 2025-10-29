@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: LicenseRef-OQL-1.2
+# SPDX-License-Identifier: LicenseRef-OQL-1.3
 """
 Discord Sanitizer Bot entrypoint.
 
