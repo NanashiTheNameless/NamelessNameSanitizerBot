@@ -1168,10 +1168,10 @@ class SanitizerBot(discord.Client):
                 settings = await self.db.get_settings(interaction.guild.id)
             except Exception:
                 pass
+        warn_disabled = None
         if not settings.enabled:
-            await interaction.response.send_message(
-                "Note: The sanitizer is currently disabled in this server. Automatic enforcement is paused until an admin runs `/enable-sanitizer`.",
-                ephemeral=True,
+            warn_disabled = (
+                "Note: The sanitizer is currently disabled in this server. Automatic enforcement is paused until an admin runs `/enable-sanitizer`."
             )
 
         if not (
@@ -1183,10 +1183,28 @@ class SanitizerBot(discord.Client):
                 ephemeral=True,
             )
             return
-        await self._sanitize_member(member, source="command")
-        await interaction.response.send_message(
-            f"Sanitization attempted for {member.mention}.", ephemeral=True
-        )
+        current_name = member.nick or member.name
+        candidate = sanitize_name(current_name, settings)
+
+        if candidate == current_name:
+            msg = (
+                f"No change needed for {member.mention}; nickname already compliant."
+            )
+            if warn_disabled:
+                msg = f"{msg}\n{warn_disabled}"
+            await interaction.response.send_message(msg, ephemeral=True)
+            return
+
+        did_change = await self._sanitize_member(member, source="command")
+        if did_change:
+            msg = f"Nickname updated: '{current_name}' → '{candidate}'."
+        else:
+            msg = (
+                f"Attempted to update nickname from '{current_name}' to '{candidate}', but no change was applied (possible cooldown, permissions, or role hierarchy)."
+            )
+        if warn_disabled:
+            msg = f"{msg}\n{warn_disabled}"
+        await interaction.response.send_message(msg, ephemeral=True)
 
     async def cmd_sweep_now(self, interaction: discord.Interaction):
         if not interaction.guild:
