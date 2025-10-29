@@ -64,17 +64,50 @@ Click to install the bot to your server:
 
 [Install NamelessNameSanitizerBot](<https://namelessnamesanitizerbot.namelessnanashi.dev/install/>)
 
+## Docker image
+
+Published image: `nanashithenameless/namelessnamesanitizerbot`
+
+Pull the image:
+
+```bash
+docker pull nanashithenameless/namelessnamesanitizerbot:latest
+```
+
+Run directly (using an env file):
+
+```bash
+docker run --rm --env-file .env \
+  nanashithenameless/namelessnamesanitizerbot:latest
+```
+
+Or pass env vars individually (not recommended for secrets):
+
+```bash
+docker run --rm \
+  -e DISCORD_TOKEN='your_bot_token' \
+  -e OWNER_ID='221701506561212416' \
+  -e DATABASE_URL='postgresql://bot:bot@db:5432/bot' \
+  nanashithenameless/namelessnamesanitizerbot:latest
+```
+
 ## Run with Docker Compose
 
 1) Copy `.env.example` to `.env` and update values. Ensure at minimum `DISCORD_TOKEN` is set. For Compose, the default `DATABASE_URL` already matches the provided Postgres service.
 
-2) Start the stack:
+2) Start the stack (using the local Dockerfile build or switch the compose service to use the published image):
 
 ```bash
 docker compose up -d --build
 ```
 
 This brings up Postgres and the bot. The bot syncs slash commands on startup; allow a few minutes for Discord to propagate global commands.
+
+To use the published image in `docker-compose.yml`, replace the `build: .` in the `bot` service with:
+
+```yaml
+  image: nanashithenameless/namelessnamesanitizerbot:latest
+```
 
 ## Local development
 
