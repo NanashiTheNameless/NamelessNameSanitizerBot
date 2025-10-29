@@ -983,7 +983,7 @@ class SanitizerBot(discord.Client):
         if isinstance(m, discord.Member):
             await self._sanitize_member(m, source="message")
 
-    async def _sanitize_member(self, member: discord.Member, source: str):
+    async def _sanitize_member(self, member: discord.Member, source: str) -> bool:
 
         settings = GuildSettings(guild_id=member.guild.id)
         if self.db:
@@ -994,39 +994,39 @@ class SanitizerBot(discord.Client):
 
         if member.bot:
             if self.user and member.id == self.user.id:
-                return
+                return False
             if not settings.enforce_bots:
-                return
+                return False
 
         if not settings.enabled:
-            return
+            return False
 
         if settings.bypass_role_id and any(
             r.id == settings.bypass_role_id for r in getattr(member, "roles", [])
         ):
-            return
+            return False
 
         if self.db:
             last_ts = await self.db.get_cooldown(member.id)
             if last_ts is not None and now() - last_ts < settings.cooldown_seconds:
-                return
+                return False
 
         name_now = member.nick or member.name
         candidate = sanitize_name(name_now, settings)
 
         if candidate == name_now:
-            return
+            return False
 
         guild = member.guild
         me = guild.me
 
         if not me.guild_permissions.manage_nicknames:
             log.warning("Missing Manage Nicknames permission.")
-            return
+            return False
 
         if member.top_role >= me.top_role and member != me:
             log.debug("Cannot edit %s due to role hierarchy.", member)
-            return
+            return False
 
         try:
             await member.edit(
@@ -1050,10 +1050,12 @@ class SanitizerBot(discord.Client):
                         await ch.send(f"Nickname updated: {member.mention} — '{name_now}' → '{candidate}' (via {source})")  # type: ignore
                     except Exception:
                         pass
+            return True
         except discord.Forbidden:
             log.debug("Forbidden editing nickname for %s.", member)
         except discord.HTTPException as e:
             log.debug("HTTPException editing %s: %s", member, e)
+        return False
 
     @tasks.loop(seconds=SWEEP_INTERVAL_SEC)
     async def member_sweep(self):
@@ -1220,10 +1222,8 @@ class SanitizerBot(discord.Client):
             async for member in interaction.guild.fetch_members(limit=None):
                 if member.bot and not settings.enforce_bots:
                     continue
-                before = member.nick or member.name
-                await self._sanitize_member(member, source="manual-sweep")
-                after = member.nick or member.name
-                if before != after:
+                did_change = await self._sanitize_member(member, source="manual-sweep")
+                if did_change:
                     changed += 1
                 processed += 1
         except discord.HTTPException as e:
