@@ -638,7 +638,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="enable-sanitizer",
-            description=" Only: Enable the sanitizer in this server",
+            description="Bot Admin Only: Enable the sanitizer in this server",
         )
         async def _enable(interaction: discord.Interaction):
             await self.cmd_start(interaction)
@@ -690,7 +690,7 @@ class SanitizerBot(discord.Client):
             description="Bot Admin Only: Set or view the minimum allowed nickname length",
         )
         @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_min_nick_lengthgth(
+        async def _set_min_nick_length(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
             await self.cmd_set_min_nick_length(interaction, value)
@@ -700,7 +700,7 @@ class SanitizerBot(discord.Client):
             description="Bot Admin Only: Set or view the maximum allowed nickname length",
         )
         @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_max_nick_lengthgth(
+        async def _set_max_nick_length(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
             await self.cmd_set_max_nick_length(interaction, value)
