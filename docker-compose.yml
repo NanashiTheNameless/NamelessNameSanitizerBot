@@ -20,6 +20,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - default
+      - dbnet
 
   db:
     image: postgres:18
@@ -40,6 +43,12 @@ services:
       - db:/var/lib/postgresql
       # Alternatively, bind-mount to a host directory (uncomment next line):
       # - ./db:/var/lib/postgresql
+    networks:
+      - dbnet
 
 volumes:
   db:
+
+networks:
+  dbnet:
+    internal: true
