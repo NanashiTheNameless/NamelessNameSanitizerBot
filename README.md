@@ -2,6 +2,12 @@
 
 Discord bot that keeps member nicknames clean and consistent, with Unicode-aware sanitization, per-server policies, and admin controls. Built for Docker and backed by PostgreSQL.
 
+## Self-hosting optimized version
+
+If you want a production-friendly, self-hosting optimized setup (pre-tuned Docker image and Compose stack), see:
+
+- NamelessNameSanatizerBot-Docker: <https://github.com/NanashiTheNameless/NamelessNameSanatizerBot-Docker>
+
 ## Highlights
 
 - Grapheme-aware sanitization using the `regex` package and `\X` clusters
@@ -73,6 +79,10 @@ Click to install the bot to your server:
 ```bash
 docker compose up -d --build
 ```
+
+If you want a production-friendly, self-hosting optimized setup (pre-tuned Docker image and Compose stack), see:
+
+- NamelessNameSanatizerBot-Docker: <https://github.com/NanashiTheNameless/NamelessNameSanatizerBot-Docker>
 
 ## Permissions and intents
 
