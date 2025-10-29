@@ -819,21 +819,21 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="global-nuke-bot-admins",
-            description="Bot Owner Only: Remove all bot admins",
+            description="Bot Owner Only: Remove all bot admins in all servers",
         )
         async def _global_nuke_admins(interaction: discord.Interaction):
             await self.cmd_global_nuke_bot_admins(interaction)
 
         @self.tree.command(
             name="add-bot-admin",
-            description="Bot Owner Only: Add a bot admin",
+            description="Bot Owner Only: Add a bot admin for this server",
         )
         async def _add_admin(interaction: discord.Interaction, user: discord.Member):
             await self.cmd_add_admin(interaction, user)
 
         @self.tree.command(
             name="remove-bot-admin",
-            description="Bot Owner Only: Remove a bot admin",
+            description="Bot Owner Only: Remove a bot admin for this server",
         )
         async def _remove_admin(interaction: discord.Interaction, user: discord.Member):
             await self.cmd_remove_admin(interaction, user)

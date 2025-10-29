@@ -119,8 +119,8 @@ Owner-only
 
 Bot admin
 
-- /enable-sanitizer — enable the bot for this server
-- /disable-sanitizer — disable the bot for this server
+- /add-bot-admin user:Member — add a per-guild bot admin
+- /remove-bot-admin user:Member — remove a per-guild bot admin
 - /set-policy key:key [value:value] [pairs:"k=v k=v ..."] — view or set policy; supports multi-update
 - /set-check-count [value:int]
 - /set-min-length [value:int]
