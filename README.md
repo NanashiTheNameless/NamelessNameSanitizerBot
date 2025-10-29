@@ -6,7 +6,7 @@ Discord bot that keeps member nicknames clean and consistent, with Unicode-aware
 
 If you want a production-friendly, self-hosting optimized setup (pre-tuned Docker image and Compose stack), see:
 
-- NamelessNameSanitizerBot-Docker: <https://github.com/NanashiTheNameless/NamelessNameSanatizerBot-Docker>
+- [NamelessNameSanitizerBot-Docker](<https://github.com/NanashiTheNameless/NamelessNameSanatizerBot-Docker>)
 
 ## Highlights
 
