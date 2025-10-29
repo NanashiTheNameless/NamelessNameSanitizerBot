@@ -127,7 +127,7 @@ class Database:
             raise RuntimeError("DATABASE_URL is not configured")
         # Create an async psycopg connection pool and open it explicitly
         self.pool = AsyncConnectionPool(self.dsn, min_size=1, max_size=5, open=False)
-        await self.pool.open()
+        await self.pool.open() # type: ignore
 
     async def init(self):
         assert self.pool is not None
