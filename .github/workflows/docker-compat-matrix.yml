@@ -1,4 +1,4 @@
-name: Docker Compat Matrix
+name: Docker Compat test matrix
 
 on:
   workflow_dispatch:
