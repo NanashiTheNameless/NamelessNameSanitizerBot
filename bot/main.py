@@ -519,6 +519,17 @@ def normalize_spaces(s: str) -> str:
 
 
 def sanitize_name(name: str, settings: GuildSettings) -> str:
+    _full = remove_marks_and_controls(name)
+    _full = filter_allowed_chars(_full, settings.sanitize_emoji)
+    if not settings.preserve_spaces:
+        _full = normalize_spaces(_full)
+    if not _full.strip():
+        candidate = settings.fallback_label or "Illegal Name"
+        if len(candidate) < settings.min_nick_length:
+            candidate = f"user{int(time.time() * 1000) % 10000:04d}"
+        if len(candidate) > settings.max_nick_length:
+            candidate = candidate[: settings.max_nick_length]
+        return candidate
 
     head = name
     tail = ""
