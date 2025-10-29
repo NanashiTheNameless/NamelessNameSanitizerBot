@@ -8,7 +8,7 @@ env:
 
 jobs:
   build-compat:
-    name: Build ${{ matrix.platform }} (no push)
+    name: Build ${{ matrix.platform }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
