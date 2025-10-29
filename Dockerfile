@@ -12,7 +12,7 @@ COPY requirements.txt .
 RUN apk add --no-cache tzdata ca-certificates \
     && update-ca-certificates \
     && apk add --no-cache --virtual .build-deps build-base \
-    && pip install --upgrade pip \
+    && pip install --upgrade pip>=25.3 \
     && pip install --no-cache-dir -r requirements.txt \
     && apk del .build-deps
 
