@@ -24,14 +24,13 @@ import time
 from dataclasses import dataclass
 from typing import Optional
 
-from psycopg_pool import AsyncConnectionPool  # type: ignore
-from psycopg import sql as _sql  # type: ignore
-from psycopg import rows  # type: ignore
 import discord  # type: ignore
 import regex as re  # type: ignore
 from discord import app_commands  # type: ignore
 from discord.ext import tasks  # type: ignore
 from dotenv import load_dotenv  # type: ignore
+from psycopg import rows  # type: ignore
+from psycopg_pool import AsyncConnectionPool  # type: ignore
 
 log = logging.getLogger("sanitizerbot")
 logging.basicConfig(level=logging.INFO)
@@ -135,7 +134,7 @@ class Database:
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
-                """
+                    """
                 CREATE TABLE IF NOT EXISTS guild_settings (
                     guild_id BIGINT PRIMARY KEY,
                     check_length INTEGER NOT NULL DEFAULT 0,
@@ -154,7 +153,7 @@ class Database:
                 )
             async with conn.cursor() as cur:
                 await cur.execute(
-                """
+                    """
                 CREATE TABLE IF NOT EXISTS user_cooldowns (
                     user_id BIGINT PRIMARY KEY,
                     timestamp DOUBLE PRECISION NOT NULL
@@ -163,7 +162,7 @@ class Database:
                 )
             async with conn.cursor() as cur:
                 await cur.execute(
-                """
+                    """
                 CREATE TABLE IF NOT EXISTS guild_admins (
                     guild_id BIGINT NOT NULL,
                     user_id BIGINT NOT NULL,
@@ -199,7 +198,7 @@ class Database:
                     try:
                         async with conn.cursor() as cur2:
                             await cur2.execute(
-                            f"ALTER TABLE guild_settings RENAME COLUMN {old} TO {new}"
+                                f"ALTER TABLE guild_settings RENAME COLUMN {old} TO {new}"
                             )
                         colset.remove(old)
                         colset.add(new)
@@ -269,10 +268,14 @@ class Database:
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
-                await cur.execute("DELETE FROM user_cooldowns WHERE user_id=%s", (user_id,))
+                await cur.execute(
+                    "DELETE FROM user_cooldowns WHERE user_id=%s", (user_id,)
+                )
                 n1 = cur.rowcount or 0
             async with conn.cursor() as cur:
-                await cur.execute("DELETE FROM guild_admins WHERE user_id=%s", (user_id,))
+                await cur.execute(
+                    "DELETE FROM guild_admins WHERE user_id=%s", (user_id,)
+                )
                 n2 = cur.rowcount or 0
             return int(n1), int(n2)
 
@@ -287,7 +290,9 @@ class Database:
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
-                await cur.execute("DELETE FROM user_cooldowns WHERE user_id=%s", (user_id,))
+                await cur.execute(
+                    "DELETE FROM user_cooldowns WHERE user_id=%s", (user_id,)
+                )
                 n1 = cur.rowcount or 0
             async with conn.cursor() as cur:
                 await cur.execute(
@@ -431,7 +436,9 @@ class Database:
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
-                await cur.execute("DELETE FROM guild_admins WHERE guild_id=%s", (guild_id,))
+                await cur.execute(
+                    "DELETE FROM guild_admins WHERE guild_id=%s", (guild_id,)
+                )
                 return int(cur.rowcount or 0)
 
     async def clear_admins_global(self) -> int:
@@ -455,7 +462,9 @@ class Database:
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
-                await cur.execute("DELETE FROM guild_settings WHERE guild_id=%s", (guild_id,))
+                await cur.execute(
+                    "DELETE FROM guild_settings WHERE guild_id=%s", (guild_id,)
+                )
                 return int(cur.rowcount or 0)
 
     async def reset_all_settings(self) -> int:
