@@ -184,8 +184,8 @@ Notes
 
 Related policies:
 
-- [Privacy Policy](<./PrivacyPolicy.md>)
-- [Terms of Service](<./TermsOfService.md>)
+- [Privacy Policy](<https://namelessnamesanitizerbot.namelessnanashi.dev/PrivacyPolicy/>)
+- [Terms of Service](<https://namelessnamesanitizerbot.namelessnanashi.dev/TermsOfService/>)
 
 ## License & Credits
 
