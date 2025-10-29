@@ -37,9 +37,9 @@ services:
       start_period: 5s
     volumes:
       # Persistent storage (named volume). For Postgres 18+, mount the parent dir.
-      - SanitizerBotData:/var/lib/postgresql
+      - db:/var/lib/postgresql
       # Alternatively, bind-mount to a host directory (uncomment next line):
-      # - ./SanitizerBotData:/var/lib/postgresql
+      # - ./db:/var/lib/postgresql
 
 volumes:
-  SanitizerBotData:
+  db:
