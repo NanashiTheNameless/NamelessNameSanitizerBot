@@ -35,8 +35,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 5s
-#     volumes:
-#       - pgdata:/var/lib/postgresql/data
+    volumes:
+      # Persistent storage (named volume). For Postgres 18+, mount the parent dir.
+      - pgdata:/var/lib/postgresql
+      # Alternatively, bind-mount to a host directory (uncomment next line):
+      # - ./pgdata:/var/lib/postgresql
 
 volumes:
   pgdata:
