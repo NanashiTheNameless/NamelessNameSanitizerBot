@@ -24,7 +24,9 @@ import time
 from dataclasses import dataclass
 from typing import Optional
 
-import asyncpg  # type: ignore
+from psycopg_pool import AsyncConnectionPool  # type: ignore
+from psycopg import sql as _sql  # type: ignore
+from psycopg import rows  # type: ignore
 import discord  # type: ignore
 import regex as re  # type: ignore
 from discord import app_commands  # type: ignore
@@ -119,17 +121,20 @@ class GuildSettings:
 class Database:
     def __init__(self, dsn: str):
         self.dsn = dsn
-        self.pool: Optional[asyncpg.Pool] = None
+        self.pool: Optional[AsyncConnectionPool] = None
 
     async def connect(self):
         if not self.dsn:
             raise RuntimeError("DATABASE_URL is not configured")
-        self.pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=5)
+        # Create an async psycopg connection pool and open it explicitly
+        self.pool = AsyncConnectionPool(self.dsn, min_size=1, max_size=5, open=False)
+        await self.pool.open()
 
     async def init(self):
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            await conn.execute(
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS guild_settings (
                     guild_id BIGINT PRIMARY KEY,
@@ -146,16 +151,18 @@ class Database:
                     enforce_bots BOOLEAN NOT NULL DEFAULT FALSE
                 );
                 """
-            )
-            await conn.execute(
+                )
+            async with conn.cursor() as cur:
+                await cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS user_cooldowns (
                     user_id BIGINT PRIMARY KEY,
                     timestamp DOUBLE PRECISION NOT NULL
                 );
                 """
-            )
-            await conn.execute(
+                )
+            async with conn.cursor() as cur:
+                await cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS guild_admins (
                     guild_id BIGINT NOT NULL,
@@ -163,19 +170,23 @@ class Database:
                     PRIMARY KEY (guild_id, user_id)
                 );
                 """
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE"
-            )
-            cols = await conn.fetch(
-                """
-                SELECT column_name FROM information_schema.columns
-                WHERE table_name = 'guild_settings'
-                """
-            )
+                )
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE"
+                )
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE"
+                )
+            async with conn.cursor(row_factory=rows.tuple_row) as cur:
+                await cur.execute(
+                    """
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'guild_settings'
+                    """
+                )
+                cols = await cur.fetchall()
             colset = {r[0] for r in cols}
             renames = {
                 "check_n": "check_length",
@@ -186,77 +197,69 @@ class Database:
             for old, new in renames.items():
                 if old in colset and new not in colset:
                     try:
-                        await conn.execute(
+                        async with conn.cursor() as cur2:
+                            await cur2.execute(
                             f"ALTER TABLE guild_settings RENAME COLUMN {old} TO {new}"
-                        )
+                            )
                         colset.remove(old)
                         colset.add(new)
                     except Exception:
                         pass
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE"
-            )
+            for stmt in (
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE",
+            ):
+                async with conn.cursor() as cur:
+                    await cur.execute(stmt)
 
     async def get_cooldown(self, user_id: int) -> Optional[float]:
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT timestamp FROM user_cooldowns WHERE user_id=$1", user_id
-            )
-            return float(row["timestamp"]) if row else None
+        async with self.pool.connection() as conn:
+            async with conn.cursor(row_factory=rows.dict_row) as cur:
+                await cur.execute(
+                    "SELECT timestamp FROM user_cooldowns WHERE user_id=%s",
+                    (user_id,),
+                )
+                row = await cur.fetchone()
+                return float(row["timestamp"]) if row else None
 
     async def set_cooldown(self, user_id: int, timestamp: float):
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                "INSERT INTO user_cooldowns (user_id, timestamp) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET timestamp = $2",
-                user_id,
-                timestamp,
-            )
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "INSERT INTO user_cooldowns (user_id, timestamp) VALUES (%s, %s) ON CONFLICT (user_id) DO UPDATE SET timestamp = EXCLUDED.timestamp",
+                    (user_id, timestamp),
+                )
 
     async def clear_expired_cooldowns(self, ttl: int):
         assert self.pool is not None
         cutoff = now() - ttl
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                "DELETE FROM user_cooldowns WHERE timestamp < $1", cutoff
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT"
-            )
-            await conn.execute(
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT"
-            )
-            await conn.execute(
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "DELETE FROM user_cooldowns WHERE timestamp < %s",
+                    (cutoff,),
+                )
+            for stmt in (
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT",
                 """
                 CREATE TABLE IF NOT EXISTS guild_admins (
                     guild_id BIGINT NOT NULL,
                     user_id BIGINT NOT NULL,
                     PRIMARY KEY (guild_id, user_id)
                 );
-                """
-            )
+                """,
+            ):
+                async with conn.cursor() as cur:
+                    await cur.execute(stmt)
 
     async def delete_user_data_global(self, user_id: int) -> tuple[int, int]:
         """Delete stored data for a user across all guilds.
@@ -264,22 +267,14 @@ class Database:
         Returns (cooldowns_deleted, admin_rows_deleted).
         """
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            res1 = await conn.execute(
-                "DELETE FROM user_cooldowns WHERE user_id=$1", user_id
-            )
-            res2 = await conn.execute(
-                "DELETE FROM guild_admins WHERE user_id=$1", user_id
-            )
-            try:
-                n1 = int(res1.split()[-1])
-            except Exception:
-                n1 = 0
-            try:
-                n2 = int(res2.split()[-1])
-            except Exception:
-                n2 = 0
-            return n1, n2
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM user_cooldowns WHERE user_id=%s", (user_id,))
+                n1 = cur.rowcount or 0
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM guild_admins WHERE user_id=%s", (user_id,))
+                n2 = cur.rowcount or 0
+            return int(n1), int(n2)
 
     async def delete_user_data_in_guild(
         self, guild_id: int, user_id: int
@@ -290,24 +285,17 @@ class Database:
         Returns (cooldowns_deleted, admin_rows_deleted_in_guild).
         """
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            res1 = await conn.execute(
-                "DELETE FROM user_cooldowns WHERE user_id=$1", user_id
-            )
-            res2 = await conn.execute(
-                "DELETE FROM guild_admins WHERE guild_id=$1 AND user_id=$2",
-                guild_id,
-                user_id,
-            )
-            try:
-                n1 = int(res1.split()[-1])
-            except Exception:
-                n1 = 0
-            try:
-                n2 = int(res2.split()[-1])
-            except Exception:
-                n2 = 0
-            return n1, n2
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM user_cooldowns WHERE user_id=%s", (user_id,))
+                n1 = cur.rowcount or 0
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "DELETE FROM guild_admins WHERE guild_id=%s AND user_id=%s",
+                    (guild_id, user_id),
+                )
+                n2 = cur.rowcount or 0
+            return int(n1), int(n2)
 
     async def clear_all_user_data(self) -> tuple[int, int]:
         """Delete all user-related data across all servers.
@@ -315,42 +303,40 @@ class Database:
         Returns (cooldowns_deleted, admin_rows_deleted).
         """
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            res1 = await conn.execute("DELETE FROM user_cooldowns")
-            res2 = await conn.execute("DELETE FROM guild_admins")
-            try:
-                n1 = int(res1.split()[-1])
-            except Exception:
-                n1 = 0
-            try:
-                n2 = int(res2.split()[-1])
-            except Exception:
-                n2 = 0
-            return n1, n2
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM user_cooldowns")
+                n1 = cur.rowcount or 0
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM guild_admins")
+                n2 = cur.rowcount or 0
+            return int(n1), int(n2)
 
     async def get_settings(self, guild_id: int) -> GuildSettings:
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT guild_id, check_length, min_nick_length, max_nick_length, preserve_spaces, cooldown_seconds, sanitize_emoji, enabled, logging_channel_id, bypass_role_id, fallback_label, enforce_bots FROM guild_settings WHERE guild_id=$1",
-                guild_id,
-            )
-            if row:
-                return GuildSettings(
-                    guild_id=row["guild_id"],
-                    check_length=row["check_length"],
-                    min_nick_length=row["min_nick_length"],
-                    max_nick_length=row["max_nick_length"],
-                    preserve_spaces=row["preserve_spaces"],
-                    cooldown_seconds=row["cooldown_seconds"],
-                    sanitize_emoji=row["sanitize_emoji"],
-                    enabled=row["enabled"],
-                    logging_channel_id=row.get("logging_channel_id"),
-                    bypass_role_id=row.get("bypass_role_id"),
-                    fallback_label=row.get("fallback_label"),
-                    enforce_bots=row.get("enforce_bots", False),
+        async with self.pool.connection() as conn:
+            async with conn.cursor(row_factory=rows.dict_row) as cur:
+                await cur.execute(
+                    "SELECT guild_id, check_length, min_nick_length, max_nick_length, preserve_spaces, cooldown_seconds, sanitize_emoji, enabled, logging_channel_id, bypass_role_id, fallback_label, enforce_bots FROM guild_settings WHERE guild_id=%s",
+                    (guild_id,),
                 )
-            return GuildSettings(guild_id=guild_id)
+                row = await cur.fetchone()
+                if row:
+                    return GuildSettings(
+                        guild_id=row["guild_id"],
+                        check_length=row["check_length"],
+                        min_nick_length=row["min_nick_length"],
+                        max_nick_length=row["max_nick_length"],
+                        preserve_spaces=row["preserve_spaces"],
+                        cooldown_seconds=row["cooldown_seconds"],
+                        sanitize_emoji=row["sanitize_emoji"],
+                        enabled=row["enabled"],
+                        logging_channel_id=row.get("logging_channel_id"),
+                        bypass_role_id=row.get("bypass_role_id"),
+                        fallback_label=row.get("fallback_label"),
+                        enforce_bots=row.get("enforce_bots", False),
+                    )
+                return GuildSettings(guild_id=guild_id)
 
     async def set_setting(self, guild_id: int, key: str, value):
         assert self.pool is not None
@@ -379,29 +365,31 @@ class Database:
         col = columns.get(key)
         if not col:
             raise ValueError(f"Unsupported setting: {key}")
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                "INSERT INTO guild_settings (guild_id) VALUES ($1) ON CONFLICT (guild_id) DO NOTHING",
-                guild_id,
-            )
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "INSERT INTO guild_settings (guild_id) VALUES (%s) ON CONFLICT (guild_id) DO NOTHING",
+                    (guild_id,),
+                )
 
             try:
-                await conn.execute(
-                    f"UPDATE guild_settings SET {col} = $1 WHERE guild_id=$2",
-                    value,
-                    guild_id,
-                )
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        f"UPDATE guild_settings SET {col} = %s WHERE guild_id=%s",
+                        (value, guild_id),
+                    )
             except Exception as e:
                 if col == "fallback_label" and isinstance(e, Exception):
                     try:
-                        await conn.execute(
-                            "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT"
-                        )
-                        await conn.execute(
-                            f"UPDATE guild_settings SET {col} = $1 WHERE guild_id=$2",
-                            value,
-                            guild_id,
-                        )
+                        async with conn.cursor() as cur:
+                            await cur.execute(
+                                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT"
+                            )
+                        async with conn.cursor() as cur:
+                            await cur.execute(
+                                f"UPDATE guild_settings SET {col} = %s WHERE guild_id=%s",
+                                (value, guild_id),
+                            )
                         return
                     except Exception:
                         pass
@@ -409,88 +397,74 @@ class Database:
 
     async def add_admin(self, guild_id: int, user_id: int):
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                "INSERT INTO guild_admins (guild_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-                guild_id,
-                user_id,
-            )
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "INSERT INTO guild_admins (guild_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                    (guild_id, user_id),
+                )
 
     async def remove_admin(self, guild_id: int, user_id: int):
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                "DELETE FROM guild_admins WHERE guild_id=$1 AND user_id=$2",
-                guild_id,
-                user_id,
-            )
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "DELETE FROM guild_admins WHERE guild_id=%s AND user_id=%s",
+                    (guild_id, user_id),
+                )
 
     async def is_admin(self, guild_id: int, user_id: int) -> bool:
         if OWNER_ID and user_id == OWNER_ID:
             return True
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT 1 FROM guild_admins WHERE guild_id=$1 AND user_id=$2",
-                guild_id,
-                user_id,
-            )
-            return row is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "SELECT 1 FROM guild_admins WHERE guild_id=%s AND user_id=%s",
+                    (guild_id, user_id),
+                )
+                row = await cur.fetchone()
+                return row is not None
 
     async def clear_admins(self, guild_id: int) -> int:
         """Remove all bot admins for a given guild. Returns number of rows deleted."""
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            res = await conn.execute(
-                "DELETE FROM guild_admins WHERE guild_id=$1", guild_id
-            )
-
-            try:
-                return int(res.split()[-1])
-            except Exception:
-                return 0
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM guild_admins WHERE guild_id=%s", (guild_id,))
+                return int(cur.rowcount or 0)
 
     async def clear_admins_global(self) -> int:
         """Remove all bot admins across all guilds. Returns number of rows deleted."""
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            res = await conn.execute("DELETE FROM guild_admins")
-            try:
-                return int(res.split()[-1])
-            except Exception:
-                return 0
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM guild_admins")
+                return int(cur.rowcount or 0)
 
     async def disable_all(self) -> int:
         """Globally disable the sanitizer across all guilds. Returns rows updated."""
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            res = await conn.execute("UPDATE guild_settings SET enabled=FALSE")
-            try:
-                return int(res.split()[-1])
-            except Exception:
-                return 0
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("UPDATE guild_settings SET enabled=FALSE")
+                return int(cur.rowcount or 0)
 
     async def reset_guild_settings(self, guild_id: int) -> int:
         """Delete settings row for a guild so defaults apply next time. Returns rows deleted."""
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            res = await conn.execute(
-                "DELETE FROM guild_settings WHERE guild_id=$1", guild_id
-            )
-            try:
-                return int(res.split()[-1])
-            except Exception:
-                return 0
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM guild_settings WHERE guild_id=%s", (guild_id,))
+                return int(cur.rowcount or 0)
 
     async def reset_all_settings(self) -> int:
         """Delete all guild settings so defaults apply for all guilds. Returns rows deleted."""
         assert self.pool is not None
-        async with self.pool.acquire() as conn:
-            res = await conn.execute("DELETE FROM guild_settings")
-            try:
-                return int(res.split()[-1])
-            except Exception:
-                return 0
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM guild_settings")
+                return int(cur.rowcount or 0)
 
 
 r"""Nickname sanitization helpers using the 'regex' package for Unicode handling."""

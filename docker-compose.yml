@@ -14,22 +14,29 @@ services:
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=postgresql://bot:bot@db:5432/bot
     volumes:
-      - ./data:/app/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+#       - ./data:/app/data
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
-    image: postgres:16-alpine
+    image: postgres:18
     container_name: discord-sanitizer-db
     restart: unless-stopped
     environment:
       - POSTGRES_DB=bot
       - POSTGRES_USER=bot
       - POSTGRES_PASSWORD=bot
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+#     volumes:
+#       - pgdata:/var/lib/postgresql/data
 
 volumes:
   pgdata:
