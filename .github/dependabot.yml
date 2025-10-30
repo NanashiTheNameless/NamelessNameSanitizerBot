@@ -6,15 +6,14 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-      timezone: "UTC"
+      timezone: "America/Chicago"
     open-pull-requests-limit: 5
-  - package-ecosystem: "docker"
+
+  - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "05:00"
-      timezone: "UTC"
+      timezone: "America/Chicago"
     open-pull-requests-limit: 5
-    allow:
-      - dependency-type: "direct"
