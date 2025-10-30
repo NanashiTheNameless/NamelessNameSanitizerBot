@@ -36,8 +36,8 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest
             type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref_type == 'branch' }}
             type=sha,prefix=git-,format=short,enable=${{ github.ref_type == 'branch' }}
 
       - name: Build and push
