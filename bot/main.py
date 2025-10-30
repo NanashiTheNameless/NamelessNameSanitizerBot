@@ -134,20 +134,20 @@ class Database:
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
-                    """
+                    f"""
                 CREATE TABLE IF NOT EXISTS guild_settings (
                     guild_id BIGINT PRIMARY KEY,
-                    check_length INTEGER NOT NULL DEFAULT 0,
-                    min_nick_length INTEGER NOT NULL DEFAULT 2,
-                    max_nick_length INTEGER NOT NULL DEFAULT 32,
-                    preserve_spaces BOOLEAN NOT NULL DEFAULT TRUE,
-                    cooldown_seconds INTEGER NOT NULL DEFAULT 30,
-                    sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE,
+                    check_length INTEGER NOT NULL DEFAULT {CHECK_LENGTH},
+                    min_nick_length INTEGER NOT NULL DEFAULT {MIN_NICK_LENGTH},
+                    max_nick_length INTEGER NOT NULL DEFAULT {MAX_NICK_LENGTH},
+                    preserve_spaces BOOLEAN NOT NULL DEFAULT {'TRUE' if PRESERVE_SPACES else 'FALSE'},
+                    cooldown_seconds INTEGER NOT NULL DEFAULT {COOLDOWN_SECONDS},
+                    sanitize_emoji BOOLEAN NOT NULL DEFAULT {'TRUE' if SANITIZE_EMOJI else 'FALSE'},
                     enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     logging_channel_id BIGINT,
                     bypass_role_id BIGINT,
                     fallback_label TEXT,
-                    enforce_bots BOOLEAN NOT NULL DEFAULT FALSE
+                    enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}
                 );
                 """
                 )
@@ -172,11 +172,11 @@ class Database:
                 )
             async with conn.cursor() as cur:
                 await cur.execute(
-                    "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE"
+                    f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT {'TRUE' if SANITIZE_EMOJI else 'FALSE'}"
                 )
             async with conn.cursor() as cur:
                 await cur.execute(
-                    "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE"
+                    f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}"
                 )
             async with conn.cursor(row_factory=rows.tuple_row) as cur:
                 await cur.execute(
@@ -209,7 +209,7 @@ class Database:
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT",
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT FALSE",
+                f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}",
             ):
                 async with conn.cursor() as cur:
                     await cur.execute(stmt)
@@ -244,11 +244,18 @@ class Database:
                     (cutoff,),
                 )
             for stmt in (
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE",
+                f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT {'TRUE' if SANITIZE_EMOJI else 'FALSE'}",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT",
+                f"ALTER TABLE guild_settings ALTER COLUMN check_length SET DEFAULT {CHECK_LENGTH}",
+                f"ALTER TABLE guild_settings ALTER COLUMN min_nick_length SET DEFAULT {MIN_NICK_LENGTH}",
+                f"ALTER TABLE guild_settings ALTER COLUMN max_nick_length SET DEFAULT {MAX_NICK_LENGTH}",
+                f"ALTER TABLE guild_settings ALTER COLUMN preserve_spaces SET DEFAULT {'TRUE' if PRESERVE_SPACES else 'FALSE'}",
+                f"ALTER TABLE guild_settings ALTER COLUMN cooldown_seconds SET DEFAULT {COOLDOWN_SECONDS}",
+                f"ALTER TABLE guild_settings ALTER COLUMN sanitize_emoji SET DEFAULT {'TRUE' if SANITIZE_EMOJI else 'FALSE'}",
+                f"ALTER TABLE guild_settings ALTER COLUMN enforce_bots SET DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}",
                 """
                 CREATE TABLE IF NOT EXISTS guild_admins (
                     guild_id BIGINT NOT NULL,
