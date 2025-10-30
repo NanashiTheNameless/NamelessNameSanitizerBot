@@ -43,14 +43,14 @@ Policy defaults (used until changed per-guild via commands)
 - MIN_NICK_LENGTH: integer, default 2 — minimum allowed nickname length
 - MAX_NICK_LENGTH: integer, default 32 — maximum allowed nickname length
 - PRESERVE_SPACES: true|false, default true — keep or normalize spaces
-- COOLDOWN_SECONDS: integer, default 60 — cooldown between edits per user
+- COOLDOWN_SECONDS: integer, default 30 — cooldown between edits per user
 - SANITIZE_EMOJI: true|false, default true — if true, emoji are removed
 - ENFORCE_BOTS: true|false, default false — default toggle for enforcing nickname rules on other bot accounts. The bot never sanitizes its own account.
 - COOLDOWN_TTL_SEC: integer, default max(86400, COOLDOWN_SECONDS*10) — retention for per-user cooldown entries; older entries are purged automatically.
 
 Runtime
 
-- SWEEP_INTERVAL_SEC: integer, default 120 — periodic sweep interval seconds
+- SWEEP_INTERVAL_SEC: integer, default 60 — periodic sweep interval seconds
 - SWEEP_BATCH: integer, default 256 — reserved; currently no effect
 - LOG_LEVEL: DEBUG|INFO|WARNING|ERROR — overrides default logging level (INFO)
 

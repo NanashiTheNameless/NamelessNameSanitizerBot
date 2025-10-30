@@ -78,7 +78,7 @@ def parse_bool_str(val: str) -> bool:
     return False
 
 
-COOLDOWN_SECONDS = getenv_int("COOLDOWN_SECONDS", 60)
+COOLDOWN_SECONDS = getenv_int("COOLDOWN_SECONDS", 30)
 CHECK_LENGTH = getenv_int("CHECK_LENGTH", 0)
 MIN_NICK_LENGTH = getenv_int("MIN_NICK_LENGTH", 2)
 MAX_NICK_LENGTH = getenv_int("MAX_NICK_LENGTH", 32)
@@ -93,7 +93,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 _APP_ID = os.getenv("APPLICATION_ID", "").strip()
 APPLICATION_ID = int(_APP_ID) if _APP_ID.isdigit() else None
 
-SWEEP_INTERVAL_SEC = getenv_int("SWEEP_INTERVAL_SEC", 120)
+SWEEP_INTERVAL_SEC = getenv_int("SWEEP_INTERVAL_SEC", 60)
 SWEEP_BATCH = getenv_int("SWEEP_BATCH", 256)
 
 
@@ -141,7 +141,7 @@ class Database:
                     min_nick_length INTEGER NOT NULL DEFAULT 2,
                     max_nick_length INTEGER NOT NULL DEFAULT 32,
                     preserve_spaces BOOLEAN NOT NULL DEFAULT TRUE,
-                    cooldown_seconds INTEGER NOT NULL DEFAULT 60,
+                    cooldown_seconds INTEGER NOT NULL DEFAULT 30,
                     sanitize_emoji BOOLEAN NOT NULL DEFAULT TRUE,
                     enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     logging_channel_id BIGINT,
@@ -735,7 +735,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="botinfo",
-            description="Show bot information, owner, developer, source and policies",
+            description="Everyone: Show bot information, owner, developer, source and policies",
         )
         async def _botinfo(interaction: discord.Interaction):
             try:
