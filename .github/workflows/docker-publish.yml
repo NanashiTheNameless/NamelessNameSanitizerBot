@@ -38,7 +38,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=ref,event=tag
-            type=sha,prefix=git-,format=short
+            type=sha,prefix=git-,format=short,enable=${{ github.ref_type == 'branch' }}
 
       - name: Build and push
         uses: docker/build-push-action@9e436ba9f2d7bcd1d038c8e55d039d37896ddc5d
