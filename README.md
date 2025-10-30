@@ -175,6 +175,8 @@ Notes
 
 ## Security & privacy
 
+See [SECURITY.md](<./SECURITY.md>) in this repo and the policies on the project site:
+
 - The bot does not log message content and doesn’t require the Message Content intent.
 - Logging channel (if set) only receives a short notice when a nickname is changed.
 - Minimal data storage: per-guild config and per-user cooldown timestamps. Cooldowns are purged automatically after COOLDOWN_TTL_SEC.
