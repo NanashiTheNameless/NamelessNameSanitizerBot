@@ -194,3 +194,11 @@ See [license.md](<./license.md>).
 [All Major Contributors](<./CONTRIBUTORS.md>)
 
 [All Other Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/graphs/contributors>)
+
+## AI agents
+
+If you're using an AI assistant to help with this repo, see:
+
+- [AGENTS.md](<./AGENTS.md>) – general guidance for LLM agents working in this repo
+- [CLAUDE.md](<./CLAUDE.md>) – provider-specific notes for Anthropic Claude
+- [COPILOT.md](<./COPILOT.md>) – provider-specific notes for GitHub Copilot in VS Code
