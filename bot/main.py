@@ -1009,7 +1009,9 @@ class SanitizerBot(discord.Client):
         )
         @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
         async def _unblacklist_server(
-            interaction: discord.Interaction, server_id: str, confirm: Optional[bool] = False
+            interaction: discord.Interaction,
+            server_id: str,
+            confirm: Optional[bool] = False,
         ):
             await self.cmd_unblacklist_server(interaction, server_id, confirm)
 
@@ -1197,7 +1199,11 @@ class SanitizerBot(discord.Client):
                         pass
                     await self._dm_owner(
                         f"Joined blacklisted guild: {guild.name} ({guild.id})"
-                        + (f" — reason: {reason_txt}" if (reason_txt and str(reason_txt).strip()) else "")
+                        + (
+                            f" — reason: {reason_txt}"
+                            if (reason_txt and str(reason_txt).strip())
+                            else ""
+                        )
                         + "; leaving now."
                     )
                     try:
@@ -2570,7 +2576,10 @@ class SanitizerBot(discord.Client):
         )
 
     async def cmd_unblacklist_server(
-        self, interaction: discord.Interaction, server_id: str, confirm: Optional[bool] = False
+        self,
+        interaction: discord.Interaction,
+        server_id: str,
+        confirm: Optional[bool] = False,
     ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
