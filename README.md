@@ -117,6 +117,9 @@ Owner-only
 - /list-bot-admins — list all bot admins in the current server
 - /dm-admin-report — DM the owner a report of all servers the bot is in and the bot admins for each
 - /leave-server server_id:int — leave the specified server and delete that server’s stored data
+- /blacklist-server server_id:int [reason:str] — add a server to the blacklist; the bot will auto-leave it on join/startup
+- /unblacklist-server server_id:int — remove a server from the blacklist
+- /list-blacklisted-servers — list all blacklisted server IDs
 
 Bot admin
 

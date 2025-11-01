@@ -178,6 +178,16 @@ class Database:
                 await cur.execute(
                     f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}"
                 )
+            # Blacklist table for guilds the bot should automatically leave/avoid
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    """
+                CREATE TABLE IF NOT EXISTS blacklist_guilds (
+                    guild_id BIGINT PRIMARY KEY,
+                    reason TEXT
+                );
+                """
+                )
             async with conn.cursor(row_factory=rows.tuple_row) as cur:
                 await cur.execute(
                     """
@@ -436,6 +446,45 @@ class Database:
                 )
                 rows_ = await cur.fetchall()
                 return [int(r[0]) for r in rows_]
+
+    async def add_blacklisted_guild(self, guild_id: int, reason: Optional[str] = None):
+        assert self.pool is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "INSERT INTO blacklist_guilds (guild_id, reason) VALUES (%s, %s) ON CONFLICT (guild_id) DO UPDATE SET reason = EXCLUDED.reason",
+                    (guild_id, reason),
+                )
+
+    async def remove_blacklisted_guild(self, guild_id: int) -> int:
+        assert self.pool is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "DELETE FROM blacklist_guilds WHERE guild_id=%s",
+                    (guild_id,),
+                )
+                return int(cur.rowcount or 0)
+
+    async def is_guild_blacklisted(self, guild_id: int) -> bool:
+        assert self.pool is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "SELECT 1 FROM blacklist_guilds WHERE guild_id=%s",
+                    (guild_id,),
+                )
+                return (await cur.fetchone()) is not None
+
+    async def list_blacklisted_guilds(self) -> list[tuple[int, Optional[str]]]:
+        assert self.pool is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor(row_factory=rows.tuple_row) as cur:
+                await cur.execute(
+                    "SELECT guild_id, reason FROM blacklist_guilds ORDER BY guild_id ASC"
+                )
+                rows_ = await cur.fetchall()
+                return [(int(r[0]), r[1]) for r in rows_]
 
     async def is_admin(self, guild_id: int, user_id: int) -> bool:
         if OWNER_ID and user_id == OWNER_ID:
@@ -874,6 +923,33 @@ class SanitizerBot(discord.Client):
             await self.cmd_leave_server(interaction, server_id)
 
         @self.tree.command(
+            name="blacklist-server",
+            description="Bot Owner Only: Add a server ID to the blacklist (auto-leave on join/startup)",
+        )
+        @app_commands.describe(server_id="Guild ID to blacklist", reason="Optional reason for blacklisting")
+        async def _blacklist_server(
+            interaction: discord.Interaction, server_id: int, reason: Optional[str] = None
+        ):
+            await self.cmd_blacklist_server(interaction, server_id, reason)
+
+        @self.tree.command(
+            name="unblacklist-server",
+            description="Bot Owner Only: Remove a server ID from the blacklist",
+        )
+        @app_commands.describe(server_id="Guild ID to remove from blacklist")
+        async def _unblacklist_server(
+            interaction: discord.Interaction, server_id: int
+        ):
+            await self.cmd_unblacklist_server(interaction, server_id)
+
+        @self.tree.command(
+            name="list-blacklisted-servers",
+            description="Bot Owner Only: List all blacklisted server IDs",
+        )
+        async def _list_blacklisted_servers(interaction: discord.Interaction):
+            await self.cmd_list_blacklisted_servers(interaction)
+
+        @self.tree.command(
             name="set-fallback-label",
             description="Bot Admin Only: Set or view the fallback nickname used when a name is fully illegal",
         )
@@ -966,11 +1042,42 @@ class SanitizerBot(discord.Client):
         if not self.guilds:
             log.warning("[STATUS] No guilds detected. Bot is not in any servers.")
 
+        # Auto-leave any blacklisted guilds if present
+        if self.db:
+            try:
+                bl = await self.db.list_blacklisted_guilds()
+                bl_set = {gid for gid, _ in bl}
+            except Exception:
+                bl_set = set()
+            if bl_set:
+                attempt = 0
+                for g in list(self.guilds):
+                    if g.id in bl_set:
+                        attempt += 1
+                        try:
+                            await g.leave()
+                            log.info("[BLACKLIST] Left blacklisted guild %s (%s)", g.name, g.id)
+                        except Exception as e:
+                            log.debug("Failed leaving blacklisted guild %s: %s", g.id, e)
+                if attempt:
+                    log.info("[BLACKLIST] Processed %d blacklisted guild(s) on startup.", attempt)
+
         log.info("[STATUS] Starting member sweep background task.")
         self.member_sweep.start()  # type: ignore
 
     async def on_guild_join(self, guild: discord.Guild):
         log.info(f"[EVENT] Bot joined new guild: {guild.name} ({guild.id})")
+        # If blacklisted, immediately leave
+        if self.db:
+            try:
+                if await self.db.is_guild_blacklisted(guild.id):
+                    try:
+                        await guild.leave()
+                        log.info("[BLACKLIST] Immediately left blacklisted guild %s (%s)", guild.name, guild.id)
+                    except Exception as e:
+                        log.debug("Failed to leave blacklisted guild on join %s: %s", guild.id, e)
+            except Exception:
+                pass
 
     async def on_member_join(self, member: discord.Member):
         if member.bot:
@@ -2167,6 +2274,92 @@ class SanitizerBot(discord.Client):
         await self.db.remove_admin(interaction.guild.id, user.id)
         await interaction.response.send_message(
             f"Removed {user.mention} as bot admin for this server.", ephemeral=True
+        )
+
+    async def cmd_blacklist_server(
+        self, interaction: discord.Interaction, server_id: int, reason: Optional[str] = None
+    ):
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        await self.db.add_blacklisted_guild(server_id, reason)
+        # If currently in that guild, attempt to leave
+        g = self.get_guild(server_id)
+        if g is not None:
+            try:
+                await g.leave()
+                left_note = f" and left guild '{g.name}'"
+            except Exception:
+                left_note = ""
+        else:
+            left_note = ""
+        suffix = f" Reason: {reason}" if (reason and reason.strip()) else ""
+        await interaction.response.send_message(
+            f"Blacklisted server ID {server_id}{left_note}.{suffix}",
+            ephemeral=interaction.guild is not None,
+        )
+
+    async def cmd_unblacklist_server(
+        self, interaction: discord.Interaction, server_id: int
+    ):
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        removed = await self.db.remove_blacklisted_guild(server_id)
+        if removed:
+            msg = f"Removed server ID {server_id} from blacklist."
+        else:
+            msg = f"Server ID {server_id} was not in the blacklist."
+        await interaction.response.send_message(
+            msg, ephemeral=interaction.guild is not None
+        )
+
+    async def cmd_list_blacklisted_servers(self, interaction: discord.Interaction):
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        try:
+            entries = await self.db.list_blacklisted_guilds()
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to load blacklist: {e}", ephemeral=interaction.guild is not None
+            )
+            return
+        if not entries:
+            await interaction.response.send_message(
+                "Blacklist is empty.", ephemeral=interaction.guild is not None
+            )
+            return
+        lines = []
+        for gid, reason in entries:
+            if reason and reason.strip():
+                lines.append(f"• {gid} — {reason}")
+            else:
+                lines.append(f"• {gid}")
+        text = "Blacklisted servers:\n" + "\n".join(lines)
+        await interaction.response.send_message(
+            text, ephemeral=interaction.guild is not None
         )
 
     async def cmd_list_bot_admins(self, interaction: discord.Interaction):
