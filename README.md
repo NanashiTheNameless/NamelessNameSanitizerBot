@@ -105,52 +105,53 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 
 ## Command reference
 
-Owner-only
+Public (most visible)
 
-- /add-bot-admin user:Member — add a bot admin
-- /remove-bot-admin user:Member — remove a bot admin
-- /nuke-bot-admins — remove all bot admins in the current server
-- /global-bot-disable — disable the bot across all servers
-- /global-nuke-bot-admins — remove all bot admins across all servers
-- /global-reset-settings — reset sanitizer settings to defaults across all servers
-- /delete-user-data user:@User — delete that user's stored data across all servers (cooldowns/admin entries)
-- /global-delete-user-data — delete ALL user data across all servers and announce in configured logging channels
-- /list-bot-admins — list all bot admins in the current server (in DMs, pass server_id)
-- /dm-admin-report — DM the owner a report of all servers the bot is in and the bot admins for each
-- /leave-server server_id:str confirm:true — leave the specified server and delete that server’s stored data
-- /blacklist-server server_id:str [reason:str] confirm:true — add a server to the blacklist; the bot will auto-leave it on join/startup and delete stored data
-- /unblacklist-server server_id:str confirm:true — remove a server from the blacklist
-- /list-blacklisted-servers — list all blacklisted server IDs
-
-Bot admin
-
-- /add-bot-admin user:Member — add a per-guild bot admin
-- /remove-bot-admin user:Member — remove a per-guild bot admin
-- /set-policy key:key [value:value] [pairs:"k=v k=v ..."] — view or set policy; supports multi-update
-- /set-check-count [value:int]
-- /set-min-length [value:int]
-- /set-max-length [value:int]
-- /set-keep-spaces [value:bool]
-- /set-cooldown-seconds [value:int]
-- /set-emoji-sanitization [value:bool]
-- /set-enforce-bots [value:bool]
-- /set-logging-channel [channel:#channel] — set or view logging channel
-- /clear-logging-channel — clear logging channel
-- /set-bypass-role [role:@Role] — set or view bypass role
-- /clear-bypass-role — clear bypass role
-- /set-fallback-label [value:str] — set or view the fallback nickname used when a name is fully illegal (1–20 characters: letters, numbers, spaces, or dashes)
-- /clear-fallback-label — clear the fallback nickname
-- /reset-settings — reset this server’s sanitizer settings to defaults
-- /sweep-now — immediately sweep and sanitize members in this server (bot admin only)
+- /botinfo — shows instance owner, developer, and links to source, terms, and privacy
+- /delete-my-data — deletes your stored data in the current server (cooldowns/admin entries)
 
 Guild/Server Admin
 
 - /sanitize-user member:Member — sanitize someone immediately (requires Manage Nicknames, or to be a bot admin)
 
-Public
+Bot admin (sorted by typical usage)
 
-- /botinfo — shows instance owner, developer, and links to source, terms, and privacy
-- /delete-my-data — deletes your stored data in the current server (cooldowns/admin entries)
+- /sweep-now — immediately sweep and sanitize members in this server (bot admin only)
+- /enable-sanitizer — enable the sanitizer in this server
+- /disable-sanitizer — disable the sanitizer in this server
+- /set-logging-channel [channel:#channel] — set or view logging channel
+- /set-bypass-role [role:@Role] — set or view bypass role
+- /set-emoji-sanitization [value:bool]
+- /set-keep-spaces [value:bool]
+- /set-min-length [value:int]
+- /set-max-length [value:int]
+- /set-check-count [value:int]
+- /set-cooldown-seconds [value:int]
+- /set-enforce-bots [value:bool]
+- /set-fallback-label [value:str] — set or view the fallback nickname used when a name is fully illegal (1–20 characters: letters, numbers, spaces, or dashes)
+- /clear-logging-channel — clear logging channel
+- /clear-bypass-role — clear bypass role
+- /clear-fallback-label — clear the fallback nickname
+- /reset-settings — reset this server’s sanitizer settings to defaults
+- /set-policy key:key [value:value] [pairs:"k=v k=v ..."] — view or set policy; supports multi-update
+
+Owner-only (placed last)
+
+- /add-bot-admin user:Member — add a bot admin (current server)
+- /remove-bot-admin user:Member — remove a bot admin (current server)
+- /list-bot-admins — list all bot admins in a server (in DMs, pass server_id)
+- /dm-admin-report — DM the owner a report of all servers the bot is in and the bot admins for each
+- /global-bot-disable — disable the bot across all servers
+- /global-reset-settings — reset sanitizer settings to defaults across all servers
+- /nuke-bot-admins — remove all bot admins in the current server
+- /global-nuke-bot-admins — remove all bot admins across all servers
+- /blacklist-server server_id:str [reason:str] confirm:true — add a server to the blacklist; the bot will auto-leave it on join/startup and delete stored data
+- /unblacklist-server server_id:str confirm:true — remove a server from the blacklist
+- /set-blacklist-reason server_id:str [reason:str] — set/clear blacklist reason for a server
+- /list-blacklisted-servers — list all blacklisted server IDs
+- /leave-server server_id:str confirm:true — leave the specified server and delete that server’s stored data
+- /delete-user-data user:@User — delete that user's stored data across all servers (cooldowns/admin entries)
+- /global-delete-user-data — delete ALL user data across all servers and announce in configured logging channels
 
 Notes
 
