@@ -454,7 +454,9 @@ class Database:
                 rows_ = await cur.fetchall()
                 return [int(r[0]) for r in rows_]
 
-    async def add_blacklisted_guild(self, guild_id: int, reason: Optional[str] = None, name: Optional[str] = None):
+    async def add_blacklisted_guild(
+        self, guild_id: int, reason: Optional[str] = None, name: Optional[str] = None
+    ):
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
@@ -486,7 +488,9 @@ class Database:
                 )
                 return (await cur.fetchone()) is not None
 
-    async def list_blacklisted_guilds(self) -> list[tuple[int, Optional[str], Optional[str]]]:
+    async def list_blacklisted_guilds(
+        self,
+    ) -> list[tuple[int, Optional[str], Optional[str]]]:
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor(row_factory=rows.tuple_row) as cur:
@@ -928,9 +932,13 @@ class SanitizerBot(discord.Client):
             name="list-bot-admins",
             description="Bot Owner Only: List bot admins for a server",
         )
-        @app_commands.describe(server_id="Optional server (guild) ID to list; required in DMs")
+        @app_commands.describe(
+            server_id="Optional server (guild) ID to list; required in DMs"
+        )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
-        async def _list_admins(interaction: discord.Interaction, server_id: Optional[str] = None):
+        async def _list_admins(
+            interaction: discord.Interaction, server_id: Optional[str] = None
+        ):
             await self.cmd_list_bot_admins(interaction, server_id)
 
         @self.tree.command(
@@ -944,9 +952,15 @@ class SanitizerBot(discord.Client):
             name="leave-server",
             description="Bot Owner Only: Leave a server and delete its stored data",
         )
-        @app_commands.describe(server_id="The server (guild) ID to leave", confirm="Type true to confirm")
+        @app_commands.describe(
+            server_id="The server (guild) ID to leave", confirm="Type true to confirm"
+        )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
-        async def _leave_server(interaction: discord.Interaction, server_id: str, confirm: Optional[bool] = False):
+        async def _leave_server(
+            interaction: discord.Interaction,
+            server_id: str,
+            confirm: Optional[bool] = False,
+        ):
             await self.cmd_leave_server(interaction, server_id, confirm)
 
         @self.tree.command(
@@ -954,7 +968,9 @@ class SanitizerBot(discord.Client):
             description="Bot Owner Only: Add a server ID to the blacklist (auto-leave on join/startup)",
         )
         @app_commands.describe(
-            server_id="Guild ID to blacklist", reason="Optional reason for blacklisting", confirm="Type true to confirm"
+            server_id="Guild ID to blacklist",
+            reason="Optional reason for blacklisting",
+            confirm="Type true to confirm",
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _blacklist_server(
@@ -1128,7 +1144,9 @@ class SanitizerBot(discord.Client):
                     try:
                         # Update stored name for this blacklisted guild (keep reason)
                         try:
-                            await self.db.add_blacklisted_guild(guild.id, None, guild.name)
+                            await self.db.add_blacklisted_guild(
+                                guild.id, None, guild.name
+                            )
                         except Exception:
                             pass
                         try:
@@ -2484,7 +2502,9 @@ class SanitizerBot(discord.Client):
             text, ephemeral=interaction.guild is not None
         )
 
-    async def cmd_list_bot_admins(self, interaction: discord.Interaction, server_id: Optional[str] = None):
+    async def cmd_list_bot_admins(
+        self, interaction: discord.Interaction, server_id: Optional[str] = None
+    ):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2502,7 +2522,8 @@ class SanitizerBot(discord.Client):
                 gid = int(server_id)
             except Exception:
                 await interaction.response.send_message(
-                    f"'{server_id}' is not a valid server ID.", ephemeral=interaction.guild is not None
+                    f"'{server_id}' is not a valid server ID.",
+                    ephemeral=interaction.guild is not None,
                 )
                 return
         else:
@@ -2556,7 +2577,7 @@ class SanitizerBot(discord.Client):
         chunks: list[str] = []
         header = "Admin report for all servers bot is in:\n"
         cur = header
-        for line in (lines or ["<none>"]):
+        for line in lines or ["<none>"]:
             if len(cur) + len(line) + 1 > 1800:
                 chunks.append(cur)
                 cur = ""
@@ -2577,7 +2598,12 @@ class SanitizerBot(discord.Client):
                 f"Failed to send DM: {e}", ephemeral=interaction.guild is not None
             )
 
-    async def cmd_leave_server(self, interaction: discord.Interaction, server_id: str, confirm: Optional[bool] = False):
+    async def cmd_leave_server(
+        self,
+        interaction: discord.Interaction,
+        server_id: str,
+        confirm: Optional[bool] = False,
+    ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
@@ -2664,7 +2690,9 @@ class SanitizerBot(discord.Client):
                 pass
         try:
             await guild.leave()
-            await self._dm_owner(f"Left guild: {guild.name} ({guild.id}) — requested by owner.")
+            await self._dm_owner(
+                f"Left guild: {guild.name} ({guild.id}) — requested by owner."
+            )
         except Exception:
             # As a fallback, try to kick self if possible
             try:
