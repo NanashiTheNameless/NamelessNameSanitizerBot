@@ -919,7 +919,7 @@ class SanitizerBot(discord.Client):
             description="Bot Owner Only: Leave a server and delete its stored data",
         )
         @app_commands.describe(server_id="The server (guild) ID to leave")
-        async def _leave_server(interaction: discord.Interaction, server_id: int):
+        async def _leave_server(interaction: discord.Interaction, server_id: str):
             await self.cmd_leave_server(interaction, server_id)
 
         @self.tree.command(
@@ -928,7 +928,7 @@ class SanitizerBot(discord.Client):
         )
         @app_commands.describe(server_id="Guild ID to blacklist", reason="Optional reason for blacklisting")
         async def _blacklist_server(
-            interaction: discord.Interaction, server_id: int, reason: Optional[str] = None
+            interaction: discord.Interaction, server_id: str, reason: Optional[str] = None
         ):
             await self.cmd_blacklist_server(interaction, server_id, reason)
 
@@ -938,7 +938,7 @@ class SanitizerBot(discord.Client):
         )
         @app_commands.describe(server_id="Guild ID to remove from blacklist")
         async def _unblacklist_server(
-            interaction: discord.Interaction, server_id: int
+            interaction: discord.Interaction, server_id: str
         ):
             await self.cmd_unblacklist_server(interaction, server_id)
 
@@ -2277,7 +2277,7 @@ class SanitizerBot(discord.Client):
         )
 
     async def cmd_blacklist_server(
-        self, interaction: discord.Interaction, server_id: int, reason: Optional[str] = None
+        self, interaction: discord.Interaction, server_id: str, reason: Optional[str] = None
     ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
@@ -2289,9 +2289,16 @@ class SanitizerBot(discord.Client):
                 "Database not configured.", ephemeral=True
             )
             return
-        await self.db.add_blacklisted_guild(server_id, reason)
+        try:
+            gid = int(server_id)
+        except Exception:
+            await interaction.response.send_message(
+                f"'{server_id}' is not a valid server ID.", ephemeral=interaction.guild is not None
+            )
+            return
+        await self.db.add_blacklisted_guild(gid, reason)
         # If currently in that guild, attempt to leave
-        g = self.get_guild(server_id)
+        g = self.get_guild(gid)
         if g is not None:
             try:
                 await g.leave()
@@ -2302,12 +2309,12 @@ class SanitizerBot(discord.Client):
             left_note = ""
         suffix = f" Reason: {reason}" if (reason and reason.strip()) else ""
         await interaction.response.send_message(
-            f"Blacklisted server ID {server_id}{left_note}.{suffix}",
+            f"Blacklisted server ID {gid}{left_note}.{suffix}",
             ephemeral=interaction.guild is not None,
         )
 
     async def cmd_unblacklist_server(
-        self, interaction: discord.Interaction, server_id: int
+        self, interaction: discord.Interaction, server_id: str
     ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
@@ -2319,11 +2326,18 @@ class SanitizerBot(discord.Client):
                 "Database not configured.", ephemeral=True
             )
             return
-        removed = await self.db.remove_blacklisted_guild(server_id)
+        try:
+            gid = int(server_id)
+        except Exception:
+            await interaction.response.send_message(
+                f"'{server_id}' is not a valid server ID.", ephemeral=interaction.guild is not None
+            )
+            return
+        removed = await self.db.remove_blacklisted_guild(gid)
         if removed:
-            msg = f"Removed server ID {server_id} from blacklist."
+            msg = f"Removed server ID {gid} from blacklist."
         else:
-            msg = f"Server ID {server_id} was not in the blacklist."
+            msg = f"Server ID {gid} was not in the blacklist."
         await interaction.response.send_message(
             msg, ephemeral=interaction.guild is not None
         )
@@ -2434,7 +2448,7 @@ class SanitizerBot(discord.Client):
                 f"Failed to send DM: {e}", ephemeral=interaction.guild is not None
             )
 
-    async def cmd_leave_server(self, interaction: discord.Interaction, server_id: int):
+    async def cmd_leave_server(self, interaction: discord.Interaction, server_id: str):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
@@ -2445,16 +2459,25 @@ class SanitizerBot(discord.Client):
                 "Database not configured.", ephemeral=True
             )
             return
-        guild = self.get_guild(server_id)
+        # Parse snowflake from text to int; Discord IDs exceed 32-bit
+        try:
+            gid = int(server_id)
+        except Exception:
+            await interaction.response.send_message(
+                f"'{server_id}' is not a valid server ID.",
+                ephemeral=interaction.guild is not None,
+            )
+            return
+        guild = self.get_guild(gid)
         if guild is None:
             # Attempt fetch if not cached
             try:
-                guild = await self.fetch_guild(server_id)
+                guild = await self.fetch_guild(gid)
             except Exception:
                 guild = None
         if guild is None:
             await interaction.response.send_message(
-                f"I am not in a server with ID {server_id} or it could not be fetched.",
+                f"I am not in a server with ID {gid} or it could not be fetched.",
                 ephemeral=True,
             )
             return
