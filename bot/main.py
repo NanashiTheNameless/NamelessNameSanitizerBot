@@ -1553,9 +1553,13 @@ class SanitizerBot(discord.Client):
     ):
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
-            await interaction.response.send_message(
-                f"Current check_length: {s.check_length}", ephemeral=True
-            )
+            warn_disabled = None
+            if not s.enabled:
+                warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
+            text = f"Current check_length: {s.check_length}"
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "check_length", str(value))
 
@@ -1564,9 +1568,13 @@ class SanitizerBot(discord.Client):
     ):
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
-            await interaction.response.send_message(
-                f"Current min_nick_length: {s.min_nick_length}", ephemeral=True
-            )
+            warn_disabled = None
+            if not s.enabled:
+                warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
+            text = f"Current min_nick_length: {s.min_nick_length}"
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "min_nick_length", str(value))
 
@@ -1575,9 +1583,13 @@ class SanitizerBot(discord.Client):
     ):
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
-            await interaction.response.send_message(
-                f"Current max_nick_length: {s.max_nick_length}", ephemeral=True
-            )
+            warn_disabled = None
+            if not s.enabled:
+                warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
+            text = f"Current max_nick_length: {s.max_nick_length}"
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "max_nick_length", str(value))
 
@@ -1586,9 +1598,13 @@ class SanitizerBot(discord.Client):
     ):
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
-            await interaction.response.send_message(
-                f"Current preserve_spaces: {s.preserve_spaces}", ephemeral=True
-            )
+            warn_disabled = None
+            if not s.enabled:
+                warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
+            text = f"Current preserve_spaces: {s.preserve_spaces}"
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
             return
         await self.cmd_set_setting(
             interaction, "preserve_spaces", "true" if value else "false"
@@ -1599,9 +1615,13 @@ class SanitizerBot(discord.Client):
     ):
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
-            await interaction.response.send_message(
-                f"Current cooldown_seconds: {s.cooldown_seconds}", ephemeral=True
-            )
+            warn_disabled = None
+            if not s.enabled:
+                warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
+            text = f"Current cooldown_seconds: {s.cooldown_seconds}"
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
             return
         await self.cmd_set_setting(interaction, "cooldown_seconds", str(value))
 
@@ -1610,9 +1630,13 @@ class SanitizerBot(discord.Client):
     ):
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
-            await interaction.response.send_message(
-                f"Current sanitize_emoji: {s.sanitize_emoji}", ephemeral=True
-            )
+            warn_disabled = None
+            if not s.enabled:
+                warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
+            text = f"Current sanitize_emoji: {s.sanitize_emoji}"
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
             return
         await self.cmd_set_setting(
             interaction, "sanitize_emoji", "true" if value else "false"
