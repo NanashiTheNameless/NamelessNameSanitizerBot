@@ -38,7 +38,7 @@ services:
       retries: 20
       start_period: 5s
     volumes:
-      # Persistent storage (named volume). For Postgres 18+, mount the parent dir.
+      # Persistent storage (named volume).
       - db:/var/lib/postgresql
       # Alternatively, bind-mount to a host directory (uncomment next line):
       # - ./db:/var/lib/postgresql
