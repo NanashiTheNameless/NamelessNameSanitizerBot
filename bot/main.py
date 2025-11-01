@@ -749,103 +749,7 @@ class SanitizerBot(discord.Client):
         return False
 
     def _register_all_commands(self):
-
-        @self.tree.command(
-            name="enable-sanitizer",
-            description="Bot Admin Only: Enable the sanitizer in this server",
-        )
-        async def _enable(interaction: discord.Interaction):
-            await self.cmd_start(interaction)
-
-        @self.tree.command(
-            name="disable-sanitizer",
-            description="Bot Admin Only: Disable the sanitizer in this server",
-        )
-        async def _disable(interaction: discord.Interaction):
-            await self.cmd_stop(interaction)
-
-        @self.tree.command(
-            name="sanitize-user",
-            description="Manage Nicknames Required: Clean up a member's nickname now",
-        )
-        async def _sanitize(interaction: discord.Interaction, member: discord.Member):
-            await self.cmd_sanitize(interaction, member)
-
-        @self.tree.command(
-            name="set-policy",
-            description="Bot Admin Only: Set or view policy values; supports multiple updates",
-        )
-        @app_commands.describe(
-            key="Policy key to change (ignored if 'pairs' is provided)",
-            value="New value for the policy key (leave empty to view current)",
-            pairs="Multiple key=value pairs separated by spaces, e.g. 'min_nick_length=3 max_nick_length=24'",
-        )
-        @app_commands.autocomplete(key=self._ac_policy_key, value=self._ac_policy_value)
-        async def _set_policy(
-            interaction: discord.Interaction,
-            key: Optional[str] = None,
-            value: Optional[str] = None,
-            pairs: Optional[str] = None,
-        ):
-            await self.cmd_set_setting(interaction, key, value, pairs)
-
-        @self.tree.command(
-            name="set-check-count",
-            description="Bot Admin Only: Set or view the number of leading characters (grapheme clusters) to sanitize",
-        )
-        @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_check_count(
-            interaction: discord.Interaction, value: Optional[int] = None
-        ):
-            await self.cmd_set_check_length(interaction, value)
-
-        @self.tree.command(
-            name="set-min-length",
-            description="Bot Admin Only: Set or view the minimum allowed nickname length",
-        )
-        @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_min_nick_length(
-            interaction: discord.Interaction, value: Optional[int] = None
-        ):
-            await self.cmd_set_min_nick_length(interaction, value)
-
-        @self.tree.command(
-            name="set-max-length",
-            description="Bot Admin Only: Set or view the maximum allowed nickname length",
-        )
-        @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_max_nick_length(
-            interaction: discord.Interaction, value: Optional[int] = None
-        ):
-            await self.cmd_set_max_nick_length(interaction, value)
-
-        @self.tree.command(
-            name="set-keep-spaces",
-            description="Set or view whether to keep original spacing (true) or normalize spaces (false)",
-        )
-        async def _set_keep_spaces(
-            interaction: discord.Interaction, value: Optional[bool] = None
-        ):
-            await self.cmd_set_preserve_spaces(interaction, value)
-
-        @self.tree.command(
-            name="set-cooldown-seconds",
-            description="Bot Admin Only: Set or view the cooldown (in seconds) between nickname edits per user",
-        )
-        @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_cooldown(
-            interaction: discord.Interaction, value: Optional[int] = None
-        ):
-            await self.cmd_set_cooldown_seconds(interaction, value)
-
-        @self.tree.command(
-            name="set-emoji-sanitization",
-            description="Bot Admin Only: Enable/disable removing emoji in nicknames or view current value",
-        )
-        async def _set_emoji(
-            interaction: discord.Interaction, value: Optional[bool] = None
-        ):
-            await self.cmd_set_sanitize_emoji(interaction, value)
+        # Public
 
         @self.tree.command(
             name="botinfo",
@@ -870,13 +774,54 @@ class SanitizerBot(discord.Client):
                 )
 
         @self.tree.command(
-            name="set-enforce-bots",
-            description="Bot Admin Only: Enable/disable enforcing nickname rules on other bots or view current value",
+            name="delete-my-data",
+            description="Everyone: Delete any of your data stored by the bot in this server (cooldowns/admin entries)",
         )
-        async def _set_enforce_bots(
-            interaction: discord.Interaction, value: Optional[bool] = None
+        async def _delete_my_data(interaction: discord.Interaction):
+            await self.cmd_delete_my_data(interaction)
+
+        # Guild/Server Admin
+
+        @self.tree.command(
+            name="sanitize-user",
+            description="Manage Nicknames Required: Clean up a member's nickname now",
+        )
+        async def _sanitize(interaction: discord.Interaction, member: discord.Member):
+            await self.cmd_sanitize(interaction, member)
+
+        # Bot admin (most-used to least-used)
+
+        @self.tree.command(
+            name="enable-sanitizer",
+            description="Bot Admin Only: Enable the sanitizer in this server",
+        )
+        async def _enable(interaction: discord.Interaction):
+            await self.cmd_start(interaction)
+
+        @self.tree.command(
+            name="disable-sanitizer",
+            description="Bot Admin Only: Disable the sanitizer in this server",
+        )
+        async def _disable(interaction: discord.Interaction):
+            await self.cmd_stop(interaction)
+
+        @self.tree.command(
+            name="set-policy",
+            description="Bot Admin Only: Set or view policy values; supports multiple updates",
+        )
+        @app_commands.describe(
+            key="Policy key to change (ignored if 'pairs' is provided)",
+            value="New value for the policy key (leave empty to view current)",
+            pairs="Multiple key=value pairs separated by spaces, e.g. 'min_nick_length=3 max_nick_length=24'",
+        )
+        @app_commands.autocomplete(key=self._ac_policy_key, value=self._ac_policy_value)
+        async def _set_policy(
+            interaction: discord.Interaction,
+            key: Optional[str] = None,
+            value: Optional[str] = None,
+            pairs: Optional[str] = None,
         ):
-            await self.cmd_set_enforce_bots(interaction, value)
+            await self.cmd_set_setting(interaction, key, value, pairs)
 
         @self.tree.command(
             name="set-logging-channel",
@@ -898,6 +843,82 @@ class SanitizerBot(discord.Client):
             await self.cmd_set_bypass_role(interaction, role)
 
         @self.tree.command(
+            name="set-emoji-sanitization",
+            description="Bot Admin Only: Enable/disable removing emoji in nicknames or view current value",
+        )
+        async def _set_emoji(
+            interaction: discord.Interaction, value: Optional[bool] = None
+        ):
+            await self.cmd_set_sanitize_emoji(interaction, value)
+
+        @self.tree.command(
+            name="set-keep-spaces",
+            description="Set or view whether to keep original spacing (true) or normalize spaces (false)",
+        )
+        async def _set_keep_spaces(
+            interaction: discord.Interaction, value: Optional[bool] = None
+        ):
+            await self.cmd_set_preserve_spaces(interaction, value)
+
+        @self.tree.command(
+            name="set-min-length",
+            description="Bot Admin Only: Set or view the minimum allowed nickname length",
+        )
+        @app_commands.autocomplete(value=self._ac_int_value)
+        async def _set_min_nick_length(
+            interaction: discord.Interaction, value: Optional[int] = None
+        ):
+            await self.cmd_set_min_nick_length(interaction, value)
+
+        @self.tree.command(
+            name="set-max-length",
+            description="Bot Admin Only: Set or view the maximum allowed nickname length",
+        )
+        @app_commands.autocomplete(value=self._ac_int_value)
+        async def _set_max_nick_length(
+            interaction: discord.Interaction, value: Optional[int] = None
+        ):
+            await self.cmd_set_max_nick_length(interaction, value)
+
+        @self.tree.command(
+            name="set-check-count",
+            description="Bot Admin Only: Set or view the number of leading characters (grapheme clusters) to sanitize",
+        )
+        @app_commands.autocomplete(value=self._ac_int_value)
+        async def _set_check_count(
+            interaction: discord.Interaction, value: Optional[int] = None
+        ):
+            await self.cmd_set_check_length(interaction, value)
+
+        @self.tree.command(
+            name="set-cooldown-seconds",
+            description="Bot Admin Only: Set or view the cooldown (in seconds) between nickname edits per user",
+        )
+        @app_commands.autocomplete(value=self._ac_int_value)
+        async def _set_cooldown(
+            interaction: discord.Interaction, value: Optional[int] = None
+        ):
+            await self.cmd_set_cooldown_seconds(interaction, value)
+
+        @self.tree.command(
+            name="set-enforce-bots",
+            description="Bot Admin Only: Enable/disable enforcing nickname rules on other bots or view current value",
+        )
+        async def _set_enforce_bots(
+            interaction: discord.Interaction, value: Optional[bool] = None
+        ):
+            await self.cmd_set_enforce_bots(interaction, value)
+
+        @self.tree.command(
+            name="set-fallback-label",
+            description="Bot Admin Only: Set or view the fallback nickname used when a name is fully illegal",
+        )
+        async def _set_fallback_label(
+            interaction: discord.Interaction, value: Optional[str] = None
+        ):
+            await self.cmd_set_fallback_label(interaction, value)
+
+        @self.tree.command(
             name="clear-logging-channel",
             description="Bot Admin Only: Clear the logging channel",
         )
@@ -912,25 +933,27 @@ class SanitizerBot(discord.Client):
             await self.cmd_clear_bypass_role(interaction)
 
         @self.tree.command(
-            name="nuke-bot-admins",
-            description="Bot Owner Only: Remove all bot admins in this server",
+            name="clear-fallback-label",
+            description="Bot Admin Only: Clear the fallback nickname",
         )
-        async def _nuke_admins(interaction: discord.Interaction):
-            await self.cmd_nuke_bot_admins(interaction)
+        async def _clear_fallback_label(interaction: discord.Interaction):
+            await self.cmd_clear_fallback_label(interaction)
 
         @self.tree.command(
-            name="global-bot-disable",
-            description="Bot Owner Only: Disable the sanitizer bot in all servers",
+            name="reset-settings",
+            description="Bot Admin Only: Reset all sanitizer settings to defaults for this server",
         )
-        async def _global_disable(interaction: discord.Interaction):
-            await self.cmd_global_bot_disable(interaction)
+        async def _reset_settings(interaction: discord.Interaction):
+            await self.cmd_reset_settings(interaction)
 
         @self.tree.command(
-            name="global-nuke-bot-admins",
-            description="Bot Owner Only: Remove all bot admins in all servers",
+            name="sweep-now",
+            description="Bot Admin Only: Immediately sweep and sanitize members in this server",
         )
-        async def _global_nuke_admins(interaction: discord.Interaction):
-            await self.cmd_global_nuke_bot_admins(interaction)
+        async def _sweep_now(interaction: discord.Interaction):
+            await self.cmd_sweep_now(interaction)
+
+        # Owner-only (bottom)
 
         @self.tree.command(
             name="add-bot-admin",
@@ -967,19 +990,32 @@ class SanitizerBot(discord.Client):
             await self.cmd_dm_admin_report(interaction)
 
         @self.tree.command(
-            name="leave-server",
-            description="Bot Owner Only: Leave a server and delete its stored data",
+            name="global-bot-disable",
+            description="Bot Owner Only: Disable the sanitizer bot in all servers",
         )
-        @app_commands.describe(
-            server_id="The server (guild) ID to leave", confirm="Type true to confirm"
+        async def _global_disable(interaction: discord.Interaction):
+            await self.cmd_global_bot_disable(interaction)
+
+        @self.tree.command(
+            name="global-reset-settings",
+            description="Bot Owner Only: Reset all sanitizer settings to defaults across all servers",
         )
-        @app_commands.autocomplete(server_id=self._ac_guild_id)
-        async def _leave_server(
-            interaction: discord.Interaction,
-            server_id: str,
-            confirm: Optional[bool] = False,
-        ):
-            await self.cmd_leave_server(interaction, server_id, confirm)
+        async def _global_reset_settings(interaction: discord.Interaction):
+            await self.cmd_global_reset_settings(interaction)
+
+        @self.tree.command(
+            name="nuke-bot-admins",
+            description="Bot Owner Only: Remove all bot admins in this server",
+        )
+        async def _nuke_admins(interaction: discord.Interaction):
+            await self.cmd_nuke_bot_admins(interaction)
+
+        @self.tree.command(
+            name="global-nuke-bot-admins",
+            description="Bot Owner Only: Remove all bot admins in all servers",
+        )
+        async def _global_nuke_admins(interaction: discord.Interaction):
+            await self.cmd_global_nuke_bot_admins(interaction)
 
         @self.tree.command(
             name="blacklist-server",
@@ -1039,41 +1075,19 @@ class SanitizerBot(discord.Client):
             await self.cmd_list_blacklisted_servers(interaction)
 
         @self.tree.command(
-            name="set-fallback-label",
-            description="Bot Admin Only: Set or view the fallback nickname used when a name is fully illegal",
+            name="leave-server",
+            description="Bot Owner Only: Leave a server and delete its stored data",
         )
-        async def _set_fallback_label(
-            interaction: discord.Interaction, value: Optional[str] = None
+        @app_commands.describe(
+            server_id="The server (guild) ID to leave", confirm="Type true to confirm"
+        )
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        async def _leave_server(
+            interaction: discord.Interaction,
+            server_id: str,
+            confirm: Optional[bool] = False,
         ):
-            await self.cmd_set_fallback_label(interaction, value)
-
-        @self.tree.command(
-            name="clear-fallback-label",
-            description="Bot Admin Only: Clear the fallback nickname",
-        )
-        async def _clear_fallback_label(interaction: discord.Interaction):
-            await self.cmd_clear_fallback_label(interaction)
-
-        @self.tree.command(
-            name="reset-settings",
-            description="Bot Admin Only: Reset all sanitizer settings to defaults for this server",
-        )
-        async def _reset_settings(interaction: discord.Interaction):
-            await self.cmd_reset_settings(interaction)
-
-        @self.tree.command(
-            name="global-reset-settings",
-            description="Bot Owner Only: Reset all sanitizer settings to defaults across all servers",
-        )
-        async def _global_reset_settings(interaction: discord.Interaction):
-            await self.cmd_global_reset_settings(interaction)
-
-        @self.tree.command(
-            name="delete-my-data",
-            description="Everyone: Delete any of your data stored by the bot in this server (cooldowns/admin entries)",
-        )
-        async def _delete_my_data(interaction: discord.Interaction):
-            await self.cmd_delete_my_data(interaction)
+            await self.cmd_leave_server(interaction, server_id, confirm)
 
         @self.tree.command(
             name="delete-user-data",
@@ -1092,13 +1106,6 @@ class SanitizerBot(discord.Client):
             interaction: discord.Interaction,
         ):
             await self.cmd_global_delete_user_data(interaction)
-
-        @self.tree.command(
-            name="sweep-now",
-            description="Bot Admin Only: Immediately sweep and sanitize members in this server",
-        )
-        async def _sweep_now(interaction: discord.Interaction):
-            await self.cmd_sweep_now(interaction)
 
     async def setup_hook(self) -> None:
 

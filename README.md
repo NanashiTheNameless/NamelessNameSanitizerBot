@@ -112,7 +112,7 @@ Public (most visible)
 
 Guild/Server Admin
 
-- /sanitize-user member:Member — sanitize someone immediately (requires Manage Nicknames, or to be a bot admin)
+- /sanitize-user [member:Member] — sanitize someone immediately (requires Manage Nicknames, or to be a bot admin)
 
 Bot admin (sorted by typical usage)
 
@@ -133,7 +133,7 @@ Bot admin (sorted by typical usage)
 - /clear-bypass-role — clear bypass role
 - /clear-fallback-label — clear the fallback nickname
 - /reset-settings — reset this server’s sanitizer settings to defaults
-- /set-policy key:key [value:value] [pairs:"k=v k=v ..."] — view or set policy; supports multi-update
+- /set-policy [key:key] [value:value] [pairs:"k=v k=v ..."] — view or set policy; supports multi-update
 
 Owner-only (placed last)
 
@@ -145,12 +145,12 @@ Owner-only (placed last)
 - /global-reset-settings — reset sanitizer settings to defaults across all servers
 - /nuke-bot-admins — remove all bot admins in the current server
 - /global-nuke-bot-admins — remove all bot admins across all servers
-- /blacklist-server server_id:str [reason:str] confirm:true — add a server to the blacklist; the bot will auto-leave it on join/startup and delete stored data
-- /unblacklist-server server_id:str confirm:true — remove a server from the blacklist
-- /set-blacklist-reason server_id:str [reason:str] — set/clear blacklist reason for a server
+- /blacklist-server [server_id:str] [reason:str] [confirm:bool] — add a server to the blacklist; the bot will auto-leave it on join/startup and delete stored data
+- /unblacklist-server [server_id:str] [confirm:bool] — remove a server from the blacklist
+- /set-blacklist-reason [server_id:str] [reason:str] — set/clear blacklist reason for a server
 - /list-blacklisted-servers — list all blacklisted server IDs
-- /leave-server server_id:str confirm:true — leave the specified server and delete that server’s stored data
-- /delete-user-data user:@User — delete that user's stored data across all servers (cooldowns/admin entries)
+- /leave-server [server_id:str] [confirm:bool] — leave the specified server and delete that server’s stored data
+- /delete-user-data [user:@User] — delete that user's stored data across all servers (cooldowns/admin entries)
 - /global-delete-user-data — delete ALL user data across all servers and announce in configured logging channels
 
 Notes
