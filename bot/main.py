@@ -996,10 +996,15 @@ class SanitizerBot(discord.Client):
             name="set-blacklist-reason",
             description="Bot Owner Only: Update the reason for a blacklisted server",
         )
-        @app_commands.describe(server_id="Guild ID whose blacklist reason to set", reason="New reason text (empty to clear)")
+        @app_commands.describe(
+            server_id="Guild ID whose blacklist reason to set",
+            reason="New reason text (empty to clear)",
+        )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _set_blacklist_reason(
-            interaction: discord.Interaction, server_id: str, reason: Optional[str] = None
+            interaction: discord.Interaction,
+            server_id: str,
+            reason: Optional[str] = None,
         ):
             await self.cmd_set_blacklist_reason(interaction, server_id, reason)
 
@@ -2532,7 +2537,10 @@ class SanitizerBot(discord.Client):
         )
 
     async def cmd_set_blacklist_reason(
-        self, interaction: discord.Interaction, server_id: str, reason: Optional[str] = None
+        self,
+        interaction: discord.Interaction,
+        server_id: str,
+        reason: Optional[str] = None,
     ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
@@ -2557,13 +2565,18 @@ class SanitizerBot(discord.Client):
             await self.db.add_blacklisted_guild(gid, reason=reason, name=None)
         except Exception as e:
             await interaction.response.send_message(
-                f"Failed to set blacklist reason: {e}", ephemeral=interaction.guild is not None,
+                f"Failed to set blacklist reason: {e}",
+                ephemeral=interaction.guild is not None,
             )
             return
         text = (
-            f"Updated blacklist reason for {gid} to: {reason}" if (reason and reason.strip()) else f"Cleared blacklist reason for {gid}."
+            f"Updated blacklist reason for {gid} to: {reason}"
+            if (reason and reason.strip())
+            else f"Cleared blacklist reason for {gid}."
         )
-        await interaction.response.send_message(text, ephemeral=interaction.guild is not None)
+        await interaction.response.send_message(
+            text, ephemeral=interaction.guild is not None
+        )
 
     async def cmd_list_blacklisted_servers(self, interaction: discord.Interaction):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
