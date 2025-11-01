@@ -501,6 +501,22 @@ class Database:
                 rows_ = await cur.fetchall()
                 return [(int(r[0]), r[1], r[2]) for r in rows_]
 
+    async def get_blacklisted_guild(
+        self, guild_id: int
+    ) -> Optional[tuple[Optional[str], Optional[str]]]:
+        """Return (name, reason) for a blacklisted guild, or None if not present."""
+        assert self.pool is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor(row_factory=rows.tuple_row) as cur:
+                await cur.execute(
+                    "SELECT name, reason FROM blacklist_guilds WHERE guild_id=%s",
+                    (guild_id,),
+                )
+                row = await cur.fetchone()
+                if not row:
+                    return None
+                return row[0], row[1]
+
     async def is_admin(self, guild_id: int, user_id: int) -> bool:
         if OWNER_ID and user_id == OWNER_ID:
             return True
@@ -987,10 +1003,15 @@ class SanitizerBot(discord.Client):
             name="unblacklist-server",
             description="Bot Owner Only: Remove a server ID from the blacklist",
         )
-        @app_commands.describe(server_id="Guild ID to remove from blacklist")
-        @app_commands.autocomplete(server_id=self._ac_guild_id)
-        async def _unblacklist_server(interaction: discord.Interaction, server_id: str):
-            await self.cmd_unblacklist_server(interaction, server_id)
+        @app_commands.describe(
+            server_id="Guild ID to remove from blacklist",
+            confirm="Type true to confirm",
+        )
+        @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
+        async def _unblacklist_server(
+            interaction: discord.Interaction, server_id: str, confirm: Optional[bool] = False
+        ):
+            await self.cmd_unblacklist_server(interaction, server_id, confirm)
 
         @self.tree.command(
             name="set-blacklist-reason",
@@ -1158,25 +1179,33 @@ class SanitizerBot(discord.Client):
 
     async def on_guild_join(self, guild: discord.Guild):
         log.info(f"[EVENT] Bot joined new guild: {guild.name} ({guild.id})")
-        # Optionally DM owner on join
-        await self._dm_owner(f"Joined guild: {guild.name} ({guild.id})")
-        # If blacklisted, immediately leave
+        # If blacklisted, DM owner with reason and immediately leave; otherwise send generic join DM
         if self.db:
             try:
                 if await self.db.is_guild_blacklisted(guild.id):
+                    # Update stored name for this blacklisted guild (keep reason)
                     try:
-                        # Update stored name for this blacklisted guild (keep reason)
-                        try:
-                            await self.db.add_blacklisted_guild(
-                                guild.id, None, guild.name
-                            )
-                        except Exception:
-                            pass
-                        try:
-                            await self.db.clear_admins(guild.id)
-                            await self.db.reset_guild_settings(guild.id)
-                        except Exception:
-                            pass
+                        await self.db.add_blacklisted_guild(guild.id, None, guild.name)
+                    except Exception:
+                        pass
+                    # DM owner a specific message for blacklisted join
+                    reason_txt: Optional[str] = None
+                    try:
+                        info = await self.db.get_blacklisted_guild(guild.id)
+                        reason_txt = info[1] if info else None
+                    except Exception:
+                        pass
+                    await self._dm_owner(
+                        f"Joined blacklisted guild: {guild.name} ({guild.id})"
+                        + (f" — reason: {reason_txt}" if (reason_txt and str(reason_txt).strip()) else "")
+                        + "; leaving now."
+                    )
+                    try:
+                        await self.db.clear_admins(guild.id)
+                        await self.db.reset_guild_settings(guild.id)
+                    except Exception:
+                        pass
+                    try:
                         await guild.leave()
                         log.info(
                             "[BLACKLIST] Immediately left blacklisted guild %s (%s)",
@@ -1189,8 +1218,11 @@ class SanitizerBot(discord.Client):
                             guild.id,
                             e,
                         )
+                    return
             except Exception:
                 pass
+        # Not blacklisted (or no DB)
+        await self._dm_owner(f"Joined guild: {guild.name} ({guild.id})")
 
     async def on_member_join(self, member: discord.Member):
         if member.bot:
@@ -1574,6 +1606,37 @@ class SanitizerBot(discord.Client):
             if len(choices) >= 25:
                 break
         return choices
+
+    async def _ac_blacklisted_guild_id(
+        self, interaction: discord.Interaction, current: str
+    ):
+        # Owner-only
+        try:
+            user_id = getattr(getattr(interaction, "user", object()), "id", None)
+            if OWNER_ID and user_id != OWNER_ID:
+                return []
+        except Exception:
+            return []
+        current = (current or "").strip().lower()
+        # Query from DB
+        items: list[discord.app_commands.Choice[str]] = []
+        try:
+            if not self.db:
+                return []
+            rows = await self.db.list_blacklisted_guilds()
+            for gid, name, reason in rows:
+                nm = name or "<unknown>"
+                label = f"{nm} ({gid})"
+                hay = f"{nm} {gid} {reason or ''}".lower()
+                if not current or current in hay:
+                    items.append(
+                        discord.app_commands.Choice(name=label, value=str(gid))
+                    )
+                if len(items) >= 25:
+                    break
+        except Exception:
+            return []
+        return items
 
     async def _command_cooldown_check(self, interaction: discord.Interaction) -> bool:
         """Global per-user command cooldown, bypassed by owner and bot admins.
@@ -2507,7 +2570,7 @@ class SanitizerBot(discord.Client):
         )
 
     async def cmd_unblacklist_server(
-        self, interaction: discord.Interaction, server_id: str
+        self, interaction: discord.Interaction, server_id: str, confirm: Optional[bool] = False
     ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
@@ -2517,6 +2580,12 @@ class SanitizerBot(discord.Client):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
+            )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.",
+                ephemeral=interaction.guild is not None,
             )
             return
         try:
