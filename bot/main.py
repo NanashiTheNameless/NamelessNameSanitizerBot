@@ -1533,6 +1533,13 @@ class SanitizerBot(discord.Client):
         return []
 
     async def _ac_guild_id(self, interaction: discord.Interaction, current: str):
+        # Restrict server autocomplete to the bot owner
+        try:
+            user_id = getattr(getattr(interaction, "user", object()), "id", None)
+            if OWNER_ID and user_id != OWNER_ID:
+                return []
+        except Exception:
+            return []
         current = (current or "").strip().lower()
         # Build choices as "Name (ID)" with value=ID string
         choices = []
