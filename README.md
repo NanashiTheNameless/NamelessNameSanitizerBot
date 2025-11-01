@@ -114,6 +114,9 @@ Owner-only
 - /global-reset-settings — reset sanitizer settings to defaults across all servers
 - /delete-user-data user:@User — delete that user's stored data across all servers (cooldowns/admin entries)
 - /global-delete-user-data — delete ALL user data across all servers and announce in configured logging channels
+- /list-bot-admins — list all bot admins in the current server
+- /dm-admin-report — DM the owner a report of all servers the bot is in and the bot admins for each
+- /leave-server server_id:int — leave the specified server and delete that server’s stored data
 
 Bot admin
 

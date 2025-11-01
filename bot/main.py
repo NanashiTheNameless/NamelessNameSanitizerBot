@@ -425,6 +425,18 @@ class Database:
                     (guild_id, user_id),
                 )
 
+    async def list_admins(self, guild_id: int) -> list[int]:
+        """Return a list of user IDs who are bot admins for the given guild."""
+        assert self.pool is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor(row_factory=rows.tuple_row) as cur:
+                await cur.execute(
+                    "SELECT user_id FROM guild_admins WHERE guild_id=%s ORDER BY user_id ASC",
+                    (guild_id,),
+                )
+                rows_ = await cur.fetchall()
+                return [int(r[0]) for r in rows_]
+
     async def is_admin(self, guild_id: int, user_id: int) -> bool:
         if OWNER_ID and user_id == OWNER_ID:
             return True
@@ -838,6 +850,28 @@ class SanitizerBot(discord.Client):
         )
         async def _remove_admin(interaction: discord.Interaction, user: discord.Member):
             await self.cmd_remove_admin(interaction, user)
+
+        @self.tree.command(
+            name="list-bot-admins",
+            description="Bot Owner Only: List all bot admins in this server",
+        )
+        async def _list_admins(interaction: discord.Interaction):
+            await self.cmd_list_bot_admins(interaction)
+
+        @self.tree.command(
+            name="dm-admin-report",
+            description="Bot Owner Only: DM a report of all servers and their bot admins",
+        )
+        async def _dm_admin_report(interaction: discord.Interaction):
+            await self.cmd_dm_admin_report(interaction)
+
+        @self.tree.command(
+            name="leave-server",
+            description="Bot Owner Only: Leave a server and delete its stored data",
+        )
+        @app_commands.describe(server_id="The server (guild) ID to leave")
+        async def _leave_server(interaction: discord.Interaction, server_id: int):
+            await self.cmd_leave_server(interaction, server_id)
 
         @self.tree.command(
             name="set-fallback-label",
@@ -2134,6 +2168,159 @@ class SanitizerBot(discord.Client):
         await interaction.response.send_message(
             f"Removed {user.mention} as bot admin for this server.", ephemeral=True
         )
+
+    async def cmd_list_bot_admins(self, interaction: discord.Interaction):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        try:
+            ids = await self.db.list_admins(interaction.guild.id)
+            if not ids:
+                await interaction.response.send_message(
+                    "No bot admins are configured for this server.", ephemeral=True
+                )
+                return
+            mentions = [f"<@{uid}>" for uid in ids]
+            await interaction.response.send_message(
+                "Bot admins for this server: " + ", ".join(mentions),
+                ephemeral=True,
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to fetch admins: {e}", ephemeral=True
+            )
+
+    async def cmd_dm_admin_report(self, interaction: discord.Interaction):
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        # Build report text across all guilds
+        lines: list[str] = []
+        for g in sorted(self.guilds, key=lambda gg: (gg.name or "", gg.id)):
+            try:
+                ids = await self.db.list_admins(g.id)
+            except Exception:
+                ids = []
+            if ids:
+                mentions = ", ".join(f"<@{uid}>" for uid in ids)
+            else:
+                mentions = "<none>"
+            lines.append(f"• {g.name} ({g.id}): {mentions}")
+        report = (
+            "Admin report for all servers bot is in:\n" + "\n".join(lines or ["<none>"])
+        )
+        # DM the owner
+        try:
+            owner_user = interaction.user
+            await owner_user.send(report)
+            await interaction.response.send_message(
+                "Sent you a DM with the admin report.",
+                ephemeral=interaction.guild is not None,
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to send DM: {e}", ephemeral=interaction.guild is not None
+            )
+
+    async def cmd_leave_server(self, interaction: discord.Interaction, server_id: int):
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        guild = self.get_guild(server_id)
+        if guild is None:
+            # Attempt fetch if not cached
+            try:
+                guild = await self.fetch_guild(server_id)
+            except Exception:
+                guild = None
+        if guild is None:
+            await interaction.response.send_message(
+                f"I am not in a server with ID {server_id} or it could not be fetched.",
+                ephemeral=True,
+            )
+            return
+        # Try to announce intent to leave in logging channel if configured
+        try:
+            settings = await self.db.get_settings(guild.id)
+            ch_id = settings.logging_channel_id
+        except Exception:
+            ch_id = None
+        if ch_id:
+            ch = guild.get_channel(ch_id)
+            if ch is None:
+                try:
+                    ch = await guild.fetch_channel(ch_id)
+                except Exception:
+                    ch = None
+            if ch is not None and isinstance(ch, (discord.TextChannel, discord.Thread)):
+                try:
+                    await ch.send(
+                        f"Bot owner requested: Leaving this server and deleting stored data for this server."
+                    )  # type: ignore
+                except Exception:
+                    pass
+        # Clear admins and settings for this guild
+        try:
+            deleted_admins = await self.db.clear_admins(guild.id)
+            await self.db.reset_guild_settings(guild.id)
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to clear stored data before leaving: {e}", ephemeral=True
+            )
+            return
+        # Acknowledge and leave
+        if interaction.response.is_done():
+            try:
+                await interaction.followup.send(
+                    f"Leaving server '{guild.name}' and deleted {deleted_admins} admin entries.",
+                    ephemeral=interaction.guild is not None,
+                )
+            except Exception:
+                pass
+        else:
+            try:
+                await interaction.response.send_message(
+                    f"Leaving server '{guild.name}' and deleted {deleted_admins} admin entries.",
+                    ephemeral=interaction.guild is not None,
+                )
+            except Exception:
+                pass
+        try:
+            await guild.leave()
+        except Exception:
+            # As a fallback, try to kick self if possible
+            try:
+                me = guild.me
+                if me:
+                    await guild.kick(me, reason="Owner-requested bot leave")
+            except Exception:
+                pass
 
 
 bot = SanitizerBot()
