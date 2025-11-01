@@ -926,9 +926,13 @@ class SanitizerBot(discord.Client):
             name="blacklist-server",
             description="Bot Owner Only: Add a server ID to the blacklist (auto-leave on join/startup)",
         )
-        @app_commands.describe(server_id="Guild ID to blacklist", reason="Optional reason for blacklisting")
+        @app_commands.describe(
+            server_id="Guild ID to blacklist", reason="Optional reason for blacklisting"
+        )
         async def _blacklist_server(
-            interaction: discord.Interaction, server_id: int, reason: Optional[str] = None
+            interaction: discord.Interaction,
+            server_id: int,
+            reason: Optional[str] = None,
         ):
             await self.cmd_blacklist_server(interaction, server_id, reason)
 
@@ -937,9 +941,7 @@ class SanitizerBot(discord.Client):
             description="Bot Owner Only: Remove a server ID from the blacklist",
         )
         @app_commands.describe(server_id="Guild ID to remove from blacklist")
-        async def _unblacklist_server(
-            interaction: discord.Interaction, server_id: int
-        ):
+        async def _unblacklist_server(interaction: discord.Interaction, server_id: int):
             await self.cmd_unblacklist_server(interaction, server_id)
 
         @self.tree.command(
@@ -1056,11 +1058,20 @@ class SanitizerBot(discord.Client):
                         attempt += 1
                         try:
                             await g.leave()
-                            log.info("[BLACKLIST] Left blacklisted guild %s (%s)", g.name, g.id)
+                            log.info(
+                                "[BLACKLIST] Left blacklisted guild %s (%s)",
+                                g.name,
+                                g.id,
+                            )
                         except Exception as e:
-                            log.debug("Failed leaving blacklisted guild %s: %s", g.id, e)
+                            log.debug(
+                                "Failed leaving blacklisted guild %s: %s", g.id, e
+                            )
                 if attempt:
-                    log.info("[BLACKLIST] Processed %d blacklisted guild(s) on startup.", attempt)
+                    log.info(
+                        "[BLACKLIST] Processed %d blacklisted guild(s) on startup.",
+                        attempt,
+                    )
 
         log.info("[STATUS] Starting member sweep background task.")
         self.member_sweep.start()  # type: ignore
@@ -1073,9 +1084,17 @@ class SanitizerBot(discord.Client):
                 if await self.db.is_guild_blacklisted(guild.id):
                     try:
                         await guild.leave()
-                        log.info("[BLACKLIST] Immediately left blacklisted guild %s (%s)", guild.name, guild.id)
+                        log.info(
+                            "[BLACKLIST] Immediately left blacklisted guild %s (%s)",
+                            guild.name,
+                            guild.id,
+                        )
                     except Exception as e:
-                        log.debug("Failed to leave blacklisted guild on join %s: %s", guild.id, e)
+                        log.debug(
+                            "Failed to leave blacklisted guild on join %s: %s",
+                            guild.id,
+                            e,
+                        )
             except Exception:
                 pass
 
@@ -2277,7 +2296,10 @@ class SanitizerBot(discord.Client):
         )
 
     async def cmd_blacklist_server(
-        self, interaction: discord.Interaction, server_id: int, reason: Optional[str] = None
+        self,
+        interaction: discord.Interaction,
+        server_id: int,
+        reason: Optional[str] = None,
     ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
@@ -2343,7 +2365,8 @@ class SanitizerBot(discord.Client):
             entries = await self.db.list_blacklisted_guilds()
         except Exception as e:
             await interaction.response.send_message(
-                f"Failed to load blacklist: {e}", ephemeral=interaction.guild is not None
+                f"Failed to load blacklist: {e}",
+                ephemeral=interaction.guild is not None,
             )
             return
         if not entries:
@@ -2418,8 +2441,8 @@ class SanitizerBot(discord.Client):
             else:
                 mentions = "<none>"
             lines.append(f"• {g.name} ({g.id}): {mentions}")
-        report = (
-            "Admin report for all servers bot is in:\n" + "\n".join(lines or ["<none>"])
+        report = "Admin report for all servers bot is in:\n" + "\n".join(
+            lines or ["<none>"]
         )
         # DM the owner
         try:
@@ -2474,7 +2497,7 @@ class SanitizerBot(discord.Client):
             if ch is not None and isinstance(ch, (discord.TextChannel, discord.Thread)):
                 try:
                     await ch.send(
-                        f"Bot owner requested: Leaving this server and deleting stored data for this server."
+                        "Bot owner requested: Leaving this server and deleting stored data for this server."
                     )  # type: ignore
                 except Exception:
                     pass
