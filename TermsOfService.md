@@ -1,12 +1,13 @@
 # Terms of Service
 
-Last updated: 2025-10-28
+Last updated: 2025-11-01
 
 These Terms govern your use of NamelessNameSanitizerBot ("the Bot"). By adding or using the Bot in your Discord server, you agree to these Terms.
 
 ## 1. Service Description
 
 The Bot helps enforce nickname policies in Discord servers, offering per-guild configuration, administrative controls, and optional logging.
+The Bot may also optionally notify the bot owner of guild join/leave events via direct messages when enabled by the operator.
 
 ## 2. Access and Eligibility
 
@@ -27,6 +28,7 @@ You agree not to:
 - The Bot requires certain permissions (e.g., Manage Nicknames) to function correctly.
 - The Bot processes and stores minimal configuration data as described in the Privacy Policy.
 - The Bot does not read or store message content.
+- The Bot may log certain operational events (e.g., nickname changes in a configured logging channel, guild join/leave notifications to the bot owner if enabled) as described in the Privacy Policy.
 - You must not store or export Bot data for purposes unrelated to moderation without appropriate notice and legal basis.
 - You must inform server members that nickname changes may be enforced by automation (e.g., via server rules or announcements).
 
@@ -34,6 +36,8 @@ You agree not to:
 
 - The Bot is provided on an "as is" and "as available" basis. Uptime is not guaranteed.
 - Features may change, be added, or be removed at any time.
+- Blacklisted guilds: The bot owner may add a guild to a blacklist; the bot will automatically leave such guilds on startup or upon joining, and delete stored per-guild settings/admins for those guilds.
+- Command cooldown: The operator may enable a short per-user cooldown on commands to prevent accidental repeated actions. Owners and bot admins are exempt.
 - We may update these Terms at any time. Continued use indicates acceptance.
 - Material changes will be reflected by the "Last updated" date. Continued use after changes constitutes acceptance.
 

@@ -22,7 +22,7 @@
     <div class="content">
       <div class="card">
         <h1>Privacy Policy</h1>
-        <p><em>Last updated: 2025-10-28</em></p>
+        <p><em>Last updated: 2025-11-01</em></p>
         <div>
           <!-- Content from PrivacyPolicy.md -->
           <p>This Privacy Policy explains what information NamelessNameSanitizerBot ("the Bot") processes and how it is used. By using the Bot, you agree to this Policy.</p>
@@ -31,22 +31,26 @@
             <li>The Bot does not read or store message content.</li>
             <li>The Bot processes basic Discord metadata in memory to operate (e.g., user IDs, guild IDs, nicknames) and may store minimal per-guild configuration in a database.</li>
             <li>Optionally, the Bot can post nickname-change notifications to a configured logging channel in your server.</li>
+            <li>The Bot can optionally DM the bot owner about guild join/leave events when enabled by the operator (<code>DM_OWNER_ON_GUILD_EVENTS</code>).</li>
           </ul>
           <h2>Data the Bot Processes</h2>
-          <p>Guild and Member metadata from Discord APIs (e.g., guild ID, user ID, roles, current nickname, permissions) to determine whether and how to sanitize nicknames. Per-guild configuration settings and cooldown timestamps may be stored to ensure proper operation.</p>
+          <p>Guild and Member metadata from Discord APIs (e.g., guild ID, user ID, roles, current nickname, permissions) to determine whether and how to sanitize nicknames. Per-guild configuration settings (policy values, admin lists, optional logging channel and bypass role, optional fallback label) and cooldown timestamps may be stored to ensure proper operation. Blacklist entries for guilds the operator chooses to block (guild ID, optional name, optional reason) may also be stored.</p>
           <h2>Data Storage and Retention</h2>
           <ul>
-            <li>Per-guild settings and admin lists may be stored in a database.</li>
-            <li>Cooldown entries are purged automatically after a retention period.</li>
+            <li>Per-guild settings and admin lists are stored in a database.</li>
+            <li>Cooldown entries are stored with timestamps and are purged automatically based on <code>COOLDOWN_TTL_SEC</code>.</li>
+            <li>Blacklist entries (guild ID, name, reason) are retained until removed. If the bot encounters a blacklisted guild, it will auto-leave and delete stored per-guild settings/admins for that guild.</li>
             <li>No message content is stored.</li>
           </ul>
           <h2>Data Sharing</h2>
           <p>We do not sell or share data with third parties. Hosting providers may process infrastructure data subject to their policies.</p>
           <h2>User Rights and Controls</h2>
           <ul>
-            <li>Admins can enable/disable the bot, update policies, and manage admins.</li>
-            <li>Users can run <code>/delete-my-data</code>; bot owners can execute global deletion commands.</li>
+            <li>Admins can enable/disable the bot, update policies, set fallback labels, configure logging channels and bypass roles, and manage bot admins.</li>
+            <li>Users can run <code>/delete-my-data</code>; bot owners can execute deletion commands (including global deletion) and can blacklist guilds (which deletes stored per-guild settings/admins and leaves the guild if present).</li>
           </ul>
+          <h2>Command Cooldown</h2>
+          <p>The bot may enforce a short per-user command cooldown configured via <code>COMMAND_COOLDOWN_SECONDS</code>. This is an in-memory mechanism to prevent accidental repeated invocations. The bot owner and bot admins are exempt.</p>
           <h2>Security</h2>
           <p>Reasonable measures are used to protect configuration data. Operators should secure credentials and access.</p>
           <h2>Contact</h2>
