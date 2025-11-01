@@ -87,6 +87,7 @@ SANITIZE_EMOJI = getenv_bool("SANITIZE_EMOJI", True)
 ENFORCE_BOTS = getenv_bool("ENFORCE_BOTS", False)
 COOLDOWN_TTL_SEC = getenv_int("COOLDOWN_TTL_SEC", max(86400, COOLDOWN_SECONDS * 10))
 DM_OWNER_ON_GUILD_EVENTS = getenv_bool("DM_OWNER_ON_GUILD_EVENTS", True)
+COMMAND_COOLDOWN_SECONDS = getenv_int("COMMAND_COOLDOWN_SECONDS", 2)
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID", "221701506561212416") or "221701506561212416")
@@ -687,6 +688,7 @@ class SanitizerBot(discord.Client):
         self._stop = asyncio.Event()
         self.db = Database(DATABASE_URL) if DATABASE_URL else None
         self.tree = discord.app_commands.CommandTree(self)
+        self._cmd_cooldown_last: dict[int, float] = {}
 
         self._policy_keys = [
             discord.app_commands.Choice(
@@ -991,6 +993,17 @@ class SanitizerBot(discord.Client):
             await self.cmd_unblacklist_server(interaction, server_id)
 
         @self.tree.command(
+            name="set-blacklist-reason",
+            description="Bot Owner Only: Update the reason for a blacklisted server",
+        )
+        @app_commands.describe(server_id="Guild ID whose blacklist reason to set", reason="New reason text (empty to clear)")
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        async def _set_blacklist_reason(
+            interaction: discord.Interaction, server_id: str, reason: Optional[str] = None
+        ):
+            await self.cmd_set_blacklist_reason(interaction, server_id, reason)
+
+        @self.tree.command(
             name="list-blacklisted-servers",
             description="Bot Owner Only: List all blacklisted server IDs",
         )
@@ -1062,6 +1075,11 @@ class SanitizerBot(discord.Client):
     async def setup_hook(self) -> None:
 
         self._register_all_commands()
+        # Global command cooldown check (owner and bot admins bypass)
+        try:
+            self.tree.add_check(self._command_cooldown_check)  # type: ignore[arg-type]
+        except Exception:
+            pass
         try:
             await self.tree.sync()
             log.info("[STATUS] Slash commands synced globally on startup.")
@@ -1551,6 +1569,46 @@ class SanitizerBot(discord.Client):
             if len(choices) >= 25:
                 break
         return choices
+
+    async def _command_cooldown_check(self, interaction: discord.Interaction) -> bool:
+        """Global per-user command cooldown, bypassed by owner and bot admins.
+        Controlled via COMMAND_COOLDOWN_SECONDS; disabled when <= 0.
+        """
+        try:
+            cd = int(COMMAND_COOLDOWN_SECONDS)
+        except Exception:
+            cd = 0
+        if cd <= 0:
+            return True
+        user = getattr(interaction, "user", None)
+        user_id = getattr(user, "id", None)
+        # Owner bypass
+        if OWNER_ID and user_id == OWNER_ID:
+            return True
+        # Bot admin bypass (per-guild)
+        try:
+            if interaction.guild and self.db:
+                if await self.db.is_admin(interaction.guild.id, user_id):  # type: ignore[arg-type]
+                    return True
+        except Exception:
+            pass
+        # Enforce cooldown
+        now_ts = now()
+        last = self._cmd_cooldown_last.get(user_id or 0, 0.0)
+        remain = cd - (now_ts - last)
+        if remain > 0:
+            # Best-effort friendly message
+            try:
+                msg = f"You're doing that too fast. Try again in {int(remain)}s."
+                if not interaction.response.is_done():
+                    await interaction.response.send_message(msg, ephemeral=True)
+                else:
+                    await interaction.followup.send(msg, ephemeral=True)
+            except Exception:
+                pass
+            return False
+        self._cmd_cooldown_last[user_id or 0] = now_ts
+        return True
 
     async def cmd_set_setting(
         self,
@@ -2472,6 +2530,40 @@ class SanitizerBot(discord.Client):
         await interaction.response.send_message(
             msg, ephemeral=interaction.guild is not None
         )
+
+    async def cmd_set_blacklist_reason(
+        self, interaction: discord.Interaction, server_id: str, reason: Optional[str] = None
+    ):
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        try:
+            gid = int(server_id)
+        except Exception:
+            await interaction.response.send_message(
+                f"'{server_id}' is not a valid server ID.",
+                ephemeral=interaction.guild is not None,
+            )
+            return
+        # Upsert: preserve name, update reason
+        try:
+            await self.db.add_blacklisted_guild(gid, reason=reason, name=None)
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to set blacklist reason: {e}", ephemeral=interaction.guild is not None,
+            )
+            return
+        text = (
+            f"Updated blacklist reason for {gid} to: {reason}" if (reason and reason.strip()) else f"Cleared blacklist reason for {gid}."
+        )
+        await interaction.response.send_message(text, ephemeral=interaction.guild is not None)
 
     async def cmd_list_blacklisted_servers(self, interaction: discord.Interaction):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
