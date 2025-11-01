@@ -142,10 +142,6 @@ Bot admin
 - /reset-settings — reset this server’s sanitizer settings to defaults
 - /sweep-now — immediately sweep and sanitize members in this server (bot admin only)
 
-User controls
-
-- /delete-my-data — deletes your stored data in the current server (cooldowns/admin entries)
-
 Guild/Server Admin
 
 - /sanitize-user member:Member — sanitize someone immediately (requires Manage Nicknames, or to be a bot admin)
@@ -153,6 +149,7 @@ Guild/Server Admin
 Public
 
 - /botinfo — shows instance owner, developer, and links to source, terms, and privacy
+- /delete-my-data — deletes your stored data in the current server (cooldowns/admin entries)
 
 Notes
 
