@@ -86,6 +86,7 @@ PRESERVE_SPACES = getenv_bool("PRESERVE_SPACES", True)
 SANITIZE_EMOJI = getenv_bool("SANITIZE_EMOJI", True)
 ENFORCE_BOTS = getenv_bool("ENFORCE_BOTS", False)
 COOLDOWN_TTL_SEC = getenv_int("COOLDOWN_TTL_SEC", max(86400, COOLDOWN_SECONDS * 10))
+DM_OWNER_ON_GUILD_EVENTS = getenv_bool("DM_OWNER_ON_GUILD_EVENTS", True)
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID", "221701506561212416") or "221701506561212416")
@@ -184,9 +185,15 @@ class Database:
                     """
                 CREATE TABLE IF NOT EXISTS blacklist_guilds (
                     guild_id BIGINT PRIMARY KEY,
+                    name TEXT,
                     reason TEXT
                 );
                 """
+                )
+            # Ensure 'name' column exists for older installs
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "ALTER TABLE blacklist_guilds ADD COLUMN IF NOT EXISTS name TEXT"
                 )
             async with conn.cursor(row_factory=rows.tuple_row) as cur:
                 await cur.execute(
@@ -447,13 +454,16 @@ class Database:
                 rows_ = await cur.fetchall()
                 return [int(r[0]) for r in rows_]
 
-    async def add_blacklisted_guild(self, guild_id: int, reason: Optional[str] = None):
+    async def add_blacklisted_guild(self, guild_id: int, reason: Optional[str] = None, name: Optional[str] = None):
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
-                    "INSERT INTO blacklist_guilds (guild_id, reason) VALUES (%s, %s) ON CONFLICT (guild_id) DO UPDATE SET reason = EXCLUDED.reason",
-                    (guild_id, reason),
+                    "INSERT INTO blacklist_guilds (guild_id, name, reason) VALUES (%s, %s, %s) "
+                    "ON CONFLICT (guild_id) DO UPDATE SET "
+                    "name = COALESCE(EXCLUDED.name, blacklist_guilds.name), "
+                    "reason = COALESCE(EXCLUDED.reason, blacklist_guilds.reason)",
+                    (guild_id, name, reason),
                 )
 
     async def remove_blacklisted_guild(self, guild_id: int) -> int:
@@ -476,15 +486,15 @@ class Database:
                 )
                 return (await cur.fetchone()) is not None
 
-    async def list_blacklisted_guilds(self) -> list[tuple[int, Optional[str]]]:
+    async def list_blacklisted_guilds(self) -> list[tuple[int, Optional[str], Optional[str]]]:
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor(row_factory=rows.tuple_row) as cur:
                 await cur.execute(
-                    "SELECT guild_id, reason FROM blacklist_guilds ORDER BY guild_id ASC"
+                    "SELECT guild_id, name, reason FROM blacklist_guilds ORDER BY guild_id ASC"
                 )
                 rows_ = await cur.fetchall()
-                return [(int(r[0]), r[1]) for r in rows_]
+                return [(int(r[0]), r[1], r[2]) for r in rows_]
 
     async def is_admin(self, guild_id: int, user_id: int) -> bool:
         if OWNER_ID and user_id == OWNER_ID:
@@ -702,6 +712,20 @@ class SanitizerBot(discord.Client):
             ),
         ]
 
+    async def _dm_owner(self, content: str) -> bool:
+        if not DM_OWNER_ON_GUILD_EVENTS:
+            return False
+        if not OWNER_ID:
+            return False
+        try:
+            user = self.get_user(OWNER_ID) or await self.fetch_user(OWNER_ID)
+            if user:
+                await user.send(content)
+                return True
+        except Exception:
+            pass
+        return False
+
     def _register_all_commands(self):
 
         @self.tree.command(
@@ -902,10 +926,12 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="list-bot-admins",
-            description="Bot Owner Only: List all bot admins in this server",
+            description="Bot Owner Only: List bot admins for a server",
         )
-        async def _list_admins(interaction: discord.Interaction):
-            await self.cmd_list_bot_admins(interaction)
+        @app_commands.describe(server_id="Optional server (guild) ID to list; required in DMs")
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        async def _list_admins(interaction: discord.Interaction, server_id: Optional[str] = None):
+            await self.cmd_list_bot_admins(interaction, server_id)
 
         @self.tree.command(
             name="dm-admin-report",
@@ -918,29 +944,33 @@ class SanitizerBot(discord.Client):
             name="leave-server",
             description="Bot Owner Only: Leave a server and delete its stored data",
         )
-        @app_commands.describe(server_id="The server (guild) ID to leave")
-        async def _leave_server(interaction: discord.Interaction, server_id: str):
-            await self.cmd_leave_server(interaction, server_id)
+        @app_commands.describe(server_id="The server (guild) ID to leave", confirm="Type true to confirm")
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        async def _leave_server(interaction: discord.Interaction, server_id: str, confirm: Optional[bool] = False):
+            await self.cmd_leave_server(interaction, server_id, confirm)
 
         @self.tree.command(
             name="blacklist-server",
             description="Bot Owner Only: Add a server ID to the blacklist (auto-leave on join/startup)",
         )
         @app_commands.describe(
-            server_id="Guild ID to blacklist", reason="Optional reason for blacklisting"
+            server_id="Guild ID to blacklist", reason="Optional reason for blacklisting", confirm="Type true to confirm"
         )
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _blacklist_server(
             interaction: discord.Interaction,
             server_id: str,
             reason: Optional[str] = None,
+            confirm: Optional[bool] = False,
         ):
-            await self.cmd_blacklist_server(interaction, server_id, reason)
+            await self.cmd_blacklist_server(interaction, server_id, reason, confirm)
 
         @self.tree.command(
             name="unblacklist-server",
             description="Bot Owner Only: Remove a server ID from the blacklist",
         )
         @app_commands.describe(server_id="Guild ID to remove from blacklist")
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _unblacklist_server(interaction: discord.Interaction, server_id: str):
             await self.cmd_unblacklist_server(interaction, server_id)
 
@@ -1048,7 +1078,7 @@ class SanitizerBot(discord.Client):
         if self.db:
             try:
                 bl = await self.db.list_blacklisted_guilds()
-                bl_set = {gid for gid, _ in bl}
+                bl_set = {row[0] for row in bl}
             except Exception:
                 bl_set = set()
             if bl_set:
@@ -1057,6 +1087,17 @@ class SanitizerBot(discord.Client):
                     if g.id in bl_set:
                         attempt += 1
                         try:
+                            # Update stored name for this blacklisted guild (keep existing reason)
+                            try:
+                                await self.db.add_blacklisted_guild(g.id, None, g.name)
+                            except Exception:
+                                pass
+                            # Always delete stored data
+                            try:
+                                await self.db.clear_admins(g.id)
+                                await self.db.reset_guild_settings(g.id)
+                            except Exception:
+                                pass
                             await g.leave()
                             log.info(
                                 "[BLACKLIST] Left blacklisted guild %s (%s)",
@@ -1078,11 +1119,23 @@ class SanitizerBot(discord.Client):
 
     async def on_guild_join(self, guild: discord.Guild):
         log.info(f"[EVENT] Bot joined new guild: {guild.name} ({guild.id})")
+        # Optionally DM owner on join
+        await self._dm_owner(f"Joined guild: {guild.name} ({guild.id})")
         # If blacklisted, immediately leave
         if self.db:
             try:
                 if await self.db.is_guild_blacklisted(guild.id):
                     try:
+                        # Update stored name for this blacklisted guild (keep reason)
+                        try:
+                            await self.db.add_blacklisted_guild(guild.id, None, guild.name)
+                        except Exception:
+                            pass
+                        try:
+                            await self.db.clear_admins(guild.id)
+                            await self.db.reset_guild_settings(guild.id)
+                        except Exception:
+                            pass
                         await guild.leave()
                         log.info(
                             "[BLACKLIST] Immediately left blacklisted guild %s (%s)",
@@ -1460,6 +1513,19 @@ class SanitizerBot(discord.Client):
         if key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
             return await self._ac_bool_value(interaction, current)
         return []
+
+    async def _ac_guild_id(self, interaction: discord.Interaction, current: str):
+        current = (current or "").strip().lower()
+        # Build choices as "Name (ID)" with value=ID string
+        choices = []
+        for g in sorted(self.guilds, key=lambda gg: (gg.name or "", gg.id))[:25]:
+            name = g.name or "<unnamed>"
+            label = f"{name} ({g.id})"
+            if not current or current in name.lower() or current in str(g.id):
+                choices.append(discord.app_commands.Choice(name=label, value=str(g.id)))
+            if len(choices) >= 25:
+                break
+        return choices
 
     async def cmd_set_setting(
         self,
@@ -2300,10 +2366,17 @@ class SanitizerBot(discord.Client):
         interaction: discord.Interaction,
         server_id: str,
         reason: Optional[str] = None,
+        confirm: Optional[bool] = False,
     ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.",
+                ephemeral=interaction.guild is not None,
             )
             return
         if not self.db:
@@ -2319,7 +2392,16 @@ class SanitizerBot(discord.Client):
                 ephemeral=interaction.guild is not None,
             )
             return
-        await self.db.add_blacklisted_guild(gid, reason)
+        # Try to capture a readable name; may be None if not cached
+        g_cached = self.get_guild(gid)
+        g_name = g_cached.name if g_cached is not None else None
+        await self.db.add_blacklisted_guild(gid, reason, g_name)
+        # Always delete stored data for this guild (whether or not we're in it)
+        try:
+            deleted_admins = await self.db.clear_admins(gid)
+            await self.db.reset_guild_settings(gid)
+        except Exception:
+            deleted_admins = 0
         # If currently in that guild, attempt to leave
         g = self.get_guild(gid)
         if g is not None:
@@ -2332,7 +2414,7 @@ class SanitizerBot(discord.Client):
             left_note = ""
         suffix = f" Reason: {reason}" if (reason and reason.strip()) else ""
         await interaction.response.send_message(
-            f"Blacklisted server ID {gid}{left_note}.{suffix}",
+            f"Blacklisted server ID {gid}{left_note}. Deleted {deleted_admins} admin entries.{suffix}",
             ephemeral=interaction.guild is not None,
         )
 
@@ -2391,22 +2473,18 @@ class SanitizerBot(discord.Client):
             )
             return
         lines = []
-        for gid, reason in entries:
+        for gid, name, reason in entries:
+            label = f"{name} ({gid})" if (name and name.strip()) else str(gid)
             if reason and reason.strip():
-                lines.append(f"• {gid} — {reason}")
+                lines.append(f"• {label} — {reason}")
             else:
-                lines.append(f"• {gid}")
+                lines.append(f"• {label}")
         text = "Blacklisted servers:\n" + "\n".join(lines)
         await interaction.response.send_message(
             text, ephemeral=interaction.guild is not None
         )
 
-    async def cmd_list_bot_admins(self, interaction: discord.Interaction):
-        if not interaction.guild:
-            await interaction.response.send_message(
-                "This command can only be used in a server.", ephemeral=True
-            )
-            return
+    async def cmd_list_bot_admins(self, interaction: discord.Interaction, server_id: Optional[str] = None):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2417,8 +2495,26 @@ class SanitizerBot(discord.Client):
                 "Only the bot owner can perform this action.", ephemeral=True
             )
             return
+        # Determine guild ID
+        # Resolve guild ID as an int
+        if server_id:
+            try:
+                gid = int(server_id)
+            except Exception:
+                await interaction.response.send_message(
+                    f"'{server_id}' is not a valid server ID.", ephemeral=interaction.guild is not None
+                )
+                return
+        else:
+            if interaction.guild:
+                gid = interaction.guild.id
+            else:
+                await interaction.response.send_message(
+                    "server_id is required when used in DMs.", ephemeral=False
+                )
+                return
         try:
-            ids = await self.db.list_admins(interaction.guild.id)
+            ids = await self.db.list_admins(gid)
             if not ids:
                 await interaction.response.send_message(
                     "No bot admins are configured for this server.", ephemeral=True
@@ -2427,11 +2523,11 @@ class SanitizerBot(discord.Client):
             mentions = [f"<@{uid}>" for uid in ids]
             await interaction.response.send_message(
                 "Bot admins for this server: " + ", ".join(mentions),
-                ephemeral=True,
+                ephemeral=interaction.guild is not None,
             )
         except Exception as e:
             await interaction.response.send_message(
-                f"Failed to fetch admins: {e}", ephemeral=True
+                f"Failed to fetch admins: {e}", ephemeral=interaction.guild is not None
             )
 
     async def cmd_dm_admin_report(self, interaction: discord.Interaction):
@@ -2456,16 +2552,24 @@ class SanitizerBot(discord.Client):
                 mentions = ", ".join(f"<@{uid}>" for uid in ids)
             else:
                 mentions = "<none>"
-            lines.append(f"• {g.name} ({g.id}): {mentions}")
-        report = "Admin report for all servers bot is in:\n" + "\n".join(
-            lines or ["<none>"]
-        )
-        # DM the owner
+            lines.append(f"• {g.name} ({g.id}) — admins: {len(ids)} — {mentions}")
+        chunks: list[str] = []
+        header = "Admin report for all servers bot is in:\n"
+        cur = header
+        for line in (lines or ["<none>"]):
+            if len(cur) + len(line) + 1 > 1800:
+                chunks.append(cur)
+                cur = ""
+            cur += ("\n" if cur else "") + line
+        if cur:
+            chunks.append(cur)
+        # DM the owner in chunks
         try:
             owner_user = interaction.user
-            await owner_user.send(report)
+            for part in chunks:
+                await owner_user.send(part)
             await interaction.response.send_message(
-                "Sent you a DM with the admin report.",
+                f"Sent you a DM with the admin report ({len(chunks)} message(s)).",
                 ephemeral=interaction.guild is not None,
             )
         except Exception as e:
@@ -2473,7 +2577,7 @@ class SanitizerBot(discord.Client):
                 f"Failed to send DM: {e}", ephemeral=interaction.guild is not None
             )
 
-    async def cmd_leave_server(self, interaction: discord.Interaction, server_id: str):
+    async def cmd_leave_server(self, interaction: discord.Interaction, server_id: str, confirm: Optional[bool] = False):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
@@ -2482,6 +2586,12 @@ class SanitizerBot(discord.Client):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
+            )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.",
+                ephemeral=interaction.guild is not None,
             )
             return
         # Parse snowflake from text to int; Discord IDs exceed 32-bit
@@ -2554,6 +2664,7 @@ class SanitizerBot(discord.Client):
                 pass
         try:
             await guild.leave()
+            await self._dm_owner(f"Left guild: {guild.name} ({guild.id}) — requested by owner.")
         except Exception:
             # As a fallback, try to kick self if possible
             try:

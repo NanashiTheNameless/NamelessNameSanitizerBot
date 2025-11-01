@@ -53,6 +53,7 @@ Runtime
 - SWEEP_INTERVAL_SEC: integer, default 60 — periodic sweep interval seconds
 - SWEEP_BATCH: integer, default 256 — reserved; currently no effect
 - LOG_LEVEL: DEBUG|INFO|WARNING|ERROR — overrides default logging level (INFO)
+- DM_OWNER_ON_GUILD_EVENTS: true|false, default true — if true, the bot will DM the owner on guild join/leave events
 
 ### Invite URL
 
@@ -114,11 +115,11 @@ Owner-only
 - /global-reset-settings — reset sanitizer settings to defaults across all servers
 - /delete-user-data user:@User — delete that user's stored data across all servers (cooldowns/admin entries)
 - /global-delete-user-data — delete ALL user data across all servers and announce in configured logging channels
-- /list-bot-admins — list all bot admins in the current server
+- /list-bot-admins — list all bot admins in the current server (in DMs, pass server_id)
 - /dm-admin-report — DM the owner a report of all servers the bot is in and the bot admins for each
-- /leave-server server_id:int — leave the specified server and delete that server’s stored data
-- /blacklist-server server_id:int [reason:str] — add a server to the blacklist; the bot will auto-leave it on join/startup
-- /unblacklist-server server_id:int — remove a server from the blacklist
+- /leave-server server_id:str confirm:true — leave the specified server and delete that server’s stored data
+- /blacklist-server server_id:str [reason:str] confirm:true — add a server to the blacklist; the bot will auto-leave it on join/startup and delete stored data
+- /unblacklist-server server_id:str — remove a server from the blacklist
 - /list-blacklisted-servers — list all blacklisted server IDs
 
 Bot admin
@@ -154,6 +155,7 @@ Public
 Notes
 
 - All command output is ephemeral.
+- Some destructive/owner commands require a confirmation boolean (confirm=true).
 - /set-policy without a value shows the current value.
 - /set-policy pairs accepts keys: `check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label, enforce_bots`.
 - Boolean inputs for commands accept true/false, yes/no, on/off, and 1/0 (case-insensitive).
