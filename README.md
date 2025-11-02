@@ -214,7 +214,6 @@ Control via environment variables
 - `NNSB_TELEMETRY_OPTOUT=1` — disable the census entirely (preferred)
 - `TELEMETRY_OPTOUT=1` — alternative opt‑out variable
 - `TELEMETRY_ENDPOINT=<https://telemetry.namelessnanashi.dev/census>` — override the POST endpoint
-- `PROJECT_NAME=YourProject` — set the project name attached to the payload
 
 Defaults
 
