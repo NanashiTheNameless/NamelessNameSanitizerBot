@@ -115,16 +115,16 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 
 ## Command reference
 
-Public (most visible)
+### Public
 
 - /botinfo — shows instance owner, developer, and links to source, terms, and privacy
 - /delete-my-data — deletes your stored data in the current server (cooldowns/admin entries)
 
-Guild/Server Admin
+### Guild/Server Admin
 
 - /sanitize-user [member:Member] — sanitize someone immediately (requires Manage Nicknames, or to be a bot admin)
 
-Bot admin (sorted by typical usage)
+### Bot admin
 
 - /sweep-now — immediately sweep and sanitize members in this server (bot admin only)
 - /enable-sanitizer — enable the sanitizer in this server
@@ -145,7 +145,7 @@ Bot admin (sorted by typical usage)
 - /reset-settings — reset this server’s sanitizer settings to defaults
 - /set-policy [key:key] [value:value] [pairs:"k=v k=v ..."] — view or set policy; supports multi-update
 
-Owner-only (placed last)
+### Owner-only
 
 - /add-bot-admin user:Member — add a bot admin (current server)
 - /remove-bot-admin user:Member — remove a bot admin (current server)
@@ -164,7 +164,7 @@ Owner-only (placed last)
 - /global-nuke-bot-admins — remove all bot admins across all servers
 - /global-delete-user-data — delete ALL user data across all servers and announce in configured logging channels
 
-Notes
+### Notes
 
 - All command output is ephemeral.
 - Some destructive/owner commands require a confirmation boolean (confirm=true).
