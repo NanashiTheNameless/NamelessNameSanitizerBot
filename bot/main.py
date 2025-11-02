@@ -2836,7 +2836,12 @@ class SanitizerBot(discord.Client):
             except Exception:
                 s = GuildSettings(guild_id=g.id)
             label = f"{g.name} ({g.id})"
-            parts = [f"enabled={s.enabled}", f"min_len={s.min_nick_length}", f"max_len={s.max_nick_length}", f"cooldown={s.cooldown_seconds}"]
+            parts = [
+                f"enabled={s.enabled}",
+                f"min_len={s.min_nick_length}",
+                f"max_len={s.max_nick_length}",
+                f"cooldown={s.cooldown_seconds}",
+            ]
             if s.logging_channel_id:
                 parts.append(f"log_channel={s.logging_channel_id}")
             if s.bypass_role_id:
