@@ -85,6 +85,16 @@ If you want a production-friendly, self-hosting optimized setup (pre-tuned Docke
 
 - NamelessNameSanitizerBot-Docker: <https://github.com/NanashiTheNameless/NamelessNameSanitizerBot-Docker>
 
+### Data persistence (named volume)
+
+The included Compose file provisions a named volume `botdata` mounted at `/app/data` inside the container. This is where persistent app data lives, including the stable telemetry instance ID file at `/app/data/.telemetry_id`.
+
+You don't need to create any host directory for this; Docker manages the named volume. To inspect the file inside the running container:
+
+```bash
+docker compose exec bot ls -l /app/data
+```
+
 ## Permissions and intents
 
 - Bot requires the “Manage Nicknames” permission to edit nicknames.
