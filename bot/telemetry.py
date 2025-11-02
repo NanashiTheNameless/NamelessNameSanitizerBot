@@ -22,6 +22,7 @@ from typing import Optional
 
 _DEFAULT_ENDPOINT = "https://telemetry.namelessnanashi.dev/census"
 _PROJECT_NAME = "NamelessNameSanitizerBot"
+_OPTOUT_ENV_VAR = "NNSB_TELEMETRY_OPTOUT"
 _HAS_SCHEDULED_SEND = False
 _PERIOD_HOURS = 2  # send every 2 hours (on the hour, UTC)
 _HAS_LOGGED_SCHEDULE = False
@@ -42,7 +43,7 @@ def _env_falsy(v: Optional[str]) -> bool:
 
 
 def _env_opt_out() -> bool:
-    if _env_truthy(os.getenv("NNSB_TELEMETRY_OPTOUT")) or _env_truthy(
+    if _env_truthy(os.getenv(_OPTOUT_ENV_VAR)) or _env_truthy(
         os.getenv("TELEMETRY_OPTOUT")
     ):
         return True
