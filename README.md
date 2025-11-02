@@ -207,8 +207,6 @@ What is sent
 
 - A stable, anonymous instance identifier hashed with SHA‑256 (never the raw value)
 - The current date (UTC) in `YYYY‑MM‑DD` format
-- Python version and OS platform
-- Project version (if a local `VERSION` file exists)
 - Project name (see below)
 
 Control via environment variables

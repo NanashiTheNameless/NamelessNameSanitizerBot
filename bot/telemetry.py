@@ -3,7 +3,7 @@
 
 Design goals:
 - Opt-out by default; disable with env var.
-- Minimal data: hashed instance id, coarse UTC date, python version/platform, optional project version, project name.
+- Minimal data: hashed instance id, coarse UTC date, optional project version, project name.
 - Non-blocking and fail-silent.
 """
 
@@ -14,7 +14,6 @@ import hashlib
 import json
 import logging
 import os
-import platform
 import urllib.error
 import urllib.request
 import uuid
@@ -149,9 +148,6 @@ def _make_payload() -> dict:
     payload = {
         "id": _hash_id(rid),
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "python": platform.python_version(),
-        "platform": platform.system(),
-        "project_version": _get_version(),
         "projectname": _get_project_name(),
         "project": _get_project_name(),
         "count": 1,
