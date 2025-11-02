@@ -3,7 +3,7 @@
 
 Design goals:
 - Opt-out by default; disable with env var.
-- Minimal data: hashed instance id, coarse UTC date, optional project version, project name.
+- Minimal data: hashed instance id, coarse UTC date, project name.
 - Non-blocking and fail-silent.
 """
 
