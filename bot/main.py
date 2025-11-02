@@ -36,6 +36,12 @@ log = logging.getLogger("sanitizerbot")
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
+try:
+    from .telemetry import maybe_send_telemetry_background  # type: ignore
+except Exception:
+    def maybe_send_telemetry_background():  # type: ignore
+        return
+
 _LOG_LEVEL_NAME = os.getenv("LOG_LEVEL", "INFO").strip().upper()
 _LOG_LEVEL = getattr(logging, _LOG_LEVEL_NAME, logging.INFO)
 logging.getLogger().setLevel(_LOG_LEVEL)
@@ -1185,6 +1191,12 @@ class SanitizerBot(discord.Client):
 
         log.info("[STATUS] Starting member sweep background task.")
         self.member_sweep.start()  # type: ignore
+
+        # Fire-and-forget telemetry (privacy-respecting, opt-out)
+        try:
+            maybe_send_telemetry_background()
+        except Exception:
+            pass
 
     async def on_guild_join(self, guild: discord.Guild):
         log.info(f"[EVENT] Bot joined new guild: {guild.name} ({guild.id})")

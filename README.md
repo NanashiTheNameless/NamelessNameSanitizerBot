@@ -189,6 +189,36 @@ See [SECURITY.md](<./SECURITY.md>) in this repo and the policies on the project 
 - Minimal data storage: per-guild config and per-user cooldown timestamps. Cooldowns are purged automatically after COOLDOWN_TTL_SEC.
 - Users can request deletion via /delete-my-data; bot owners can execute /delete-user-data or /global-delete-user-data when legally required.
 
+### Telemetry (opt-out)
+
+This project includes a tiny, privacy‑respecting census to estimate how many people self‑host it. It is enabled by default and can be disabled at any time. The census only sends minimal, non‑identifying data and never includes user content, guild info, or secrets.
+
+What is sent
+
+- A stable, anonymous instance identifier hashed with SHA‑256 (never the raw value)
+- The current date (UTC) in `YYYY‑MM‑DD` format
+- Python version and OS platform
+- Project version (if a local `VERSION` file exists)
+- Project name (see below)
+
+Control via environment variables
+
+- `NNSB_TELEMETRY_OPTOUT=1` — disable the census entirely (preferred)
+- `TELEMETRY_OPTOUT=1` — alternative opt‑out variable
+- `TELEMETRY_ENDPOINT=<https://telemetry.namelessnanashi.dev/census>` — override the POST endpoint
+- `PROJECT_NAME=YourProject` — set the project name attached to the payload
+
+Defaults
+
+- Endpoint default: <https://telemetry.namelessnanashi.dev/census>
+- Project name default: the name of the repository folder (e.g., `NamelessNameSanitizerBot`)
+
+Behavior
+
+- The send happens once per startup, in the background, with a very short timeout
+- Network errors fail silently and never affect bot operation
+- Data is minimal and cannot be used to identify you or your servers
+
 Related policies:
 
 - [Privacy Policy](<https://namelessnamesanitizerbot.namelessnanashi.dev/PrivacyPolicy/>)

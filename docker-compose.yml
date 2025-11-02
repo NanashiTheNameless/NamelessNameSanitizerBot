@@ -13,7 +13,9 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=postgresql://bot:bot@db:5432/bot
+      - TELEMETRY_STATE_DIR=/app/data
     volumes:
+      - ./data:/app/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     depends_on:
