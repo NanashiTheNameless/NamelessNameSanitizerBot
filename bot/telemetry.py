@@ -17,12 +17,12 @@ import platform
 import urllib.error
 import urllib.request
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 _DEFAULT_ENDPOINT = "https://telemetry.namelessnanashi.dev/census"
 _HAS_SCHEDULED_SEND = False
-_DAILY_INTERVAL = 24 * 3600
+_PERIOD_HOURS = 2  # send every 2 hours (on the hour, UTC)
 
 
 def _env_truthy(v: Optional[str]) -> bool:
@@ -150,27 +150,46 @@ async def maybe_send_telemetry_async() -> None:
     except Exception:
         return
 
+def _seconds_until_next_even_utc_hour() -> float:
+    """Return seconds until the next even UTC hour boundary (00,02,...,22).
 
-async def _daily_ping_loop() -> None:
-    """Background loop that sends telemetry every 24 hours.
-
-    Runs until the process exits or the event loop stops. Exceptions are
-    swallowed to keep it fail-silent.
+    If called exactly at an even boundary, schedule for the next even boundary (i.e., +2h),
+    to avoid double-sending (startup + boundary).
     """
+    now = datetime.now(timezone.utc)
+    base = now.replace(minute=0, second=0, microsecond=0)
+    if now <= base:
+        # Exactly on the hour (or extremely close rounding down)
+        if base.hour % 2 == 0:
+            nxt = base + timedelta(hours=2)
+        else:
+            nxt = base + timedelta(hours=1)
+    else:
+        # After the hour; choose next even boundary
+        if base.hour % 2 == 0:
+            nxt = base + timedelta(hours=2)
+        else:
+            nxt = base + timedelta(hours=1)
+    delta = (nxt - now).total_seconds()
+    return max(1.0, delta)
+
+
+async def _periodic_ping_loop() -> None:
+    """Background loop that sends telemetry every 2 hours aligned to UTC even hours."""
     while True:
         try:
-            await asyncio.sleep(_DAILY_INTERVAL)
+            sleep_s = _seconds_until_next_even_utc_hour()
+            await asyncio.sleep(sleep_s)
             if _env_opt_out():
                 continue
             await maybe_send_telemetry_async()
         except asyncio.CancelledError:
             return
         except Exception:
-            # Swallow errors and continue the loop
+            # Swallow errors and continue; small backoff to avoid tight loop
             try:
                 await asyncio.sleep(60)
             except Exception:
-                # If even sleeping fails, bail out to avoid a tight loop
                 return
 
 
@@ -184,9 +203,9 @@ def maybe_send_telemetry_background() -> None:
         if loop.is_running():
             # Fire-and-forget immediate send
             asyncio.ensure_future(maybe_send_telemetry_async())
-            # Also schedule a daily background ping (once per process)
+            # Also schedule a periodic background ping aligned to UTC even hours (once per process)
             try:
-                asyncio.ensure_future(_daily_ping_loop())
+                asyncio.ensure_future(_periodic_ping_loop())
             except Exception:
                 # If scheduling fails, don't prevent the immediate send
                 pass
