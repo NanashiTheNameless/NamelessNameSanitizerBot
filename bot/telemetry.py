@@ -22,6 +22,7 @@ from typing import Optional
 
 _DEFAULT_ENDPOINT = "https://telemetry.namelessnanashi.dev/census"
 _HAS_SCHEDULED_SEND = False
+_DAILY_INTERVAL = 24 * 3600
 
 
 def _env_truthy(v: Optional[str]) -> bool:
@@ -150,6 +151,29 @@ async def maybe_send_telemetry_async() -> None:
         return
 
 
+async def _daily_ping_loop() -> None:
+    """Background loop that sends telemetry every 24 hours.
+
+    Runs until the process exits or the event loop stops. Exceptions are
+    swallowed to keep it fail-silent.
+    """
+    while True:
+        try:
+            await asyncio.sleep(_DAILY_INTERVAL)
+            if _env_opt_out():
+                continue
+            await maybe_send_telemetry_async()
+        except asyncio.CancelledError:
+            return
+        except Exception:
+            # Swallow errors and continue the loop
+            try:
+                await asyncio.sleep(60)
+            except Exception:
+                # If even sleeping fails, bail out to avoid a tight loop
+                return
+
+
 def maybe_send_telemetry_background() -> None:
     global _HAS_SCHEDULED_SEND
     if _HAS_SCHEDULED_SEND:
@@ -158,7 +182,14 @@ def maybe_send_telemetry_background() -> None:
     try:
         loop = asyncio.get_event_loop()
         if loop.is_running():
+            # Fire-and-forget immediate send
             asyncio.ensure_future(maybe_send_telemetry_async())
+            # Also schedule a daily background ping (once per process)
+            try:
+                asyncio.ensure_future(_daily_ping_loop())
+            except Exception:
+                # If scheduling fails, don't prevent the immediate send
+                pass
     except Exception:
         try:
             _post_sync(_get_endpoint(), json.dumps(_make_payload()).encode("utf-8"))
