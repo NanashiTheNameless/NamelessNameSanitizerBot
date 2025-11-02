@@ -998,6 +998,13 @@ class SanitizerBot(discord.Client):
             await self.cmd_dm_admin_report(interaction)
 
         @self.tree.command(
+            name="dm-server-settings",
+            description="Bot Owner Only: DM a report of all servers and their sanitizer settings",
+        )
+        async def _dm_server_settings(interaction: discord.Interaction):
+            await self.cmd_dm_server_settings(interaction)
+
+        @self.tree.command(
             name="global-bot-disable",
             description="Bot Owner Only: Disable the sanitizer bot in all servers",
         )
@@ -2803,6 +2810,59 @@ class SanitizerBot(discord.Client):
                 await owner_user.send(part)
             await interaction.response.send_message(
                 f"Sent you a DM with the admin report ({len(chunks)} message(s)).",
+                ephemeral=interaction.guild is not None,
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to send DM: {e}", ephemeral=interaction.guild is not None
+            )
+
+    async def cmd_dm_server_settings(self, interaction: discord.Interaction):
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+
+        lines: list[str] = []
+        for g in sorted(self.guilds, key=lambda gg: (gg.name or "", gg.id)):
+            try:
+                s = await self.db.get_settings(g.id)
+            except Exception:
+                s = GuildSettings(guild_id=g.id)
+            label = f"{g.name} ({g.id})"
+            parts = [f"enabled={s.enabled}", f"min_len={s.min_nick_length}", f"max_len={s.max_nick_length}", f"cooldown={s.cooldown_seconds}"]
+            if s.logging_channel_id:
+                parts.append(f"log_channel={s.logging_channel_id}")
+            if s.bypass_role_id:
+                parts.append(f"bypass_role={s.bypass_role_id}")
+            if s.fallback_label:
+                parts.append(f"fallback='{s.fallback_label}'")
+            parts.append(f"enforce_bots={s.enforce_bots}")
+            lines.append("• " + label + " — " + ", ".join(parts))
+
+        chunks: list[str] = []
+        header = "Server settings report for all servers bot is in:\n"
+        cur = header
+        for line in lines or ["<none>"]:
+            if len(cur) + len(line) + 1 > 1800:
+                chunks.append(cur)
+                cur = ""
+            cur += ("\n" if cur else "") + line
+        if cur:
+            chunks.append(cur)
+
+        try:
+            owner_user = interaction.user
+            for part in chunks:
+                await owner_user.send(part)
+            await interaction.response.send_message(
+                f"Sent you a DM with the server settings report ({len(chunks)} message(s)).",
                 ephemeral=interaction.guild is not None,
             )
         except Exception as e:

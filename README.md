@@ -150,17 +150,18 @@ Owner-only (placed last)
 - /add-bot-admin user:Member — add a bot admin (current server)
 - /remove-bot-admin user:Member — remove a bot admin (current server)
 - /list-bot-admins — list all bot admins in a server (in DMs, pass server_id)
-- /dm-admin-report — DM the owner a report of all servers the bot is in and the bot admins for each
 - /global-bot-disable — disable the bot across all servers
 - /global-reset-settings — reset sanitizer settings to defaults across all servers
-- /nuke-bot-admins — remove all bot admins in the current server
-- /global-nuke-bot-admins — remove all bot admins across all servers
 - /blacklist-server [server_id:str] [reason:str] [confirm:bool] — add a server to the blacklist; the bot will auto-leave it on join/startup and delete stored data
 - /unblacklist-server [server_id:str] [confirm:bool] — remove a server from the blacklist
 - /set-blacklist-reason [server_id:str] [reason:str] — set/clear blacklist reason for a server
 - /list-blacklisted-servers — list all blacklisted server IDs
 - /leave-server [server_id:str] [confirm:bool] — leave the specified server and delete that server’s stored data
+- /dm-admin-report — DM the owner a report of all servers the bot is in and the bot admins for each
+- /dm-server-settings — DM the owner a report of all servers and their sanitizer settings (enabled, min/max length, cooldown, logging channel, bypass role, fallback label, enforce_bots)
 - /delete-user-data [user:@User] — delete that user's stored data across all servers (cooldowns/admin entries)
+- /nuke-bot-admins — remove all bot admins in the current server
+- /global-nuke-bot-admins — remove all bot admins across all servers
 - /global-delete-user-data — delete ALL user data across all servers and announce in configured logging channels
 
 Notes
