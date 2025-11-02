@@ -41,7 +41,8 @@ try:
 except Exception:
     log = logging.getLogger("sanitizerbot")
     log.warning(
-        "[TELEMETRY] Disabled: failed to import telemetry module. Running without census.")
+        "[TELEMETRY] Disabled: failed to import telemetry module. Running without census."
+    )
 
 _LOG_LEVEL_NAME = os.getenv("LOG_LEVEL", "INFO").strip().upper()
 _LOG_LEVEL = getattr(logging, _LOG_LEVEL_NAME, logging.INFO)
