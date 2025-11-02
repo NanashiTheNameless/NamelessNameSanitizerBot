@@ -215,7 +215,7 @@ Defaults
 
 Behavior
 
-- The send happens once per startup, in the background, with a very short timeout
+- The send happens once per startup and then every 24 hours, in the background, with a very short timeout
 - Network errors fail silently and never affect bot operation
 - Data is minimal and cannot be used to identify you or your servers
 
