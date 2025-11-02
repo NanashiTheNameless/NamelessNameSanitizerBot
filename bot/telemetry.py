@@ -270,7 +270,9 @@ def maybe_send_telemetry_background() -> None:
                 global _HAS_LOGGED_SCHEDULE
                 if not _HAS_LOGGED_SCHEDULE:
                     _HAS_LOGGED_SCHEDULE = True
-                    _log.info("[telemetry] scheduling immediate send and 2h periodic loop (UTC aligned)")
+                    _log.info(
+                        "[telemetry] scheduling immediate send and 2h periodic loop (UTC aligned)"
+                    )
                 else:
                     _log.debug("telemetry scheduling immediate send + periodic loop")
             except Exception:
