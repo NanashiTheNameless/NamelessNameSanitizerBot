@@ -21,6 +21,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 _DEFAULT_ENDPOINT = "https://telemetry.namelessnanashi.dev/census"
+_PROJECT_NAME = "NamelessNameSanitizerBot"
 _HAS_SCHEDULED_SEND = False
 _PERIOD_HOURS = 2  # send every 2 hours (on the hour, UTC)
 _HAS_LOGGED_SCHEDULE = False
@@ -57,12 +58,7 @@ def _get_endpoint() -> str:
 
 
 def _get_project_name() -> str:
-    """Return the explicit project label from env or empty string if unset.
-
-    Telemetry requires PROJECT_NAME to be set; no implicit fallbacks.
-    """
-    name = (os.getenv("PROJECT_NAME") or "").strip()
-    return name
+    return _PROJECT_NAME
 
 
 def _get_state_file() -> str:

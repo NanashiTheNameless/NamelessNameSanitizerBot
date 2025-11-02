@@ -1,0 +1,18 @@
+{
+  // Prevent VS Code from restoring folded/cursor state when reopening files
+  "workbench.editor.restoreViewState": false,
+
+  // Disable import folding by default
+  "editor.foldingImportsByDefault": false,
+
+  // Ensure folding is enabled, but nothing is auto-folded
+  "editor.folding": true,
+
+  // Optional: always open editors expanded (good companion to the above)
+  "editor.unfoldOnClickAfterEndOfLine": true,
+
+  // Python-specific safeguards (if any global setting re-enables folding imports)
+  "[python]": {
+    "editor.foldingImportsByDefault": false
+  }
+}
