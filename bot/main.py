@@ -39,8 +39,10 @@ load_dotenv()
 try:
     from .telemetry import maybe_send_telemetry_background  # type: ignore
 except Exception:
+
     def maybe_send_telemetry_background():  # type: ignore
         return
+
 
 _LOG_LEVEL_NAME = os.getenv("LOG_LEVEL", "INFO").strip().upper()
 _LOG_LEVEL = getattr(logging, _LOG_LEVEL_NAME, logging.INFO)

@@ -35,7 +35,9 @@ def _env_falsy(v: Optional[str]) -> bool:
 
 
 def _env_opt_out() -> bool:
-    if _env_truthy(os.getenv("NNSB_TELEMETRY_OPTOUT")) or _env_truthy(os.getenv("TELEMETRY_OPTOUT")):
+    if _env_truthy(os.getenv("NNSB_TELEMETRY_OPTOUT")) or _env_truthy(
+        os.getenv("TELEMETRY_OPTOUT")
+    ):
         return True
     tel = os.getenv("TELEMETRY")
     if tel is not None and _env_falsy(tel):
@@ -64,7 +66,9 @@ def _get_state_file() -> str:
     env_dir = os.getenv("TELEMETRY_STATE_DIR")
     if env_dir:
         return os.path.join(env_dir, ".telemetry_id")
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".telemetry_id"))
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", ".telemetry_id")
+    )
 
 
 def _ensure_instance_id() -> str:
@@ -122,7 +126,9 @@ def _make_payload() -> dict:
 
 
 def _post_sync(url: str, data: bytes, timeout: float = 2.0) -> None:
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+    req = urllib.request.Request(
+        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
+    )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             _ = resp.status
