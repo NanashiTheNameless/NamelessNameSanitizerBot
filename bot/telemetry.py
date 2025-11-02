@@ -24,6 +24,8 @@ from typing import Optional
 _DEFAULT_ENDPOINT = "https://telemetry.namelessnanashi.dev/census"
 _HAS_SCHEDULED_SEND = False
 _PERIOD_HOURS = 2  # send every 2 hours (on the hour, UTC)
+_HAS_LOGGED_SCHEDULE = False
+_HAS_LOGGED_SKIP = False
 
 _log = logging.getLogger("telemetry")
 
@@ -170,12 +172,21 @@ def _post_sync(url: str, data: bytes, timeout: float = 2.0) -> None:
 async def maybe_send_telemetry_async() -> None:
     endpoint = _get_endpoint()
     if not endpoint or _env_opt_out():
+        global _HAS_LOGGED_SKIP
         try:
-            _log.debug(
-                "telemetry skipped (endpoint=%s, opted_out=%s)",
-                bool(endpoint),
-                _env_opt_out(),
-            )
+            if not _HAS_LOGGED_SKIP:
+                _HAS_LOGGED_SKIP = True
+                _log.info(
+                    "[telemetry] skipped (endpoint_configured=%s, opted_out=%s)",
+                    bool(endpoint),
+                    _env_opt_out(),
+                )
+            else:
+                _log.debug(
+                    "telemetry skipped (endpoint=%s, opted_out=%s)",
+                    bool(endpoint),
+                    _env_opt_out(),
+                )
         except Exception:
             pass
         return
@@ -239,12 +250,27 @@ def maybe_send_telemetry_background() -> None:
     if _HAS_SCHEDULED_SEND:
         return
     _HAS_SCHEDULED_SEND = True
+    # Ensure the local instance ID file exists early, even if opted out.
+    try:
+        path = _get_state_file()
+        _ = _ensure_instance_id()
+        try:
+            _log.info("[telemetry] initialized state file at %s", path)
+        except Exception:
+            pass
+    except Exception:
+        pass
     try:
         loop = asyncio.get_event_loop()
         if loop.is_running():
             # Fire-and-forget immediate send
             try:
-                _log.debug("telemetry scheduling immediate send + periodic loop")
+                global _HAS_LOGGED_SCHEDULE
+                if not _HAS_LOGGED_SCHEDULE:
+                    _HAS_LOGGED_SCHEDULE = True
+                    _log.info("[telemetry] scheduling immediate send and 2h periodic loop (UTC aligned)")
+                else:
+                    _log.debug("telemetry scheduling immediate send + periodic loop")
             except Exception:
                 pass
             asyncio.ensure_future(maybe_send_telemetry_async())
