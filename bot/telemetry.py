@@ -62,7 +62,11 @@ def _get_project_name() -> str:
         return name
     # Fall back to repository directory name
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    return os.path.basename(repo_root) or "NamelessNameSanitizerBot"
+    base = os.path.basename(repo_root) or ""
+    # In Docker the WORKDIR is typically '/app'; avoid reporting the generic 'app'
+    if base.lower() in {"app", ""}:
+        return "NamelessNameSanitizerBot"
+    return base
 
 
 def _get_state_file() -> str:
