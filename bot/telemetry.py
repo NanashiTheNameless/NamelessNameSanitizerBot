@@ -10,9 +10,9 @@ Design goals:
 from __future__ import annotations
 
 import asyncio
-import logging
 import hashlib
 import json
+import logging
 import os
 import platform
 import urllib.error
@@ -117,7 +117,9 @@ def _ensure_instance_id() -> str:
         return new
     except Exception:
         try:
-            _log.debug("telemetry failed to persist id file at %s; using ephemeral id", path)
+            _log.debug(
+                "telemetry failed to persist id file at %s; using ephemeral id", path
+            )
         except Exception:
             pass
         return str(uuid.uuid4())
