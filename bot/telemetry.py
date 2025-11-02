@@ -26,6 +26,7 @@ _HAS_SCHEDULED_SEND = False
 _PERIOD_HOURS = 2  # send every 2 hours (on the hour, UTC)
 _HAS_LOGGED_SCHEDULE = False
 _HAS_LOGGED_SKIP = False
+_HAS_LOGGED_NO_PROJECT = False
 
 _log = logging.getLogger("telemetry")
 
@@ -57,16 +58,12 @@ def _get_endpoint() -> str:
 
 
 def _get_project_name() -> str:
-    name = os.getenv("PROJECT_NAME")
-    if name:
-        return name
-    # Fall back to repository directory name
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    base = os.path.basename(repo_root) or ""
-    # In Docker the WORKDIR is typically '/app'; avoid reporting the generic 'app'
-    if base.lower() in {"app", ""}:
-        return "NamelessNameSanitizerBot"
-    return base
+    """Return the explicit project label from env or empty string if unset.
+
+    Telemetry requires PROJECT_NAME to be set; no implicit fallbacks.
+    """
+    name = (os.getenv("PROJECT_NAME") or "").strip()
+    return name
 
 
 def _get_state_file() -> str:
@@ -193,6 +190,19 @@ async def maybe_send_telemetry_async() -> None:
                     bool(endpoint),
                     _env_opt_out(),
                 )
+        except Exception:
+            pass
+        return
+    # Require explicit project name; skip if missing
+    project = _get_project_name()
+    if not project:
+        global _HAS_LOGGED_NO_PROJECT
+        try:
+            if not _HAS_LOGGED_NO_PROJECT:
+                _HAS_LOGGED_NO_PROJECT = True
+                _log.info("[telemetry] skipped (missing PROJECT_NAME)")
+            else:
+                _log.debug("telemetry skipped (missing PROJECT_NAME)")
         except Exception:
             pass
         return
