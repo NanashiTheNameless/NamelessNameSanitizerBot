@@ -17,7 +17,7 @@ import platform
 import urllib.error
 import urllib.request
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 _DEFAULT_ENDPOINT = "https://telemetry.namelessnanashi.dev/census"
@@ -149,6 +149,7 @@ async def maybe_send_telemetry_async() -> None:
         await loop.run_in_executor(None, _post_sync, endpoint, data)
     except Exception:
         return
+
 
 def _seconds_until_next_even_utc_hour() -> float:
     """Return seconds until the next even UTC hour boundary (00,02,...,22).
