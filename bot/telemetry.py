@@ -10,6 +10,7 @@ Design goals:
 from __future__ import annotations
 
 import asyncio
+import logging
 import hashlib
 import json
 import os
@@ -23,6 +24,8 @@ from typing import Optional
 _DEFAULT_ENDPOINT = "https://telemetry.namelessnanashi.dev/census"
 _HAS_SCHEDULED_SEND = False
 _PERIOD_HOURS = 2  # send every 2 hours (on the hour, UTC)
+
+_log = logging.getLogger("telemetry")
 
 
 def _env_truthy(v: Optional[str]) -> bool:
@@ -47,7 +50,8 @@ def _env_opt_out() -> bool:
 
 
 def _get_endpoint() -> str:
-    return os.getenv("TELEMETRY_ENDPOINT") or _DEFAULT_ENDPOINT
+    ep = os.getenv("TELEMETRY_ENDPOINT") or _DEFAULT_ENDPOINT
+    return ep
 
 
 def _get_project_name() -> str:
@@ -63,10 +67,19 @@ def _get_state_file() -> str:
     # Allow overriding the state file path for containerized deployments
     env_file = os.getenv("TELEMETRY_STATE_FILE")
     if env_file:
+        try:
+            _log.debug("telemetry state file (TELEMETRY_STATE_FILE) -> %s", env_file)
+        except Exception:
+            pass
         return env_file
     env_dir = os.getenv("TELEMETRY_STATE_DIR")
     if env_dir:
-        return os.path.join(env_dir, ".telemetry_id")
+        p = os.path.join(env_dir, ".telemetry_id")
+        try:
+            _log.debug("telemetry state dir (TELEMETRY_STATE_DIR) -> %s", p)
+        except Exception:
+            pass
+        return p
     return os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", ".telemetry_id")
     )
@@ -79,17 +92,32 @@ def _ensure_instance_id() -> str:
             with open(path, "r", encoding="utf-8") as fh:
                 raw = fh.read().strip()
                 if raw:
+                    try:
+                        _log.debug("telemetry id file exists at %s", path)
+                    except Exception:
+                        pass
                     return raw
         new = str(uuid.uuid4())
         # Ensure parent directory exists when using a custom path/dir
         try:
             os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         except Exception:
-            pass
+            try:
+                _log.debug("telemetry could not create parent dir for %s", path)
+            except Exception:
+                pass
         with open(path, "w", encoding="utf-8") as fh:
             fh.write(new)
+        try:
+            _log.debug("telemetry created id file at %s", path)
+        except Exception:
+            pass
         return new
     except Exception:
+        try:
+            _log.debug("telemetry failed to persist id file at %s; using ephemeral id", path)
+        except Exception:
+            pass
         return str(uuid.uuid4())
 
 
@@ -142,10 +170,22 @@ def _post_sync(url: str, data: bytes, timeout: float = 2.0) -> None:
 async def maybe_send_telemetry_async() -> None:
     endpoint = _get_endpoint()
     if not endpoint or _env_opt_out():
+        try:
+            _log.debug(
+                "telemetry skipped (endpoint=%s, opted_out=%s)",
+                bool(endpoint),
+                _env_opt_out(),
+            )
+        except Exception:
+            pass
         return
     data = json.dumps(_make_payload(), separators=(",", ":")).encode("utf-8")
     try:
         loop = asyncio.get_running_loop()
+        try:
+            _log.debug("telemetry POST -> %s (async, %d bytes)", endpoint, len(data))
+        except Exception:
+            pass
         await loop.run_in_executor(None, _post_sync, endpoint, data)
     except Exception:
         return
@@ -203,6 +243,10 @@ def maybe_send_telemetry_background() -> None:
         loop = asyncio.get_event_loop()
         if loop.is_running():
             # Fire-and-forget immediate send
+            try:
+                _log.debug("telemetry scheduling immediate send + periodic loop")
+            except Exception:
+                pass
             asyncio.ensure_future(maybe_send_telemetry_async())
             # Also schedule a periodic background ping aligned to UTC even hours (once per process)
             try:
