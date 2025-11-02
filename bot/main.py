@@ -39,10 +39,9 @@ load_dotenv()
 try:
     from .telemetry import maybe_send_telemetry_background  # type: ignore
 except Exception:
-
-    def maybe_send_telemetry_background():  # type: ignore
-        return
-
+    log = logging.getLogger("sanitizerbot")
+    log.warning(
+        "[TELEMETRY] Disabled: failed to import telemetry module. Running without census.")
 
 _LOG_LEVEL_NAME = os.getenv("LOG_LEVEL", "INFO").strip().upper()
 _LOG_LEVEL = getattr(logging, _LOG_LEVEL_NAME, logging.INFO)
@@ -1196,6 +1195,7 @@ class SanitizerBot(discord.Client):
 
         # Fire-and-forget telemetry (privacy-respecting, opt-out)
         try:
+            log.info("[TELEMETRY] Attempting to start telemetry system")
             maybe_send_telemetry_background()
         except Exception:
             pass
