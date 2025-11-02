@@ -1149,7 +1149,7 @@ class SanitizerBot(discord.Client):
         log.info("[STARTUP] Connected guilds: %s", gids or "<none>")
 
         if APPLICATION_ID:
-            invite = f"https://discord.com/oauth2/authorize?client_id={APPLICATION_ID}"
+            invite = f"https://discord.com/oauth2/authorize?client_id={APPLICATION_ID}&scope=bot%20applications.commands&permissions=134217728"
             log.info(f"[INFO] Bot invite link: {invite}")
         else:
             log.warning(
