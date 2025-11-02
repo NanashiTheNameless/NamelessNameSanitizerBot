@@ -21,5 +21,5 @@ COPY bot ./bot
 # Create application data directory (volume-mounted in docker-compose).
 RUN mkdir -p /app/data
 
-# Run the bot in unbuffered mode for real-time logs.
-CMD ["python", "-u", "bot/main.py"]
+# Run the bot as a module in unbuffered mode for real-time logs.
+CMD ["python", "-u", "-m", "bot.main"]
