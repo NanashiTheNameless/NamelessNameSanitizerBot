@@ -51,7 +51,7 @@ Policy defaults (used until changed per-guild via commands)
 Runtime
 
 - SWEEP_INTERVAL_SEC: integer, default 60 — periodic sweep interval seconds
-- SWEEP_BATCH: integer, default 256 — reserved; currently no effect
+- SWEEP_BATCH: integer, default 512 — reserved; currently no effect
 - LOG_LEVEL: DEBUG|INFO|WARNING|ERROR — overrides default logging level (INFO)
 - DM_OWNER_ON_GUILD_EVENTS: true|false, default true — if true, the bot will DM the owner on guild join/leave events
 

@@ -72,7 +72,7 @@ _APP_ID = os.getenv("APPLICATION_ID", "").strip()
 APPLICATION_ID = int(_APP_ID) if _APP_ID.isdigit() else None
 
 SWEEP_INTERVAL_SEC = getenv_int("SWEEP_INTERVAL_SEC", 60)
-SWEEP_BATCH = getenv_int("SWEEP_BATCH", 256)
+SWEEP_BATCH = getenv_int("SWEEP_BATCH", 512)
 
 
 @dataclass
