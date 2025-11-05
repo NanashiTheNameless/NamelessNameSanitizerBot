@@ -22,9 +22,9 @@ from .config import (
     COOLDOWN_TTL_SEC,
     DATABASE_URL,
     DM_OWNER_ON_GUILD_EVENTS,
-    GuildSettings,
     OWNER_ID,
     SWEEP_INTERVAL_SEC,
+    GuildSettings,
     parse_bool_str,
 )
 from .database import Database
@@ -33,9 +33,11 @@ from .sanitizer import sanitize_name
 try:
     from .telemetry import maybe_send_telemetry_background  # type: ignore
 except Exception:
+
     def maybe_send_telemetry_background():
         """Dummy function when telemetry is not available."""
         pass
+
 
 log = logging.getLogger("sanitizerbot")
 
@@ -2320,5 +2322,3 @@ class SanitizerBot(discord.Client):
                     await guild.kick(me, reason="Owner-requested bot leave")
             except Exception:
                 pass
-
-

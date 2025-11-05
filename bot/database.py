@@ -16,12 +16,12 @@ from .config import (
     CHECK_LENGTH,
     COOLDOWN_SECONDS,
     ENFORCE_BOTS,
-    GuildSettings,
     MAX_NICK_LENGTH,
     MIN_NICK_LENGTH,
     OWNER_ID,
     PRESERVE_SPACES,
     SANITIZE_EMOJI,
+    GuildSettings,
 )
 
 
