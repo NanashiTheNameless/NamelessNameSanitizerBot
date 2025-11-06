@@ -929,7 +929,9 @@ class SanitizerBot(discord.Client):
                 ephemeral=True,
             )
             return
-        current_name = member.nick or getattr(member, "global_name", None) or member.name
+        current_name = (
+            member.nick or getattr(member, "global_name", None) or member.name
+        )
         candidate = sanitize_name(current_name, settings)
 
         if candidate == current_name:
@@ -1074,7 +1076,12 @@ class SanitizerBot(discord.Client):
                 discord.app_commands.Choice(name=c.name, value=str(c.value))
                 for c in choices
             ]
-        if key in {"preserve_spaces", "sanitize_emoji", "enforce_bots", "randomized_fallback"}:
+        if key in {
+            "preserve_spaces",
+            "sanitize_emoji",
+            "enforce_bots",
+            "randomized_fallback",
+        }:
             return await self._ac_bool_value(interaction, current)
         return []
 
