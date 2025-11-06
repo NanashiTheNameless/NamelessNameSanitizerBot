@@ -15,6 +15,7 @@ import discord  # type: ignore
 import regex as re  # type: ignore
 from discord import app_commands  # type: ignore
 from discord.ext import tasks  # type: ignore
+import shlex
 
 from .config import (
     APPLICATION_ID,
@@ -943,11 +944,12 @@ class SanitizerBot(discord.Client):
         key = (key or "").lower()
 
         aliases = {
+            "enabled": "enabled",
             "check_length": "check_length",
             "min_nick_length": "min_nick_length",
             "max_nick_length": "max_nick_length",
             "cooldown_seconds": "cooldown_seconds",
-            "fallback_label": "fallback_label",
+            "fallback_label": "fallback_label"
         }
         key = aliases.get(key, key)
         if key in {
@@ -1087,6 +1089,7 @@ class SanitizerBot(discord.Client):
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
 
         key_alias = {
+            "enabled": "enabled",
             "check_length": "check_length",
             "min_nick_length": "min_nick_length",
             "max_nick_length": "max_nick_length",
@@ -1105,10 +1108,21 @@ class SanitizerBot(discord.Client):
             "bypass_role_id",
             "fallback_label",
             "enforce_bots",
+            "enabled",
         }
 
+        def _unquote(s: str) -> str:
+            s = (s or "").strip()
+            if len(s) >= 2 and s[0] == s[-1] and s[0] in ("'", '"'):
+                return s[1:-1]
+            return s
+
         if pairs:
-            tokens = [t for t in pairs.split() if "=" in t]
+            try:
+                raw_tokens = shlex.split(pairs)
+            except Exception:
+                raw_tokens = pairs.split()
+            tokens = [t for t in raw_tokens if "=" in t]
             if not tokens:
                 await interaction.response.send_message(
                     "No valid key=value pairs provided.", ephemeral=True
@@ -1123,7 +1137,7 @@ class SanitizerBot(discord.Client):
                     errors.append(f"Unsupported key: {raw_k}")
                     continue
                 k = key_alias.get(raw_k, raw_k)
-                v_raw = v_raw.strip()
+                v_raw = _unquote(v_raw.strip())
                 try:
                     if k in {
                         "check_length",
@@ -1132,7 +1146,7 @@ class SanitizerBot(discord.Client):
                         "cooldown_seconds",
                     }:
                         v = int(v_raw)
-                    elif k in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
+                    elif k in {"preserve_spaces", "sanitize_emoji", "enforce_bots", "enabled"}:
                         v = parse_bool_str(v_raw)
                     elif k in {"logging_channel_id", "bypass_role_id"}:
                         v = (
@@ -1200,6 +1214,8 @@ class SanitizerBot(discord.Client):
                 cur = s.sanitize_emoji
             elif key == "enforce_bots":
                 cur = s.enforce_bots
+            elif key == "enabled":
+                cur = s.enabled
             elif key == "logging_channel_id":
                 cur = s.logging_channel_id
             elif key == "bypass_role_id":
@@ -1215,6 +1231,8 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(text, ephemeral=True)
             return
         try:
+            if value is not None:
+                value = _unquote(value)
             if key in {
                 "check_length",
                 "min_nick_length",
@@ -1222,7 +1240,7 @@ class SanitizerBot(discord.Client):
                 "cooldown_seconds",
             }:
                 v = int(value)
-            elif key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
+            elif key in {"preserve_spaces", "sanitize_emoji", "enforce_bots", "enabled"}:
                 v = parse_bool_str(value)
             elif key in {"logging_channel_id", "bypass_role_id"}:
                 v = (
@@ -2136,7 +2154,11 @@ class SanitizerBot(discord.Client):
                 mentions = ", ".join(f"<@{uid}>" for uid in ids)
             else:
                 mentions = "<none>"
-            lines.append(f"• {g.name} ({g.id}) — admins: {len(ids)} — {mentions}")
+            lines.append(
+                f"• {g.name} ({g.id}) — admins: {len(ids)} — {mentions}"
+            )
+
+        # Chunk only between servers to respect message length limits
         chunks: list[str] = []
         header = "Admin report for all servers bot is in:\n"
         cur = header
@@ -2147,7 +2169,7 @@ class SanitizerBot(discord.Client):
             cur += ("\n" if cur else "") + line
         if cur:
             chunks.append(cur)
-        # DM the owner in chunks
+
         try:
             owner_user = interaction.user
             for part in chunks:
@@ -2180,20 +2202,32 @@ class SanitizerBot(discord.Client):
             except Exception:
                 s = GuildSettings(guild_id=g.id)
             label = f"{g.name} ({g.id})"
-            parts = [
-                f"enabled={s.enabled}",
-                f"min_len={s.min_nick_length}",
-                f"max_len={s.max_nick_length}",
-                f"cooldown={s.cooldown_seconds}",
+
+            def b(v: bool) -> str:
+                return "true" if v else "false"
+
+            def q(v: str | int | bool | None) -> str:
+                return f'"{str(v)}"'
+
+            tokens: list[str] = [
+                f"enabled={q(b(s.enabled))}",
+                f"check_length={q(s.check_length)}",
+                f"min_nick_length={q(s.min_nick_length)}",
+                f"max_nick_length={q(s.max_nick_length)}",
+                f"preserve_spaces={q(b(s.preserve_spaces))}",
+                f"cooldown_seconds={q(s.cooldown_seconds)}",
+                f"sanitize_emoji={q(b(s.sanitize_emoji))}",
+                f"enforce_bots={q(b(s.enforce_bots))}",
+                f"logging_channel_id={q(s.logging_channel_id if s.logging_channel_id else 'none')}",
+                f"bypass_role_id={q(s.bypass_role_id if s.bypass_role_id else 'none')}",
             ]
-            if s.logging_channel_id:
-                parts.append(f"log_channel={s.logging_channel_id}")
-            if s.bypass_role_id:
-                parts.append(f"bypass_role={s.bypass_role_id}")
-            if s.fallback_label:
-                parts.append(f"fallback='{s.fallback_label}'")
-            parts.append(f"enforce_bots={s.enforce_bots}")
-            lines.append("• " + label + " — " + ", ".join(parts))
+            if s.fallback_label is None or not str(s.fallback_label).strip():
+                tokens.append(f"fallback_label={q('none')}")
+            else:
+                tokens.append(f"fallback_label={q(s.fallback_label)}")
+
+            pair_str = " ".join(tokens)
+            lines.append("• " + label + "\n" + f"```{pair_str}```")
 
         chunks: list[str] = []
         header = "Server settings report for all servers bot is in:\n"
