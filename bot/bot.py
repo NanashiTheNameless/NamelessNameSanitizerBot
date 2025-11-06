@@ -8,10 +8,10 @@ command registration, event handlers, and all bot functionality.
 
 import asyncio
 import logging
+import math
 import shlex
 import time
 from typing import Optional
-import math
 
 import discord  # type: ignore
 import regex as re  # type: ignore
@@ -756,7 +756,9 @@ class SanitizerBot(discord.Client):
         # Already compliant
         name_now = member.nick or member.name
         if candidate == name_now:
-            reasons.append("No change is necessary; nickname already complies with policy.")
+            reasons.append(
+                "No change is necessary; nickname already complies with policy."
+            )
 
         # Permissions / hierarchy
         me = member.guild.me
@@ -913,16 +915,14 @@ class SanitizerBot(discord.Client):
             msg = f"Nickname updated: '{current_name}' → '{candidate}'."
         else:
             # Provide explicit reasons why it could not change
-            reasons = await self._diagnose_sanitize_blockers(member, settings, candidate)
+            reasons = await self._diagnose_sanitize_blockers(
+                member, settings, candidate
+            )
             if reasons:
                 bullets = "\n".join(f"- {r}" for r in reasons)
-                msg = (
-                    f"Couldn't change nickname from '{current_name}' to '{candidate}' because:\n{bullets}"
-                )
+                msg = f"Couldn't change nickname from '{current_name}' to '{candidate}' because:\n{bullets}"
             else:
-                msg = (
-                    f"Attempted to update nickname from '{current_name}' to '{candidate}', but no change was applied. The Discord API may have refused the edit (Forbidden/HTTP error)."
-                )
+                msg = f"Attempted to update nickname from '{current_name}' to '{candidate}', but no change was applied. The Discord API may have refused the edit (Forbidden/HTTP error)."
         if warn_disabled:
             msg = f"{msg}\n{warn_disabled}"
         await interaction.response.send_message(msg, ephemeral=True)
