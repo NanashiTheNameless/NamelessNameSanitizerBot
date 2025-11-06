@@ -132,6 +132,7 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - /set-logging-channel [channel:#channel] — set or view logging channel
 - /set-bypass-role [role:@Role] — set or view bypass role
 - /set-emoji-sanitization [value:bool]
+- /set-randomized-fallback [value:bool] — enable/disable randomized `User####` fallback when a name becomes fully illegal
 - /set-keep-spaces [value:bool]
 - /set-min-length [value:int]
 - /set-max-length [value:int]
@@ -171,6 +172,7 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - Owner-only server ID autocomplete is enforced. For /unblacklist-server, autocomplete lists only servers that are currently blacklisted (owner-only).
 - /set-policy without a value shows the current value.
 - /set-policy pairs accepts keys: `enabled, check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label, enforce_bots`.
+  - Also supports: `randomized_fallback` (true/false) to use randomized `User####` when the sanitized result is empty.
 - /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="true" check_length="0" min_nick_length="2" max_nick_length="32" preserve_spaces="true" cooldown_seconds="30" sanitize_emoji="true" enforce_bots="false" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name"`.
 - Use the literal string `none` (quoted or unquoted) to clear `logging_channel_id`, `bypass_role_id`, or `fallback_label`.
 - `/dm-server-settings` messages are chunked only between servers to respect Discord limits; each line per server is a complete pasteable set of pairs.

@@ -6,6 +6,7 @@ This module provides functions to sanitize member nicknames according to guild p
 """
 
 import time
+import random
 
 import regex as re  # type: ignore
 
@@ -40,9 +41,10 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
     if not settings.preserve_spaces:
         _full = normalize_spaces(_full)
     if not _full.strip():
-        candidate = settings.fallback_label or "Illegal Name"
-        if len(candidate) < settings.min_nick_length:
-            candidate = f"user{int(time.time() * 1000) % 10000:04d}"
+        if getattr(settings, "randomized_fallback", False):
+            candidate = f"User{random.randrange(10000):04d}"
+        else:
+            candidate = settings.fallback_label or "Illegal Name"
         if len(candidate) > settings.max_nick_length:
             candidate = candidate[: settings.max_nick_length]
         return candidate
@@ -76,10 +78,10 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
 
     # If entire result is empty after filtering, use the configured fallback label
     if not candidate or not candidate.strip():
-        candidate = settings.fallback_label or "Illegal Name"
-
-    if len(candidate) < settings.min_nick_length:
-        candidate = f"user{int(time.time() * 1000) % 10000:04d}"
+        if getattr(settings, "randomized_fallback", False):
+            candidate = f"User{random.randrange(10000):04d}"
+        else:
+            candidate = settings.fallback_label or "Illegal Name"
 
     if len(candidate) > settings.max_nick_length:
         candidate = candidate[: settings.max_nick_length]

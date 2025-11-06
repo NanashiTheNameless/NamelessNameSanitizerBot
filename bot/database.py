@@ -16,6 +16,7 @@ from .config import (
     CHECK_LENGTH,
     COOLDOWN_SECONDS,
     ENFORCE_BOTS,
+    RANDOMIZED_FALLBACK,
     MAX_NICK_LENGTH,
     MIN_NICK_LENGTH,
     OWNER_ID,
@@ -59,7 +60,8 @@ class Database:
                     logging_channel_id BIGINT,
                     bypass_role_id BIGINT,
                     fallback_label TEXT,
-                    enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}
+                    enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'},
+                    randomized_fallback BOOLEAN NOT NULL DEFAULT {'TRUE' if RANDOMIZED_FALLBACK else 'FALSE'}
                 );
                 """
                 )
@@ -138,6 +140,7 @@ class Database:
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT",
                 f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}",
+                f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS randomized_fallback BOOLEAN NOT NULL DEFAULT {'TRUE' if RANDOMIZED_FALLBACK else 'FALSE'}",
             ):
                 async with conn.cursor() as cur:
                     await cur.execute(stmt)
@@ -257,7 +260,7 @@ class Database:
         async with self.pool.connection() as conn:
             async with conn.cursor(row_factory=rows.dict_row) as cur:
                 await cur.execute(
-                    "SELECT guild_id, check_length, min_nick_length, max_nick_length, preserve_spaces, cooldown_seconds, sanitize_emoji, enabled, logging_channel_id, bypass_role_id, fallback_label, enforce_bots FROM guild_settings WHERE guild_id=%s",
+                    "SELECT guild_id, check_length, min_nick_length, max_nick_length, preserve_spaces, cooldown_seconds, sanitize_emoji, enabled, logging_channel_id, bypass_role_id, fallback_label, enforce_bots, randomized_fallback FROM guild_settings WHERE guild_id=%s",
                     (guild_id,),
                 )
                 row = await cur.fetchone()
@@ -275,6 +278,7 @@ class Database:
                         bypass_role_id=row.get("bypass_role_id"),
                         fallback_label=row.get("fallback_label"),
                         enforce_bots=row.get("enforce_bots", False),
+                        randomized_fallback=row.get("randomized_fallback", False),
                     )
                 return GuildSettings(guild_id=guild_id)
 
@@ -301,6 +305,7 @@ class Database:
             "bypass_role_id": "bypass_role_id",
             "fallback_label": "fallback_label",
             "enforce_bots": "enforce_bots",
+            "randomized_fallback": "randomized_fallback",
         }
         col = columns.get(key)
         if not col:

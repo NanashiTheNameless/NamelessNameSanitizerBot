@@ -86,6 +86,9 @@ class SanitizerBot(discord.Client):
             discord.app_commands.Choice(
                 name="enforce_bots (true/false)", value="enforce_bots"
             ),
+            discord.app_commands.Choice(
+                name="randomized_fallback (true/false)", value="randomized_fallback"
+            ),
         ]
 
     async def _dm_owner(self, content: str) -> bool:
@@ -204,6 +207,15 @@ class SanitizerBot(discord.Client):
             interaction: discord.Interaction, value: Optional[bool] = None
         ):
             await self.cmd_set_sanitize_emoji(interaction, value)
+
+        @self.tree.command(
+            name="set-randomized-fallback",
+            description="Bot Admin Only: Enable/disable randomized 'User####' fallback or view current value",
+        )
+        async def _set_randomized_fallback(
+            interaction: discord.Interaction, value: Optional[bool] = None
+        ):
+            await self.cmd_set_randomized_fallback(interaction, value)
 
         @self.tree.command(
             name="set-keep-spaces",
@@ -704,7 +716,7 @@ class SanitizerBot(discord.Client):
                         ch = None
                 if isinstance(ch, (discord.TextChannel, discord.Thread)):
                     try:
-                        await ch.send(f"Nickname updated: {member.mention} — '{name_now}' → '{candidate}' (via {source})")  # type: ignore
+                        await ch.send(f"Nickname updated: {member.mention} — `{name_now}` → `{candidate}` (via {source})")  # type: ignore
                     except Exception:
                         pass
             return True
@@ -927,7 +939,7 @@ class SanitizerBot(discord.Client):
             if candidate_full != current_name and settings.check_length > 0:
                 msg = (
                     f"No change applied under current scope (check_length={settings.check_length}). "
-                    f"However, full-name sanitization would change it to '{candidate_full}'. "
+                    f"However, full-name sanitization would change it to `{candidate_full}`. "
                     f"Consider increasing check_length or setting it to 0 to sanitize the whole name."
                 )
             else:
@@ -939,7 +951,7 @@ class SanitizerBot(discord.Client):
 
         did_change = await self._sanitize_member(member, source="command")
         if did_change:
-            msg = f"Nickname updated: '{current_name}' → '{candidate}'."
+            msg = f"Nickname updated: `{current_name}` → `{candidate}`."
         else:
             # Provide explicit reasons why it could not change
             reasons = await self._diagnose_sanitize_blockers(
@@ -947,9 +959,9 @@ class SanitizerBot(discord.Client):
             )
             if reasons:
                 bullets = "\n".join(f"- {r}" for r in reasons)
-                msg = f"Couldn't change nickname from '{current_name}' to '{candidate}' because:\n{bullets}"
+                msg = f"Couldn't change nickname from `{current_name}` to `{candidate}` because:\n{bullets}"
             else:
-                msg = f"Attempted to update nickname from '{current_name}' to '{candidate}', but no change was applied. The Discord API may have refused the edit (Forbidden/HTTP error)."
+                msg = f"Attempted to update nickname from `{current_name}` to `{candidate}`, but no change was applied. The Discord API may have refused the edit (Forbidden/HTTP error)."
         if warn_disabled:
             msg = f"{msg}\n{warn_disabled}"
         await interaction.response.send_message(msg, ephemeral=True)
@@ -1062,7 +1074,7 @@ class SanitizerBot(discord.Client):
                 discord.app_commands.Choice(name=c.name, value=str(c.value))
                 for c in choices
             ]
-        if key in {"preserve_spaces", "sanitize_emoji", "enforce_bots"}:
+        if key in {"preserve_spaces", "sanitize_emoji", "enforce_bots", "randomized_fallback"}:
             return await self._ac_bool_value(interaction, current)
         return []
 
@@ -1206,6 +1218,7 @@ class SanitizerBot(discord.Client):
             "bypass_role_id",
             "fallback_label",
             "enforce_bots",
+            "randomized_fallback",
             "enabled",
         }
 
@@ -1317,6 +1330,8 @@ class SanitizerBot(discord.Client):
                 cur = s.sanitize_emoji
             elif key == "enforce_bots":
                 cur = s.enforce_bots
+            elif key == "randomized_fallback":
+                cur = s.randomized_fallback
             elif key == "enabled":
                 cur = s.enabled
             elif key == "logging_channel_id":
@@ -1347,6 +1362,7 @@ class SanitizerBot(discord.Client):
                 "preserve_spaces",
                 "sanitize_emoji",
                 "enforce_bots",
+                "randomized_fallback",
                 "enabled",
             }:
                 v = parse_bool_str(value)
@@ -1523,6 +1539,42 @@ class SanitizerBot(discord.Client):
         await self.cmd_set_setting(
             interaction, "sanitize_emoji", "true" if value else "false"
         )
+
+    async def cmd_set_randomized_fallback(
+        self, interaction: discord.Interaction, value: Optional[bool] = None
+    ):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
+            await interaction.response.send_message(
+                "Only bot admins can modify settings.", ephemeral=True
+            )
+            return
+        s = await self.db.get_settings(interaction.guild.id)
+        warn_disabled = None
+        if not s.enabled:
+            warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
+        if value is None:
+            text = f"Current randomized_fallback: {getattr(s, 'randomized_fallback', False)}"
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
+            return
+        await self.db.set_setting(
+            interaction.guild.id, "randomized_fallback", bool(value)
+        )
+        text = f"randomized_fallback set to {bool(value)}."
+        if warn_disabled:
+            text = f"{text}\n{warn_disabled}"
+        await interaction.response.send_message(text, ephemeral=True)
 
     async def cmd_set_logging_channel(
         self,
