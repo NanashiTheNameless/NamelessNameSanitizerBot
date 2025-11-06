@@ -8,6 +8,7 @@ command registration, event handlers, and all bot functionality.
 
 import asyncio
 import logging
+import shlex
 import time
 from typing import Optional
 
@@ -15,7 +16,6 @@ import discord  # type: ignore
 import regex as re  # type: ignore
 from discord import app_commands  # type: ignore
 from discord.ext import tasks  # type: ignore
-import shlex
 
 from .config import (
     APPLICATION_ID,
@@ -949,7 +949,7 @@ class SanitizerBot(discord.Client):
             "min_nick_length": "min_nick_length",
             "max_nick_length": "max_nick_length",
             "cooldown_seconds": "cooldown_seconds",
-            "fallback_label": "fallback_label"
+            "fallback_label": "fallback_label",
         }
         key = aliases.get(key, key)
         if key in {
@@ -1146,7 +1146,12 @@ class SanitizerBot(discord.Client):
                         "cooldown_seconds",
                     }:
                         v = int(v_raw)
-                    elif k in {"preserve_spaces", "sanitize_emoji", "enforce_bots", "enabled"}:
+                    elif k in {
+                        "preserve_spaces",
+                        "sanitize_emoji",
+                        "enforce_bots",
+                        "enabled",
+                    }:
                         v = parse_bool_str(v_raw)
                     elif k in {"logging_channel_id", "bypass_role_id"}:
                         v = (
@@ -1240,7 +1245,12 @@ class SanitizerBot(discord.Client):
                 "cooldown_seconds",
             }:
                 v = int(value)
-            elif key in {"preserve_spaces", "sanitize_emoji", "enforce_bots", "enabled"}:
+            elif key in {
+                "preserve_spaces",
+                "sanitize_emoji",
+                "enforce_bots",
+                "enabled",
+            }:
                 v = parse_bool_str(value)
             elif key in {"logging_channel_id", "bypass_role_id"}:
                 v = (
@@ -2154,9 +2164,7 @@ class SanitizerBot(discord.Client):
                 mentions = ", ".join(f"<@{uid}>" for uid in ids)
             else:
                 mentions = "<none>"
-            lines.append(
-                f"• {g.name} ({g.id}) — admins: {len(ids)} — {mentions}"
-            )
+            lines.append(f"• {g.name} ({g.id}) — admins: {len(ids)} — {mentions}")
 
         # Chunk only between servers to respect message length limits
         chunks: list[str] = []
