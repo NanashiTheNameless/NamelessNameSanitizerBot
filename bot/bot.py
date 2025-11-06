@@ -668,7 +668,7 @@ class SanitizerBot(discord.Client):
             if last_ts is not None and now() - last_ts < settings.cooldown_seconds:
                 return False
 
-        name_now = member.nick or member.name
+        name_now = member.nick or getattr(member, "global_name", None) or member.name
         candidate = sanitize_name(name_now, settings)
 
         if candidate == name_now:
@@ -754,7 +754,7 @@ class SanitizerBot(discord.Client):
                     )
 
         # Already compliant
-        name_now = member.nick or member.name
+        name_now = member.nick or getattr(member, "global_name", None) or member.name
         if candidate == name_now:
             reasons.append(
                 "No change is necessary; nickname already complies with policy."
@@ -917,7 +917,7 @@ class SanitizerBot(discord.Client):
                 ephemeral=True,
             )
             return
-        current_name = member.nick or member.name
+        current_name = member.nick or getattr(member, "global_name", None) or member.name
         candidate = sanitize_name(current_name, settings)
 
         if candidate == current_name:
