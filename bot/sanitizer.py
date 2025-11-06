@@ -67,11 +67,12 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
     if not settings.preserve_spaces:
         candidate = normalize_spaces(candidate)
 
-    # Final full-string filtering to guarantee policy is applied across the whole result
-    candidate = remove_marks_and_controls(candidate)
-    candidate = filter_allowed_chars(candidate, settings.sanitize_emoji)
-    if not settings.preserve_spaces:
-        candidate = normalize_spaces(candidate)
+    # Final full-string filtering only when enforcing the entire name
+    if settings.check_length <= 0:
+        candidate = remove_marks_and_controls(candidate)
+        candidate = filter_allowed_chars(candidate, settings.sanitize_emoji)
+        if not settings.preserve_spaces:
+            candidate = normalize_spaces(candidate)
 
     # If entire result is empty after filtering, use the configured fallback label
     if not candidate or not candidate.strip():
