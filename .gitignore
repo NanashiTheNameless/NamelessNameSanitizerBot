@@ -1,5 +1,6 @@
 # Un-needed files
 __pycache__
+.pytest_cache/
 # Development environment (contains secrets)
 .env
 # megalinter files (uninteresting for most users)

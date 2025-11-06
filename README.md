@@ -143,7 +143,7 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - /clear-bypass-role — clear bypass role
 - /clear-fallback-label — clear the fallback nickname
 - /reset-settings — reset this server’s sanitizer settings to defaults
-- /set-policy [key:key] [value:value] [pairs:"k=v k=v ..."] — view or set policy; supports multi-update
+- /set-policy [key:key] [value:value] [pairs:k=v k=v ...] — view or set policy; supports multi-update
 
 ### Owner-only
 
