@@ -53,6 +53,9 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
         clusters = re.findall(r"\X", name)
         head = "".join(clusters[: settings.check_length])
         tail = "".join(clusters[settings.check_length :])
+    else:
+        head = _full
+        tail = ""
 
     head = remove_marks_and_controls(head)
     head = filter_allowed_chars(head, settings.sanitize_emoji)

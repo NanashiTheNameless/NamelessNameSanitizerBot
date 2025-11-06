@@ -30,7 +30,7 @@ from .config import (
     parse_bool_str,
 )
 from .database import Database
-from .sanitizer import sanitize_name
+from .sanitizer import sanitize_name, remove_marks_and_controls, filter_allowed_chars
 
 try:
     from .telemetry import maybe_send_telemetry_background  # type: ignore
@@ -759,6 +759,23 @@ class SanitizerBot(discord.Client):
             reasons.append(
                 "No change is necessary; nickname already complies with policy."
             )
+            try:
+                if settings.check_length and settings.check_length > 0:
+                    clusters = re.findall(r"\X", name_now)
+                    if settings.check_length < len(clusters):
+                        tail = "".join(clusters[settings.check_length:])
+                        processed_tail = remove_marks_and_controls(tail)
+                        processed_tail = filter_allowed_chars(
+                            processed_tail, settings.sanitize_emoji
+                        )
+                        if not settings.preserve_spaces:
+                            processed_tail = re.sub(r"\s+", " ", processed_tail).strip()
+                        if processed_tail != tail:
+                            reasons.append(
+                                f"Tail beyond the first {settings.check_length} grapheme(s) contains characters that would be sanitized, but check_length limits scope. Increase check_length to sanitize them."
+                            )
+            except Exception:
+                pass
 
         # Permissions / hierarchy
         me = member.guild.me
