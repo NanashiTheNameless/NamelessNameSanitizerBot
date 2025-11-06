@@ -921,7 +921,17 @@ class SanitizerBot(discord.Client):
         candidate = sanitize_name(current_name, settings)
 
         if candidate == current_name:
-            msg = f"No change needed for {member.mention}; nickname already compliant."
+            full_settings = GuildSettings(**{**settings.__dict__})
+            full_settings.check_length = 0
+            candidate_full = sanitize_name(current_name, full_settings)
+            if candidate_full != current_name and settings.check_length > 0:
+                msg = (
+                    f"No change applied under current scope (check_length={settings.check_length}). "
+                    f"However, full-name sanitization would change it to '{candidate_full}'. "
+                    f"Consider increasing check_length or setting it to 0 to sanitize the whole name."
+                )
+            else:
+                msg = f"No change needed for {member.mention}; nickname already compliant."
             if warn_disabled:
                 msg = f"{msg}\n{warn_disabled}"
             await interaction.response.send_message(msg, ephemeral=True)

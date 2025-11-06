@@ -14,7 +14,7 @@ from .config import GuildSettings
 # Regular expressions for sanitization
 _rm_marks = re.compile(r"[\p{Cf}\p{Cc}\p{Mn}\p{Me}]")
 _allow_ascii = re.compile(r"[^\x20-\x7E]")
-_allow_ascii_or_emoji = re.compile(r"[^\x20-\x7E\p{Extended_Pictographic}\u200D\uFE0F]")
+_allow_ascii_or_emoji = re.compile(r"[^\x20-\x7E\p{Emoji}\u200D\uFE0F]")
 
 
 def remove_marks_and_controls(s: str) -> str:
