@@ -11,6 +11,7 @@ import logging
 import shlex
 import time
 from typing import Optional
+import math
 
 import discord  # type: ignore
 import regex as re  # type: ignore
@@ -713,6 +714,66 @@ class SanitizerBot(discord.Client):
             log.debug("HTTPException editing %s: %s", member, e)
         return False
 
+    async def _diagnose_sanitize_blockers(
+        self,
+        member: discord.Member,
+        settings: GuildSettings,
+        candidate: str,
+    ) -> list[str]:
+        reasons: list[str] = []
+
+        # General state checks
+        if not settings.enabled:
+            reasons.append("The sanitizer is disabled in this server.")
+
+        if member.bot:
+            if self.user and member.id == self.user.id:
+                reasons.append("You can't target this bot's own account.")
+            if not settings.enforce_bots:
+                reasons.append("Bots are excluded because enforce_bots is disabled.")
+
+        # Bypass role
+        if settings.bypass_role_id and any(
+            r.id == settings.bypass_role_id for r in getattr(member, "roles", [])
+        ):
+            reasons.append(
+                f"Target has the bypass role <@&{settings.bypass_role_id}>, so changes are skipped."
+            )
+
+        # Cooldown
+        if self.db:
+            try:
+                last_ts = await self.db.get_cooldown(member.id)
+            except Exception:
+                last_ts = None
+            if last_ts is not None:
+                remaining = settings.cooldown_seconds - (now() - last_ts)
+                if remaining > 0:
+                    reasons.append(
+                        f"A cooldown is active for this user. Try again in ~{max(1, int(math.ceil(remaining)))}s."
+                    )
+
+        # Already compliant
+        name_now = member.nick or member.name
+        if candidate == name_now:
+            reasons.append("No change is necessary; nickname already complies with policy.")
+
+        # Permissions / hierarchy
+        me = member.guild.me
+        if not me or not me.guild_permissions.manage_nicknames:
+            reasons.append("Bot is missing the Manage Nicknames permission.")
+        else:
+            try:
+                if member != me and member.top_role >= me.top_role:
+                    reasons.append(
+                        "Cannot change nickname due to role hierarchy (target's top role is higher or equal to the bot's)."
+                    )
+            except Exception:
+                # In case roles aren't available or cached
+                pass
+
+        return reasons
+
     @tasks.loop(seconds=SWEEP_INTERVAL_SEC)
     async def member_sweep(self):
         total = 0
@@ -851,7 +912,17 @@ class SanitizerBot(discord.Client):
         if did_change:
             msg = f"Nickname updated: '{current_name}' → '{candidate}'."
         else:
-            msg = f"Attempted to update nickname from '{current_name}' to '{candidate}', but no change was applied (possible cooldown, permissions, or role hierarchy)."
+            # Provide explicit reasons why it could not change
+            reasons = await self._diagnose_sanitize_blockers(member, settings, candidate)
+            if reasons:
+                bullets = "\n".join(f"- {r}" for r in reasons)
+                msg = (
+                    f"Couldn't change nickname from '{current_name}' to '{candidate}' because:\n{bullets}"
+                )
+            else:
+                msg = (
+                    f"Attempted to update nickname from '{current_name}' to '{candidate}', but no change was applied. The Discord API may have refused the edit (Forbidden/HTTP error)."
+                )
         if warn_disabled:
             msg = f"{msg}\n{warn_disabled}"
         await interaction.response.send_message(msg, ephemeral=True)
