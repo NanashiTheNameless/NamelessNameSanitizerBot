@@ -30,7 +30,7 @@ from .config import (
     parse_bool_str,
 )
 from .database import Database
-from .sanitizer import sanitize_name, remove_marks_and_controls, filter_allowed_chars
+from .sanitizer import filter_allowed_chars, remove_marks_and_controls, sanitize_name
 
 try:
     from .telemetry import maybe_send_telemetry_background  # type: ignore
@@ -763,7 +763,7 @@ class SanitizerBot(discord.Client):
                 if settings.check_length and settings.check_length > 0:
                     clusters = re.findall(r"\X", name_now)
                     if settings.check_length < len(clusters):
-                        tail = "".join(clusters[settings.check_length:])
+                        tail = "".join(clusters[settings.check_length :])
                         processed_tail = remove_marks_and_controls(tail)
                         processed_tail = filter_allowed_chars(
                             processed_tail, settings.sanitize_emoji
