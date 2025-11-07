@@ -1,0 +1,144 @@
+name: Bug report
+description: File a bug report to help us improve
+labels:
+  - bug
+title: "[Bug]: <short summary>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+        Please search existing issues first to avoid duplicates.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I have searched the existing issues
+          required: true
+        - label: I have read the README and relevant docs
+          required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear and concise description of the problem.
+      placeholder: What happened? What's broken?
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is the impact?
+      options:
+        - S0 - Blocking (no workaround)
+        - S1 - Critical (workaround exists)
+        - S2 - Major (degraded, inconvenient)
+        - S3 - Minor (cosmetic or low impact)
+    validations:
+      required: true
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Frequency
+      options:
+        - Always
+        - Often
+        - Sometimes
+        - Rarely
+        - Unable to reproduce
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version/Commit
+      description: App version, Docker image tag, or commit SHA.
+      placeholder: v1.2.3, latest, or 0123abcd
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Where are you running this?
+      placeholder: |
+        - Deployment type: Docker, docker-compose, bare metal, other
+        - OS and version: Ubuntu 22.04, macOS 14, Windows 11, etc.
+        - Python version: 3.11.x
+        - Database: Postgres version (if applicable)
+        - Architecture and hardware details (if relevant)
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Provide minimal steps to reproduce the issue from a clean state.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: What actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs and output
+      description: Paste error messages, stack traces, or relevant logs. Redact secrets.
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: mre
+    attributes:
+      label: Minimal reproducible example (optional)
+      description: A small snippet or repo that reproduces the issue.
+      render: text
+    validations:
+      required: false
+  - type: input
+    id: regression
+    attributes:
+      label: Regression?
+      description: If this worked before, when did it last work? Specify version/commit.
+    validations:
+      required: false
+  - type: input
+    id: workarounds
+    attributes:
+      label: Known workarounds
+      description: If you found a workaround, please describe it.
+    validations:
+      required: false
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Security impact
+      description: Does this bug affect security or expose sensitive data?
+      options:
+        - label: This may have security implications (see SECURITY.md for reporting guidance)
+          required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Links, references, screenshots, or any other context.
+    validations:
+      required: false

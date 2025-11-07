@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NamelessNameSanitizerBot</title>
+    <meta name="description" content="Keep Discord nicknames clean and consistent. Unicode-aware sanitizer with per-guild policies, admin controls, optional logging, and Docker-first deployment." />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="canonical" href="https://NamelessNameSanitizerBot.NamelessNanashi.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NamelessNameSanitizerBot" />
+    <meta property="og:title" content="NamelessNameSanitizerBot" />
+    <meta property="og:description" content="Keep Discord nicknames clean and consistent. Unicode-aware sanitizer with per-guild policies, admin controls, optional logging, and Docker-first deployment." />
+    <meta property="og:url" content="https://NamelessNameSanitizerBot.NamelessNanashi.dev/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="NamelessNameSanitizerBot" />
+    <meta name="twitter:description" content="Keep Discord nicknames clean and consistent. Unicode-aware sanitizer with per-guild policies, admin controls, optional logging, and Docker-first deployment." />
+    <link rel="stylesheet" href="/assets/site.css" />
+  </head>
+  <body>
+    <header class="navbar" role="banner">
+      <div class="navbar-inner">
+        <a class="brand btn secondary" href="/">NamelessNameSanitizerBot</a>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="/install" class="btn">Install</a>
+          <a href="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot" class="btn secondary" target="_blank" rel="noopener">Source</a>
+          <a href="/PrivacyPolicy" class="btn secondary">Privacy</a>
+          <a href="/TermsOfService" class="btn secondary">Terms</a>
+          <a href="/license" class="btn secondary">License</a>
+        </nav>
+      </div>
+    </header>
+    <div class="sky"><canvas id="stars"></canvas></div>
+    <div class="content">
+      <div class="card" role="region" aria-label="NamelessNameSanitizerBot overview">
+        <h1>Keep Discord nicknames clean and consistent</h1>
+        <p class="notice">Unicode-aware sanitizer with per-guild policies, admin controls, optional logging, and Docker-first deployment.</p>
+        <div class="actions">
+          <a class="btn" href="/install">Install NamelessNameSanitizerBot →</a>
+          <a class="btn secondary" href="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot#readme" target="_blank" rel="noopener">Read the docs</a>
+        </div>
+        <hr style="border-color:rgba(255,255,255,0.1);margin:16px 0;" />
+        <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));text-align:left;">
+          <div>
+            <h2 style="margin:6px 0 8px;font-size:18px;">Highlights</h2>
+            <ul>
+              <li>Grapheme-aware rules; no broken emoji or combined glyphs</li>
+              <li>Per-guild policy: length, spacing, emoji toggle, cooldowns</li>
+              <li>Owner/admin model, optional logging channel and bypass role</li>
+              <li>Docker- and compose-friendly with PostgreSQL</li>
+            </ul>
+          </div>
+          <div>
+            <h2 style="margin:6px 0 8px;font-size:18px;">Quick start</h2>
+            <ul>
+              <li>Click Install to add the bot to your server</li>
+              <li>Have the bot Owner set you as a Bot admin in that server</li>
+              <li>Run <code>/enable-sanitizer</code> in your server</li>
+              <li>Tune policies with <code>/set-*</code> commands</li>
+            </ul>
+          </div>
+          <div>
+            <h2 style="margin:6px 0 8px;font-size:18px;">Support</h2>
+            <ul>
+              <li><a href="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/issues" target="_blank" rel="noopener">Open an issue on GitHub</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/assets/stars.js" defer></script>
+  </body>
+</html>

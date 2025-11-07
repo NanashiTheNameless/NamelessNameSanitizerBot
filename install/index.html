@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Install NamelessNameSanitizerBot</title>
+    <meta name="color-scheme" content="dark light" />
+    <meta name="description" content="Install NamelessNameSanitizerBot to sanitize Discord nicknames with Unicode-safe rules, per-guild policies, and admin controls." />
+    <link rel="canonical" href="https://NamelessNameSanitizerBot.NamelessNanashi.dev/install" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NamelessNameSanitizerBot" />
+    <meta property="og:title" content="Install NamelessNameSanitizerBot" />
+    <meta property="og:description" content="Install NamelessNameSanitizerBot to sanitize Discord nicknames with Unicode-safe rules, per-guild policies, and admin controls." />
+    <meta property="og:url" content="https://NamelessNameSanitizerBot.NamelessNanashi.dev/install" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Install NamelessNameSanitizerBot" />
+    <meta name="twitter:description" content="Install NamelessNameSanitizerBot to sanitize Discord nicknames with Unicode-safe rules, per-guild policies, and admin controls." />
+    <link rel="stylesheet" href="/assets/site.css" />
+  </head>
+  <body>
+    <header class="navbar" role="banner">
+      <div class="navbar-inner">
+        <a class="brand btn secondary" href="/">NamelessNameSanitizerBot</a>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="/install" class="btn">Install</a>
+          <a href="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot" class="btn secondary" target="_blank" rel="noopener">Source</a>
+          <a href="/PrivacyPolicy" class="btn secondary">Privacy</a>
+          <a href="/TermsOfService" class="btn secondary">Terms</a>
+          <a href="/license" class="btn secondary">License</a>
+        </nav>
+      </div>
+    </header>
+    <div class="sky">
+      <canvas id="stars"></canvas>
+    </div>
+    <div class="content">
+      <div class="card" role="region" aria-label="Install NamelessNameSanitizerBot">
+        <h1>NamelessNameSanitizerBot</h1>
+        <p class="notice">
+          Please note: The bot can't change the usernames of users above its role,
+          You should drag the <strong>@NamelessNameSanitizerBot</strong> role above the roles of users you want to be sanitized.
+        </p>
+        <div class="agree-row">
+          <input id="agree" type="checkbox" aria-describedby="agree-text" />
+          <label id="agree-text" for="agree">
+            I understand and agree to the
+            <a href="/TermsOfService" target="_self" rel="noopener">Terms Of Service</a>
+            and
+            <a href="/PrivacyPolicy" target="_self" rel="noopener">Privacy Policy</a>.
+          </label>
+        </div>
+        <div class="actions">
+          <button id="install" class="btn" type="button" disabled>Agree and Install</button>
+          <a class="btn secondary" href="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/" target="_blank" rel="noopener">View Source Code</a>
+        </div>
+        <div class="fineprint">No data is stored beyond what is described in the linked policies.</div>
+      </div>
+    </div>
+    <script>
+      // Enable the install button only when the checkbox is checked
+      const agree = document.getElementById('agree');
+      const install = document.getElementById('install');
+      function update() { install.disabled = !agree.checked; }
+      agree.addEventListener('change', update);
+      install.addEventListener('click', () => {
+        if (!install.disabled) { window.location.href = 'https://discord.com/oauth2/authorize?client_id=1432611459476619305&scope=bot%20applications.commands&permissions=134217728'; }
+      });
+      update();
+    </script>
+    <script src="/assets/stars.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy • NamelessNameSanitizerBot</title>
+    <meta name="color-scheme" content="dark light" />
+    <meta name="description" content="Privacy Policy for NamelessNameSanitizerBot: what data the bot processes, stores, and your controls." />
+    <link rel="canonical" href="https://NamelessNameSanitizerBot.NamelessNanashi.dev/PrivacyPolicy/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NamelessNameSanitizerBot" />
+    <meta property="og:title" content="Privacy Policy • NamelessNameSanitizerBot" />
+    <meta property="og:description" content="Privacy Policy for NamelessNameSanitizerBot: what data the bot processes, stores, and your controls." />
+    <meta property="og:url" content="https://NamelessNameSanitizerBot.NamelessNanashi.dev/PrivacyPolicy/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Privacy Policy • NamelessNameSanitizerBot" />
+    <meta name="twitter:description" content="Privacy Policy for NamelessNameSanitizerBot: what data the bot processes, stores, and your controls." />
+    <link rel="stylesheet" href="/assets/site.css" />
+  </head>
+  <body>
+    <header class="navbar" role="banner">
+      <div class="navbar-inner">
+        <a class="brand btn secondary" href="/">NamelessNameSanitizerBot</a>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="/install" class="btn">Install</a>
+          <a href="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot" class="btn secondary" target="_blank" rel="noopener">Source</a>
+          <a href="/TermsOfService" class="btn secondary">Terms</a>
+          <a href="/license" class="btn secondary">License</a>
+        </nav>
+      </div>
+    </header>
+    <div class="sky"><canvas id="stars"></canvas></div>
+    <div class="content">
+      <div class="card">
+        <h1>Privacy Policy</h1>
+  <p><em>Last updated: 2025-11-06 (YYYY-MM-DD)</em></p>
+        <div>
+          <!-- Content from PrivacyPolicy.md -->
+          <p>This page explains what NamelessNameSanitizerBot ("the Bot") does with data. By using the Bot, you agree to this policy.</p>
+          <h2>Quick summary</h2>
+          <ul>
+            <li>We do not read or store message content.</li>
+            <li>We only use basic Discord metadata needed to work (e.g., guild ID, user ID, roles, current nickname) and per‑guild settings.</li>
+            <li>Optional features may post nickname‑change notices in a server log channel and/or DM the bot owner about guild join/leave events.</li>
+            <li>Anonymous, opt‑out telemetry counts how many instances run. It never includes message content, user IDs, or guild IDs.</li>
+          </ul>
+          <h2>What we process</h2>
+          <ul>
+            <li>Discord metadata to decide if and how to sanitize nicknames.</li>
+            <li>Per‑guild settings (policy values, admin lists, feature toggles, optional logging channel ID, optional bypass role ID, and fallback label).</li>
+            <li>Minimal operational data such as cooldown timestamps (per user) and guild blacklist entries (guild ID, optional name, optional reason).</li>
+          </ul>
+          <p>We do not process or store message content and we do not require the Message Content intent.</p>
+          <h2>Storage and retention</h2>
+          <ul>
+            <li>Per‑guild settings/admin lists are stored in a database and kept until you change or delete them.</li>
+            <li>Cooldown entries are auto‑purged after a delay.</li>
+            <li>If a guild is blacklisted, the bot leaves and deletes stored settings/admins for that guild; blacklist entries remain until removed.</li>
+          </ul>
+          <h2>Sharing</h2>
+          <ul>
+            <li>We do not sell or share data with third parties.</li>
+            <li>Hosting/infrastructure providers used by the operator may process data under their own policies.</li>
+          </ul>
+          <h2>Telemetry (opt‑out)</h2>
+          <ul>
+            <li><strong>Purpose:</strong> privacy‑preserving census of self‑hosted usage.</li>
+            <li><strong>When:</strong> once on startup and then every 2 hours (UTC), in the background.</li>
+            <li><strong>Data sent:</strong> SHA‑256 hash of a random instance ID (not a guild/user ID), current UTC date (YYYY‑MM‑DD), project name, and a static count value of 1.</li>
+            <li><strong>Public stats:</strong> <a href="https://telemetry.namelessnanashi.dev/">https://telemetry.namelessnanashi.dev/</a></li>
+          </ul>
+          <h2>Your controls</h2>
+          <ul>
+            <li>Bot Admins: Enable/disable the bot, change settings, configure logging channel and bypass role.</li>
+            <li>Users: Run <code>/delete-my-data</code> to remove your data in a server.</li>
+            <li>Bot Owner: Delete user data across all servers (<code>/delete-user-data</code>, <code>/global-delete-user-data</code>).</li>
+          </ul>
+          <h2>Security</h2>
+          <p>We apply reasonable measures to protect stored configuration data. Operators should keep credentials (e.g., <code>DISCORD_TOKEN</code>, <code>DATABASE_URL</code>) and access to logs/volumes secure.</p>
+          <h2>Where processing happens</h2>
+          <p>Data is processed where the operator hosts the Bot and its database. Operators are responsible for any legal compliance in their region.</p>
+          <h2>Contact</h2>
+          <p>Open a GitHub issue or contact your server owner/operator.</p>
+          <h2>Changes</h2>
+          <p>We may update this policy. Continued use means you accept the changes.</p>
+        </div>
+      </div>
+    </div>
+    <script src="/assets/stars.js" defer></script>
+  </body>
+</html>
