@@ -54,7 +54,7 @@ Admins can remove the Bot any time. We may suspend or terminate access if misuse
 
 ## Open-Source
 
-Licensed as described in [license.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/license.md>). Contributions welcome under the repository’s guidelines.
+Licensed as described in [LICENSE.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md>). Contributions welcome under the repository’s guidelines.
 
 ## Contact
 

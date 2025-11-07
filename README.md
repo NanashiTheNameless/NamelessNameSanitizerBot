@@ -239,7 +239,7 @@ Related policies:
 
 ## License & Credits
 
-See [license.md](<./license.md>).
+See [LICENSE.md](<./LICENSE.md>).
 
 [All Major Contributors](<./CONTRIBUTORS.md>)
 
