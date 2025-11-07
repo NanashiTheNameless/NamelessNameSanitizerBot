@@ -4,6 +4,13 @@
 
 FROM python:alpine
 
+LABEL org.opencontainers.image.title="Nameless Name Sanitizer Bot"
+LABEL org.opencontainers.image.description="Discord nickname sanitizer bot enforcing configurable nickname safety policies."
+LABEL org.opencontainers.image.authors="NanashiTheNameless"
+LABEL org.opencontainers.image.licenses="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md"
+LABEL org.opencontainers.image.source="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot"
+LABEL org.opencontainers.image.url="https://namelessnamesanitizerbot.namelessnanashi.dev/"
+
 WORKDIR /app
 
 COPY requirements.txt .
