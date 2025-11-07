@@ -6,6 +6,7 @@ This module provides functions to sanitize member nicknames according to guild p
 """
 
 import random
+from typing import Tuple
 
 import regex as re  # type: ignore
 
@@ -34,19 +35,23 @@ def normalize_spaces(s: str) -> str:
     return s.strip()
 
 
-def sanitize_name(name: str, settings: GuildSettings) -> str:
+def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
     _full = remove_marks_and_controls(name)
     _full = filter_allowed_chars(_full, settings.sanitize_emoji)
     if not settings.preserve_spaces:
         _full = normalize_spaces(_full)
     if not _full.strip():
-        if getattr(settings, "randomized_fallback", False):
+        mode = getattr(settings, "fallback_mode", "default")
+        if mode == "randomized":
             candidate = f"User{random.randrange(10000):04d}"
+        elif mode == "username":
+            candidate = ""
         else:
+            # default mode uses custom fallback_label if set, else literal
             candidate = settings.fallback_label or "Illegal Name"
         if len(candidate) > settings.max_nick_length:
             candidate = candidate[: settings.max_nick_length]
-        return candidate
+        return candidate, True
 
     head = name
     tail = ""
@@ -76,13 +81,18 @@ def sanitize_name(name: str, settings: GuildSettings) -> str:
             candidate = normalize_spaces(candidate)
 
     # If entire result is empty after filtering, use the configured fallback label
+    used_fallback = False
     if not candidate or not candidate.strip():
-        if getattr(settings, "randomized_fallback", False):
+        used_fallback = True
+        mode = getattr(settings, "fallback_mode", "default")
+        if mode == "randomized":
             candidate = f"User{random.randrange(10000):04d}"
+        elif mode == "username":
+            candidate = ""
         else:
             candidate = settings.fallback_label or "Illegal Name"
 
     if len(candidate) > settings.max_nick_length:
         candidate = candidate[: settings.max_nick_length]
 
-    return candidate
+    return candidate, used_fallback

@@ -87,7 +87,8 @@ class SanitizerBot(discord.Client):
                 name="enforce_bots (true/false)", value="enforce_bots"
             ),
             discord.app_commands.Choice(
-                name="randomized_fallback (true/false)", value="randomized_fallback"
+                name="fallback_mode (default|randomized|username)",
+                value="fallback_mode",
             ),
         ]
 
@@ -209,13 +210,13 @@ class SanitizerBot(discord.Client):
             await self.cmd_set_sanitize_emoji(interaction, value)
 
         @self.tree.command(
-            name="set-randomized-fallback",
-            description="Bot Admin Only: Enable/disable randomized 'User####' fallback or view current value",
+            name="set-fallback-mode",
+            description="Bot Admin Only: Set or view the fallback mode: none|randomized|username",
         )
-        async def _set_randomized_fallback(
-            interaction: discord.Interaction, value: Optional[bool] = None
+        async def _set_fallback_mode(
+            interaction: discord.Interaction, mode: Optional[str] = None
         ):
-            await self.cmd_set_randomized_fallback(interaction, value)
+            await self.cmd_set_fallback_mode(interaction, mode)
 
         @self.tree.command(
             name="set-keep-spaces",
@@ -623,10 +624,10 @@ class SanitizerBot(discord.Client):
                 settings = (
                     await self.db.get_settings(member.guild.id)
                     if self.db
-                    else GuildSettings(guild_id=member.guild.id)
+                    else GuildSettings(member.guild.id)
                 )
             except Exception:
-                settings = GuildSettings(guild_id=member.guild.id)
+                settings = GuildSettings(member.guild.id)
             if not settings.enforce_bots:
                 return
         await self._sanitize_member(member, source="join")
@@ -641,10 +642,10 @@ class SanitizerBot(discord.Client):
                 settings = (
                     await self.db.get_settings(message.guild.id)
                     if self.db
-                    else GuildSettings(guild_id=message.guild.id)
+                    else GuildSettings(message.guild.id)
                 )
             except Exception:
-                settings = GuildSettings(guild_id=message.guild.id)
+                settings = GuildSettings(message.guild.id)
             if not settings.enforce_bots:
                 return
 
@@ -653,8 +654,7 @@ class SanitizerBot(discord.Client):
             await self._sanitize_member(m, source="message")
 
     async def _sanitize_member(self, member: discord.Member, source: str) -> bool:
-
-        settings = GuildSettings(guild_id=member.guild.id)
+        settings = GuildSettings(member.guild.id)
         if self.db:
             try:
                 settings = await self.db.get_settings(member.guild.id)
@@ -681,7 +681,18 @@ class SanitizerBot(discord.Client):
                 return False
 
         name_now = member.nick or getattr(member, "global_name", None) or member.name
-        candidate = sanitize_name(name_now, settings)
+        candidate, used_fallback = sanitize_name(name_now, settings)
+
+        # If we had to fallback and server mode is 'username', attempt sanitizing the account username instead
+        if used_fallback and getattr(settings, "fallback_mode", "default") == "username":
+            base_username = getattr(member, "name", None)
+            if base_username and base_username != name_now:
+                alt_candidate, alt_used_fallback = sanitize_name(base_username, settings)
+                if not alt_used_fallback:
+                    candidate = alt_candidate
+                else:
+                    # Username also invalid; fall back to custom label
+                    candidate = settings.fallback_label or "Illegal Name"
 
         if candidate == name_now:
             return False
@@ -817,7 +828,7 @@ class SanitizerBot(discord.Client):
                 except Exception as e:
                     log.debug("clear_expired_cooldowns failed: %s", e)
 
-            settings = GuildSettings(guild_id=guild.id)
+            settings = GuildSettings(guild.id)
             if self.db:
                 try:
                     settings = await self.db.get_settings(guild.id)
@@ -910,7 +921,7 @@ class SanitizerBot(discord.Client):
             )
             return
 
-        settings = GuildSettings(guild_id=interaction.guild.id)
+        settings = GuildSettings(interaction.guild.id)
         if self.db:
             try:
                 settings = await self.db.get_settings(interaction.guild.id)
@@ -932,12 +943,22 @@ class SanitizerBot(discord.Client):
         current_name = (
             member.nick or getattr(member, "global_name", None) or member.name
         )
-        candidate = sanitize_name(current_name, settings)
+        candidate, used_fallback = sanitize_name(current_name, settings)
+
+        # If fallback occurred and server mode is 'username', attempt user's account username
+        if used_fallback and getattr(settings, "fallback_mode", "default") == "username":
+            base_username = getattr(member, "name", None)
+            if base_username and base_username != current_name:
+                alt_candidate, alt_used_fallback = sanitize_name(base_username, settings)
+                if not alt_used_fallback:
+                    candidate = alt_candidate
+                else:
+                    candidate = settings.fallback_label or "Illegal Name"
 
         if candidate == current_name:
             full_settings = GuildSettings(**{**settings.__dict__})
             full_settings.check_length = 0
-            candidate_full = sanitize_name(current_name, full_settings)
+            candidate_full, _candidate_full_fallback = sanitize_name(current_name, full_settings)
             if candidate_full != current_name and settings.check_length > 0:
                 msg = (
                     f"No change applied under current scope (check_length={settings.check_length}). "
@@ -1120,8 +1141,16 @@ class SanitizerBot(discord.Client):
             "preserve_spaces",
             "sanitize_emoji",
             "enforce_bots",
-            "randomized_fallback",
+            "fallback_mode",  # special-case handled below
         }:
+            if key == "fallback_mode":
+                opts = [
+                    discord.app_commands.Choice(name="default", value="default"),
+                    discord.app_commands.Choice(name="randomized", value="randomized"),
+                    discord.app_commands.Choice(name="username", value="username"),
+                ]
+                cur_l = (current or "").lower()
+                return [o for o in opts if cur_l in o.name][:25]
             return await self._ac_bool_value(interaction, current)
         return []
 
@@ -1253,6 +1282,7 @@ class SanitizerBot(discord.Client):
             "cooldown_seconds": "cooldown_seconds",
             "fallback_label": "fallback_label",
             "enforce_bots": "enforce_bots",
+            "fallback_mode": "fallback_mode",
         }
         allowed_user_keys = {
             "check_length",
@@ -1265,7 +1295,7 @@ class SanitizerBot(discord.Client):
             "bypass_role_id",
             "fallback_label",
             "enforce_bots",
-            "randomized_fallback",
+            "fallback_mode",
             "enabled",
         }
 
@@ -1381,8 +1411,8 @@ class SanitizerBot(discord.Client):
                 cur = s.sanitize_emoji
             elif key == "enforce_bots":
                 cur = s.enforce_bots
-            elif key == "randomized_fallback":
-                cur = s.randomized_fallback
+            elif key == "fallback_mode":
+                cur = getattr(s, "fallback_mode", "default")
             elif key == "enabled":
                 cur = s.enabled
             elif key == "logging_channel_id":
@@ -1417,10 +1447,14 @@ class SanitizerBot(discord.Client):
                 "preserve_spaces",
                 "sanitize_emoji",
                 "enforce_bots",
-                "randomized_fallback",
                 "enabled",
             }:
                 v = parse_bool_str(value)
+            elif key == "fallback_mode":
+                mv = value.strip().lower()
+                if mv not in {"default", "randomized", "username"}:
+                    raise ValueError("fallback_mode must be one of: default, randomized, username")
+                v = mv
             elif key in {"logging_channel_id", "bypass_role_id"}:
                 v = (
                     int(value)
@@ -1595,8 +1629,8 @@ class SanitizerBot(discord.Client):
             interaction, "sanitize_emoji", "true" if value else "false"
         )
 
-    async def cmd_set_randomized_fallback(
-        self, interaction: discord.Interaction, value: Optional[bool] = None
+    async def cmd_set_fallback_mode(
+        self, interaction: discord.Interaction, mode: Optional[str] = None
     ):
         if not interaction.guild:
             await interaction.response.send_message(
@@ -1617,16 +1651,22 @@ class SanitizerBot(discord.Client):
         warn_disabled = None
         if not s.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
-        if value is None:
-            text = f"Current randomized_fallback: {getattr(s, 'randomized_fallback', False)}"
+        valid = {"default", "randomized", "username"}
+        if mode is None:
+            text = f"Current fallback_mode: {getattr(s, 'fallback_mode', 'default')}"
             if warn_disabled:
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
             return
-        await self.db.set_setting(
-            interaction.guild.id, "randomized_fallback", bool(value)
-        )
-        text = f"randomized_fallback set to {bool(value)}."
+        mval = mode.strip().lower()
+        if mval not in valid:
+            await interaction.response.send_message(
+                "Invalid mode. Use one of: default, randomized, username.",
+                ephemeral=True,
+            )
+            return
+        await self.db.set_setting(interaction.guild.id, "fallback_mode", mval)
+        text = f"fallback_mode set to {mval}."
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
@@ -1783,7 +1823,10 @@ class SanitizerBot(discord.Client):
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
         if value is None:
             cur = settings.fallback_label or "Illegal Name"
+            mode = getattr(settings, "fallback_mode", "default")
             text = f"Current fallback_label: {cur}"
+            if mode in ("randomized", "username"):
+                text += "\nNote: fallback_label is ignored while fallback_mode is set to randomized or username."
             if warn_disabled:
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
@@ -1796,7 +1839,10 @@ class SanitizerBot(discord.Client):
             )
             return
         await self.db.set_setting(interaction.guild.id, "fallback_label", lab)
+        mode = getattr(settings, "fallback_mode", "default")
         text = f"fallback_label set to '{lab}'."
+        if mode in ("randomized", "username"):
+            text += "\nWarning: This label will be ignored while fallback_mode=randomized or fallback_mode=username."
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
@@ -2413,7 +2459,7 @@ class SanitizerBot(discord.Client):
             try:
                 s = await self.db.get_settings(g.id)
             except Exception:
-                s = GuildSettings(guild_id=g.id)
+                s = GuildSettings(g.id)
             label = f"{g.name} ({g.id})"
 
             def b(v: bool) -> str:
@@ -2431,6 +2477,7 @@ class SanitizerBot(discord.Client):
                 f"cooldown_seconds={q(s.cooldown_seconds)}",
                 f"sanitize_emoji={q(b(s.sanitize_emoji))}",
                 f"enforce_bots={q(b(s.enforce_bots))}",
+                f"fallback_mode={q(getattr(s, 'fallback_mode', 'default'))}",
                 f"logging_channel_id={q(s.logging_channel_id if s.logging_channel_id else 'none')}",
                 f"bypass_role_id={q(s.bypass_role_id if s.bypass_role_id else 'none')}",
             ]
