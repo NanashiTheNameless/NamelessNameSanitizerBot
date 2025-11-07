@@ -131,14 +131,14 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - /disable-sanitizer — disable the sanitizer in this server
 - /set-logging-channel [channel:#channel] — set or view logging channel
 - /set-bypass-role [role:@Role] — set or view bypass role
-- /set-emoji-sanitization [value:bool]
+- /set-emoji-sanitization [value:bool] — set emoji sanitization
 - /set-randomized-fallback [value:bool] — enable/disable randomized `User####` fallback when a name becomes fully illegal
-- /set-keep-spaces [value:bool]
-- /set-min-length [value:int]
-- /set-max-length [value:int]
-- /set-check-count [value:int]
-- /set-cooldown-seconds [value:int]
-- /set-enforce-bots [value:bool]
+- /set-keep-spaces [value:bool] — set keep spaces
+- /set-min-length [value:int] — set minimum name length
+- /set-max-length [value:int] — set maximum name length
+- /set-check-count [value:int] — set how many characters to check
+- /set-cooldown-seconds [value:int] — set cooldown between user actions
+- /set-enforce-bots [value:bool] — set enforcement for bots
 - /set-fallback-label [value:str] — set or view the fallback nickname used when a name is fully illegal (1–20 characters: letters, numbers, spaces, or dashes)
 - /clear-logging-channel — clear logging channel
 - /clear-bypass-role — clear bypass role
