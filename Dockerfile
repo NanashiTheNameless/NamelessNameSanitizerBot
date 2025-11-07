@@ -4,9 +4,6 @@
 
 FROM python:alpine
 
-LABEL org.opencontainers.image.description="Discord nickname sanitizer bot enforcing configurable nickname safety policies."
-LABEL org.opencontainers.image.source=https://github.com/NanashiTheNameless/NamelessNameSanitizerBot
-
 WORKDIR /app
 
 COPY requirements.txt .
