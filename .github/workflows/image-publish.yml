@@ -7,7 +7,7 @@ name: Image Publish
 
 env:
   IMAGE_NAME: nanashithenameless/namelessnamesanitizerbot
-  GHCR_IMAGE: ghcr.io/NanashiTheNameless/NamelessNameSanitizerBot
+  GHCR_IMAGE: ghcr.io/nanashithenameless/namelessnamesanitizerbot
 
 jobs:
   build-and-push:
@@ -46,11 +46,11 @@ jobs:
             ${{ env.IMAGE_NAME }}
             ${{ env.GHCR_IMAGE }}
           flavor: |
-            latest=true
+            latest=false
           tags: |
             type=ref,event=tag
-            type=raw,value=latest
             type=sha,prefix=git-,format=short,enable=${{ startsWith(github.ref, 'refs/heads/') }}
+            type=raw,value=latest
 
       - name: Build and push
         uses: docker/build-push-action@9e436ba9f2d7bcd1d038c8e55d039d37896ddc5d
