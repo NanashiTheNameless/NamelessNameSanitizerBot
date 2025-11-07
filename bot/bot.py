@@ -2485,15 +2485,15 @@ class SanitizerBot(discord.Client):
             tokens: list[str] = [
                 f"enabled={q(b(s.enabled))}",
                 f"check_length={q(s.check_length)}",
+                f"enforce_bots={q(b(s.enforce_bots))}",
+                f"sanitize_emoji={q(b(s.sanitize_emoji))}",
+                f"preserve_spaces={q(b(s.preserve_spaces))}",
                 f"min_nick_length={q(s.min_nick_length)}",
                 f"max_nick_length={q(s.max_nick_length)}",
-                f"preserve_spaces={q(b(s.preserve_spaces))}",
                 f"cooldown_seconds={q(s.cooldown_seconds)}",
-                f"sanitize_emoji={q(b(s.sanitize_emoji))}",
-                f"enforce_bots={q(b(s.enforce_bots))}",
-                f"fallback_mode={q(getattr(s, 'fallback_mode', 'default'))}",
-                f"logging_channel_id={q(s.logging_channel_id if s.logging_channel_id else 'none')}",
                 f"bypass_role_id={q(s.bypass_role_id if s.bypass_role_id else 'none')}",
+                f"logging_channel_id={q(s.logging_channel_id if s.logging_channel_id else 'none')}",
+                f"fallback_mode={q(s.fallback_mode)}",
             ]
             if s.fallback_label is None or not str(s.fallback_label).strip():
                 tokens.append(f"fallback_label={q('none')}")
