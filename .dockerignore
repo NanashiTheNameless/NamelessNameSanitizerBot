@@ -1,0 +1,45 @@
+# Exclude files not needed in the Docker build context
+.git
+.github/
+.gitignore
+.vscode/
+.idea/
+*.iml
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.dist-info/
+.pytest_cache/
+.mypy_cache/
+.env
+.env.*
+.DS_Store
+Thumbs.db
+
+# Local data and caches
+.db/
+db/
+logs/
+.tmp/
+.cache/
+.cspell.json
+.env.example
+.flake8
+.gitignore
+.mega-linter.yml
+.pylintrc
+AGENTS.md
+CLAUDE.md
+CONTRIBUTORS.md
+COPILOT.md
+license.md
+README.md
+SECURITY.md
+typos.toml
+
+# Node leftovers (just in case)
+node_modules/

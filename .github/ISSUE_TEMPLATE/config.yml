@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability disclosure
+    url: https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/security/policy
+    about: Please report security vulnerabilities via our security policy.
+  - name: Questions and support
+    url: https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/discussions
+    about: For Q&A or general help, please open a Discussion instead of an issue.
