@@ -684,10 +684,15 @@ class SanitizerBot(discord.Client):
         candidate, used_fallback = sanitize_name(name_now, settings)
 
         # If we had to fallback and server mode is 'username', attempt sanitizing the account username instead
-        if used_fallback and getattr(settings, "fallback_mode", "default") == "username":
+        if (
+            used_fallback
+            and getattr(settings, "fallback_mode", "default") == "username"
+        ):
             base_username = getattr(member, "name", None)
             if base_username and base_username != name_now:
-                alt_candidate, alt_used_fallback = sanitize_name(base_username, settings)
+                alt_candidate, alt_used_fallback = sanitize_name(
+                    base_username, settings
+                )
                 if not alt_used_fallback:
                     candidate = alt_candidate
                 else:
@@ -946,10 +951,15 @@ class SanitizerBot(discord.Client):
         candidate, used_fallback = sanitize_name(current_name, settings)
 
         # If fallback occurred and server mode is 'username', attempt user's account username
-        if used_fallback and getattr(settings, "fallback_mode", "default") == "username":
+        if (
+            used_fallback
+            and getattr(settings, "fallback_mode", "default") == "username"
+        ):
             base_username = getattr(member, "name", None)
             if base_username and base_username != current_name:
-                alt_candidate, alt_used_fallback = sanitize_name(base_username, settings)
+                alt_candidate, alt_used_fallback = sanitize_name(
+                    base_username, settings
+                )
                 if not alt_used_fallback:
                     candidate = alt_candidate
                 else:
@@ -958,7 +968,9 @@ class SanitizerBot(discord.Client):
         if candidate == current_name:
             full_settings = GuildSettings(**{**settings.__dict__})
             full_settings.check_length = 0
-            candidate_full, _candidate_full_fallback = sanitize_name(current_name, full_settings)
+            candidate_full, _candidate_full_fallback = sanitize_name(
+                current_name, full_settings
+            )
             if candidate_full != current_name and settings.check_length > 0:
                 msg = (
                     f"No change applied under current scope (check_length={settings.check_length}). "
@@ -1453,7 +1465,9 @@ class SanitizerBot(discord.Client):
             elif key == "fallback_mode":
                 mv = value.strip().lower()
                 if mv not in {"default", "randomized", "username"}:
-                    raise ValueError("fallback_mode must be one of: default, randomized, username")
+                    raise ValueError(
+                        "fallback_mode must be one of: default, randomized, username"
+                    )
                 v = mv
             elif key in {"logging_channel_id", "bypass_role_id"}:
                 v = (
