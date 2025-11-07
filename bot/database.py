@@ -310,6 +310,26 @@ class Database:
         col = columns.get(key)
         if not col:
             raise ValueError(f"Unsupported setting: {key}")
+        if col == "min_nick_length":
+            try:
+                iv = int(value)
+            except Exception:
+                raise ValueError("min_nick_length must be an integer")
+            # Clamp to upper bound 8 if exceeded
+            if iv > 8:
+                value = 8
+            else:
+                value = iv
+        if col == "max_nick_length":
+            try:
+                iv = int(value)
+            except Exception:
+                raise ValueError("max_nick_length must be an integer")
+            # Clamp to upper bound 32 if exceeded
+            if iv > 32:
+                value = 32
+            else:
+                value = iv
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
                 await cur.execute(

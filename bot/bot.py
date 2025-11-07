@@ -230,7 +230,7 @@ class SanitizerBot(discord.Client):
             name="set-min-length",
             description="Bot Admin Only: Set or view the minimum allowed nickname length",
         )
-        @app_commands.autocomplete(value=self._ac_int_value)
+        @app_commands.autocomplete(value=self._ac_min_length_value)
         async def _set_min_nick_length(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
@@ -240,7 +240,7 @@ class SanitizerBot(discord.Client):
             name="set-max-length",
             description="Bot Admin Only: Set or view the maximum allowed nickname length",
         )
-        @app_commands.autocomplete(value=self._ac_int_value)
+        @app_commands.autocomplete(value=self._ac_max_length_value)
         async def _set_max_nick_length(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
@@ -250,7 +250,7 @@ class SanitizerBot(discord.Client):
             name="set-check-count",
             description="Bot Admin Only: Set or view the number of leading characters (grapheme clusters) to sanitize",
         )
-        @app_commands.autocomplete(value=self._ac_int_value)
+        @app_commands.autocomplete(value=self._ac_check_count_value)
         async def _set_check_count(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
@@ -1049,6 +1049,39 @@ class SanitizerBot(discord.Client):
             :25
         ]
 
+    async def _ac_check_count_value(
+        self, interaction: discord.Interaction, current: str
+    ):
+        # Curated suggestions for check_length
+        base = ["0", "4", "6", "8", "10", "18"]
+        current_l = (current or "").strip()
+        vals = base
+        if current_l and current_l.isdigit():
+            vals = [current_l] + [v for v in base if v != current_l]
+        return [discord.app_commands.Choice(name=v, value=int(v)) for v in vals][:25]
+
+    async def _ac_min_length_value(
+        self, interaction: discord.Interaction, current: str
+    ):
+        # Only allow suggestions up to 8 for min length
+        vals = [str(i) for i in range(0, 9)]
+        current_l = (current or "").strip()
+        if current_l and current_l.isdigit():
+            # Show the typed value first (even if > 8, we will still validate on submit)
+            vals = [current_l] + [v for v in vals if v != current_l]
+        return [discord.app_commands.Choice(name=v, value=int(v)) for v in vals][:25]
+
+    async def _ac_max_length_value(
+        self, interaction: discord.Interaction, current: str
+    ):
+        # Provide curated choices up to 32 for max length
+        base = ["16", "20", "24", "28", "30", "32"]
+        current_l = (current or "").strip()
+        vals = base
+        if current_l and current_l.isdigit():
+            vals = [current_l] + [v for v in base if v != current_l]
+        return [discord.app_commands.Choice(name=v, value=int(v)) for v in vals][:25]
+
     async def _ac_policy_value(self, interaction: discord.Interaction, current: str):
         key = getattr(getattr(interaction, "namespace", object()), "key", None)
         key = (key or "").lower()
@@ -1068,8 +1101,15 @@ class SanitizerBot(discord.Client):
             "max_nick_length",
             "cooldown_seconds",
         }:
-
-            choices = await self._ac_int_value(interaction, current)
+            # For min/max nick lengths, constrain suggestions appropriately
+            if key == "min_nick_length":
+                choices = await self._ac_min_length_value(interaction, current)
+            elif key == "max_nick_length":
+                choices = await self._ac_max_length_value(interaction, current)
+            elif key == "check_length":
+                choices = await self._ac_check_count_value(interaction, current)
+            else:
+                choices = await self._ac_int_value(interaction, current)
             return [
                 discord.app_commands.Choice(name=c.name, value=str(c.value))
                 for c in choices
@@ -1257,6 +1297,10 @@ class SanitizerBot(discord.Client):
                         "cooldown_seconds",
                     }:
                         v = int(v_raw)
+                        if k == "min_nick_length" and v > 8:
+                            v = 8
+                        if k == "max_nick_length" and v > 32:
+                            v = 32
                     elif k in {
                         "preserve_spaces",
                         "sanitize_emoji",
@@ -1358,6 +1402,10 @@ class SanitizerBot(discord.Client):
                 "cooldown_seconds",
             }:
                 v = int(value)
+                if key == "min_nick_length" and v > 8:
+                    v = 8
+                if key == "max_nick_length" and v > 32:
+                    v = 32
             elif key in {
                 "preserve_spaces",
                 "sanitize_emoji",
