@@ -5,7 +5,6 @@ Nickname sanitization helpers using the 'regex' package for Unicode handling.
 This module provides functions to sanitize member nicknames according to guild policies.
 """
 
-import time
 import random
 
 import regex as re  # type: ignore
