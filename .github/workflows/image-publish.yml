@@ -1,4 +1,4 @@
-name: Docker Publish
+name: Image Publish
 
 "on":
   push:
@@ -7,7 +7,7 @@ name: Docker Publish
 
 env:
   IMAGE_NAME: nanashithenameless/namelessnamesanitizerbot
-  GHCR_IMAGE: ghcr.io/nanashithenameless/namelessnamesanitizerbot
+  GHCR_IMAGE: ghcr.io/NanashiTheNameless/NamelessNameSanitizerBot
 
 jobs:
   build-and-push:
@@ -46,10 +46,10 @@ jobs:
             ${{ env.IMAGE_NAME }}
             ${{ env.GHCR_IMAGE }}
           flavor: |
-            latest=false
+            latest=true
           tags: |
             type=ref,event=tag
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/heads/') }}
+            type=raw,value=latest
             type=sha,prefix=git-,format=short,enable=${{ startsWith(github.ref, 'refs/heads/') }}
 
       - name: Build and push
