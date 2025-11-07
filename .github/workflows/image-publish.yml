@@ -46,10 +46,10 @@ jobs:
             ${{ env.IMAGE_NAME }}
             ${{ env.GHCR_IMAGE }}
           flavor: |
-            latest=false
+            latest=true
           tags: |
-            type=ref,event=tag
             type=sha,prefix=git-,format=short,enable=${{ startsWith(github.ref, 'refs/heads/') }}
+            type=ref,event=tag
             type=raw,value=latest
 
       - name: Build and push
