@@ -143,18 +143,18 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - /set-cooldown-seconds [value:int] - Set/view per-user edit cooldown interval.
 - /set-enforce-bots [value:bool] - Toggle sanitization for other bots (never targets itself).
 - /set-fallback-label [value:str] - Set/view custom fallback label (1–20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` or `username` mode except final fallback in username mode.
-- /clear-logging-channel - Remove logging channel (reverts to none).
-- /clear-bypass-role - Remove bypass role (all members subject to policy again).
+- /clear-logging-channel [confirm:bool] - Remove logging channel (reverts to none). Requires confirm=true.
+- /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=true.
 - /reset-settings [server_id:str] [confirm:bool] - Reset a server’s sanitizer settings to global defaults (.env derived). server_id optional in-guild; required in DMs for remote resets. Requires confirm=true.
 - /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] - View/update policy settings; supports multi-update with quoted values; server_id allows remote guild management (owner or that guild's bot admin); required in DMs.
 
 ### Owner-only
 
-- /add-bot-admin user:@User [server_id:str] - Grant bot admin privileges for a server (current if omitted; server_id required in DMs).
-- /remove-bot-admin user:@User [server_id:str] - Revoke bot admin privileges for a server (current if omitted; server_id required in DMs).
+- /add-bot-admin [user:@User] [server_id:str] - Grant bot admin privileges for a server (current if omitted; server_id required in DMs).
+- /remove-bot-admin [user:@User] [server_id:str] - Revoke bot admin privileges for a server (current if omitted; server_id required in DMs).
 - /list-bot-admins [server_id:str] - List bot admins (current server if omitted; server_id required in DMs).
-- /global-bot-disable - Disable enforcement across all servers immediately.
-- /global-reset-settings - Reset sanitizer settings to defaults across every server.
+- /global-bot-disable [confirm:bool] - Disable enforcement across all servers immediately. Requires confirm=true.
+- /global-reset-settings [confirm:bool] - Reset sanitizer settings to defaults across every server. Requires confirm=true.
 - /blacklist-server [server_id:str] [reason:str] [confirm:bool] - Blacklist a server; bot auto-leaves and purges its data on join/startup.
 - /unblacklist-server [server_id:str] [confirm:bool] - Remove a server from blacklist.
 - /set-blacklist-reason [server_id:str] [reason:str] - Set or clear a reason for a blacklisted server.
@@ -163,9 +163,9 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - /dm-admin-report - DM a multi-message report of servers and bot admins.
 - /dm-server-settings - DM a multi-message list of all server settings (paste-friendly key=value pairs).
 - /delete-user-data [user:@User] - Purge a user’s stored data globally (cooldowns/admin entries).
-- /nuke-bot-admins - Remove all bot admins in current server.
-- /global-nuke-bot-admins - Remove all bot admins in all servers.
-- /global-delete-user-data - Purge ALL user data in ALL servers and announce in logging channels.
+- /nuke-bot-admins [server_id:str] [confirm:bool] - Remove all bot admins for a server (current server if omitted in-guild; server_id required in DMs). Requires confirm=true.
+- /global-nuke-bot-admins [confirm:bool] - Remove all bot admins in all servers. Requires confirm=true.
+- /global-delete-user-data [confirm:bool] - Purge ALL user data in ALL servers and announce in logging channels. Requires confirm=true.
 
 ### Notes
 
@@ -228,7 +228,7 @@ Control via environment variables
 
 - `NNSB_TELEMETRY_OPTOUT=1` - disable the census entirely (preferred)
 - `TELEMETRY_OPTOUT=1` - alternative opt‑out variable
-- `TELEMETRY_ENDPOINT=<https://telemetry.namelessnanashi.dev/census>` - override the POST endpoint
+- `TELEMETRY_ENDPOINT=https://telemetry.namelessnanashi.dev/census` - override the POST endpoint
 
 Defaults
 

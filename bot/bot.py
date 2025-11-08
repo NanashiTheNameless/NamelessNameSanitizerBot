@@ -306,15 +306,17 @@ class SanitizerBot(discord.Client):
             name="clear-logging-channel",
             description="Bot Admin Only: Clear the logging channel",
         )
-        async def _clear_logging_channel(interaction: discord.Interaction):
-            await self.cmd_clear_logging_channel(interaction)
+        @app_commands.describe(confirm="Type true to confirm clearing the logging channel")
+        async def _clear_logging_channel(interaction: discord.Interaction, confirm: Optional[bool] = False):
+            await self.cmd_clear_logging_channel(interaction, confirm)
 
         @self.tree.command(
             name="clear-bypass-role",
             description="Bot Admin Only: Clear the bypass role",
         )
-        async def _clear_bypass_role(interaction: discord.Interaction):
-            await self.cmd_clear_bypass_role(interaction)
+        @app_commands.describe(confirm="Type true to confirm clearing the bypass role")
+        async def _clear_bypass_role(interaction: discord.Interaction, confirm: Optional[bool] = False):
+            await self.cmd_clear_bypass_role(interaction, confirm)
 
         @self.tree.command(
             name="clear-fallback-label",
@@ -421,8 +423,9 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        async def _global_disable(interaction: discord.Interaction):
-            await self.cmd_global_bot_disable(interaction)
+        @app_commands.describe(confirm="Type true to confirm global disable of the bot")
+        async def _global_disable(interaction: discord.Interaction, confirm: Optional[bool] = False):
+            await self.cmd_global_bot_disable(interaction, confirm)
 
         @self.tree.command(
             name="global-reset-settings",
@@ -430,8 +433,9 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        async def _global_reset_settings(interaction: discord.Interaction):
-            await self.cmd_global_reset_settings(interaction)
+        @app_commands.describe(confirm="Type true to confirm resetting settings globally")
+        async def _global_reset_settings(interaction: discord.Interaction, confirm: Optional[bool] = False):
+            await self.cmd_global_reset_settings(interaction, confirm)
 
         @self.tree.command(
             name="nuke-bot-admins",
@@ -439,8 +443,17 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        async def _nuke_admins(interaction: discord.Interaction):
-            await self.cmd_nuke_bot_admins(interaction)
+        @app_commands.describe(
+            server_id="Optional server (guild) ID to target; required in DMs or to nuke another server",
+            confirm="Type true to confirm removal of all bot admins"
+        )
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        async def _nuke_admins(
+            interaction: discord.Interaction,
+            server_id: Optional[str] = None,
+            confirm: Optional[bool] = False,
+        ):
+            await self.cmd_nuke_bot_admins(interaction, server_id, confirm)
 
         @self.tree.command(
             name="global-nuke-bot-admins",
@@ -448,8 +461,9 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        async def _global_nuke_admins(interaction: discord.Interaction):
-            await self.cmd_global_nuke_bot_admins(interaction)
+        @app_commands.describe(confirm="Type true to confirm removal of all bot admins globally")
+        async def _global_nuke_admins(interaction: discord.Interaction, confirm: Optional[bool] = False):
+            await self.cmd_global_nuke_bot_admins(interaction, confirm)
 
         @self.tree.command(
             name="blacklist-server",
@@ -550,10 +564,12 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
+        @app_commands.describe(confirm="Type true to confirm deletion of ALL user data globally")
         async def _global_delete_user_data(
             interaction: discord.Interaction,
+            confirm: Optional[bool] = False,
         ):
-            await self.cmd_global_delete_user_data(interaction)
+            await self.cmd_global_delete_user_data(interaction, confirm)
 
     async def setup_hook(self) -> None:
 
@@ -1957,7 +1973,7 @@ class SanitizerBot(discord.Client):
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_clear_logging_channel(self, interaction: discord.Interaction):
+    async def cmd_clear_logging_channel(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
         if not interaction.guild:
             await interaction.response.send_message(
                 "This command can only be used in a server.", ephemeral=True
@@ -1971,6 +1987,11 @@ class SanitizerBot(discord.Client):
         if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
             await interaction.response.send_message(
                 "Only bot admins can modify settings.", ephemeral=True
+            )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
             )
             return
         settings = await self.db.get_settings(interaction.guild.id)
@@ -1983,7 +2004,7 @@ class SanitizerBot(discord.Client):
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_clear_bypass_role(self, interaction: discord.Interaction):
+    async def cmd_clear_bypass_role(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
         if not interaction.guild:
             await interaction.response.send_message(
                 "This command can only be used in a server.", ephemeral=True
@@ -1997,6 +2018,11 @@ class SanitizerBot(discord.Client):
         if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
             await interaction.response.send_message(
                 "Only bot admins can modify settings.", ephemeral=True
+            )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
             )
             return
         settings = await self.db.get_settings(interaction.guild.id)
@@ -2144,9 +2170,7 @@ class SanitizerBot(discord.Client):
             f"Reset settings to defaults {scope_note}. {note}", ephemeral=True
         )
 
-    async def cmd_global_reset_settings(self, interaction: discord.Interaction):
-        if not await owner_destructive_check(self, interaction):
-            return
+    async def cmd_global_reset_settings(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2156,6 +2180,13 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
             )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+            )
+            return
+        if not await owner_destructive_check(self, interaction):
             return
         # First, attempt to notify configured logging channels in all guilds
         sent = 0
@@ -2243,9 +2274,8 @@ class SanitizerBot(discord.Client):
     async def cmd_global_delete_user_data(
         self,
         interaction: discord.Interaction,
+        confirm: Optional[bool] = False,
     ):
-        if not await owner_destructive_check(self, interaction):
-            return
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2255,6 +2285,13 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
             )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+            )
+            return
+        if not await owner_destructive_check(self, interaction):
             return
         try:
             n1, n2 = await self.db.clear_all_user_data()
@@ -2276,14 +2313,7 @@ class SanitizerBot(discord.Client):
                 f"Failed to delete all user data{detail}", ephemeral=True
             )
 
-    async def cmd_nuke_bot_admins(self, interaction: discord.Interaction):
-        if not await owner_destructive_check(self, interaction):
-            return
-        if not interaction.guild:
-            await interaction.response.send_message(
-                "This command can only be used in a server.", ephemeral=True
-            )
-            return
+    async def cmd_nuke_bot_admins(self, interaction: discord.Interaction, server_id: Optional[str] = None, confirm: Optional[bool] = False):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2294,14 +2324,38 @@ class SanitizerBot(discord.Client):
                 "Only the bot owner can perform this action.", ephemeral=True
             )
             return
-        deleted = await self.db.clear_admins(interaction.guild.id)
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+            )
+            return
+        if not await owner_destructive_check(self, interaction):
+            return
+        target_gid = await resolve_target_guild(interaction, server_id)
+        if target_gid is None:
+            return
+        if self.get_guild(target_gid) is None:
+            await interaction.response.send_message(
+                "I am not in that server. Cannot remove admins for it.", ephemeral=True
+            )
+            return
+        deleted = await self.db.clear_admins(target_gid)
+        scope_note = (
+            "that server"
+            if (
+                server_id
+                and (
+                    interaction.guild is None
+                    or target_gid != getattr(interaction.guild, "id", None)
+                )
+            )
+            else "this server"
+        )
         await interaction.response.send_message(
-            f"Removed {deleted} bot admin(s) from this server.", ephemeral=True
+            f"Removed {deleted} bot admin(s) from {scope_note}.", ephemeral=True
         )
 
-    async def cmd_global_bot_disable(self, interaction: discord.Interaction):
-        if not await owner_destructive_check(self, interaction):
-            return
+    async def cmd_global_bot_disable(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2311,6 +2365,13 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
             )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+            )
+            return
+        if not await owner_destructive_check(self, interaction):
             return
         count = await self.db.disable_all()
 
@@ -2327,9 +2388,7 @@ class SanitizerBot(discord.Client):
             ephemeral=True,
         )
 
-    async def cmd_global_nuke_bot_admins(self, interaction: discord.Interaction):
-        if not await owner_destructive_check(self, interaction):
-            return
+    async def cmd_global_nuke_bot_admins(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2339,6 +2398,13 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
             )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+            )
+            return
+        if not await owner_destructive_check(self, interaction):
             return
         count = await self.db.clear_admins_global()
 
