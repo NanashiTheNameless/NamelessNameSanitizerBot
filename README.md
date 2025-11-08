@@ -39,23 +39,24 @@ Recommended
 
 Policy defaults (used until changed per-guild via commands)
 
-- CHECK_LENGTH: integer, default 0 — number of leading grapheme clusters to sanitize
-- MIN_NICK_LENGTH: integer, default 3 — minimum allowed nickname length
-- MAX_NICK_LENGTH: integer, default 32 — maximum allowed nickname length
-- PRESERVE_SPACES: true|false, default true — keep or normalize spaces
-- COOLDOWN_SECONDS: integer, default 30 — cooldown between edits per user
-- SANITIZE_EMOJI: true|false, default true — if true, emoji are removed
-- ENFORCE_BOTS: true|false, default false — default toggle for enforcing nickname rules on other bot accounts. The bot never sanitizes its own account.
-- FALLBACK_MODE: default|randomized|username, default default — how fallback names are chosen when a sanitized result is empty/illegal
-- FALLBACK_LABEL: string, default "Illegal Name" — global default fallback label; used in fallback_mode=default and as the final fallback in username mode
-- COOLDOWN_TTL_SEC: integer, default max(86400, COOLDOWN_SECONDS*10) — retention for per-user cooldown entries; older entries are purged automatically.
+- CHECK_LENGTH: integer, default 0 - number of leading grapheme clusters to sanitize
+- MIN_NICK_LENGTH: integer, default 3 - minimum allowed nickname length
+- MAX_NICK_LENGTH: integer, default 32 - maximum allowed nickname length
+- PRESERVE_SPACES: true|false, default true - keep or normalize spaces
+- COOLDOWN_SECONDS: integer, default 30 - cooldown between edits per user
+- SANITIZE_EMOJI: true|false, default true - if true, emoji are removed
+- ENFORCE_BOTS: true|false, default false - default toggle for enforcing nickname rules on other bot accounts. The bot never sanitizes its own account.
+- FALLBACK_MODE: default|randomized|username, default default - how fallback names are chosen when a sanitized result is empty/illegal
+- FALLBACK_LABEL: string, default "Illegal Name" - global default fallback label; used in fallback_mode=default and as the final fallback in username mode
+- COOLDOWN_TTL_SEC: integer, default max(86400, COOLDOWN_SECONDS*10) - retention for per-user cooldown entries; older entries are purged automatically.
+- OWNER_DESTRUCTIVE_COOLDOWN_SECONDS: integer, default 10 - separate cooldown applied only to destructive owner-only commands (e.g. blacklist, unblacklist, global resets) so routine admin actions aren’t throttled.
 
 Runtime
 
-- SWEEP_INTERVAL_SEC: integer, default 60 — periodic sweep interval seconds
-- SWEEP_BATCH: integer, default 512 — reserved; currently no effect
-- LOG_LEVEL: DEBUG|INFO|WARNING|ERROR — overrides default logging level (INFO)
-- DM_OWNER_ON_GUILD_EVENTS: true|false, default true — if true, the bot will DM the owner on guild join/leave events
+- SWEEP_INTERVAL_SEC: integer, default 60 - periodic sweep interval seconds
+- SWEEP_BATCH: integer, default 512 - reserved; currently no effect
+- LOG_LEVEL: DEBUG|INFO|WARNING|ERROR - overrides default logging level (INFO)
+- DM_OWNER_ON_GUILD_EVENTS: true|false, default true - if true, the bot will DM the owner on guild join/leave events
 
 ### Invite URL
 
@@ -119,57 +120,58 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 
 ### Public
 
-- /botinfo — Display instance owner, developer attribution, source repository, policy, and legal links (ephemeral).
-- /delete-my-data — Erase any of your stored data in the current server (cooldown and admin entries) immediately.
+- /botinfo - Display instance owner, developer attribution, source repository, policy, and legal links (ephemeral).
+- /delete-my-data - Erase any of your stored data in the current server (cooldown and admin entries) immediately.
 
 ### Guild/Server Admin
 
-- /sanitize-user [member:Member] — Force-sanitize a member now (requires Manage Nicknames permission or bot admin). Respects cooldown if configured.
+- /sanitize-user [member:Member] - Force-sanitize a member now (requires Manage Nicknames permission or bot admin). Respects cooldown if configured.
 
 ### Bot admin
 
-- /sweep-now — Sweep members and sanitize nicknames according to current policy (bot admin only). Honors bypass role and enabled state.
-- /enable-sanitizer — Enable nickname enforcement for this server. Required before automatic sanitize events occur.
-- /disable-sanitizer — Disable enforcement (manual commands still allowed where appropriate).
-- /set-logging-channel [channel:#channel] — Set/view the channel that receives nickname update logs.
-- /set-bypass-role [role:@Role] — Set/view a role whose members are never sanitized.
-- /set-emoji-sanitization [value:bool] — Toggle whether emoji are stripped (true) or preserved (false).
-- /set-fallback-mode [mode:str] — Set/view fallback mode (`default|randomized|username`). Controls how empty/illegal results are replaced.
-- /set-keep-spaces [value:bool] — Toggle preserving original spacing (true) vs normalizing whitespace (false).
-- /set-min-length [value:int] — Set/view minimum allowed nickname length (clamped ≤ 8).
-- /set-max-length [value:int] — Set/view maximum allowed nickname length (clamped ≤ 32).
-- /set-check-count [value:int] — Set/view number of leading grapheme clusters to sanitize (0 = full name).
-- /set-cooldown-seconds [value:int] — Set/view per-user edit cooldown interval.
-- /set-enforce-bots [value:bool] — Toggle sanitization for other bots (never targets itself).
-- /set-fallback-label [value:str] — Set/view custom fallback label (1–20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` or `username` mode except final fallback in username mode.
-- /clear-logging-channel — Remove logging channel (reverts to none).
-- /clear-bypass-role — Remove bypass role (all members subject to policy again).
-- /reset-settings [server_id:str] [confirm:bool] — Reset a server’s sanitizer settings to global defaults (.env derived). server_id optional in-guild; required in DMs for remote resets. Requires confirm=true.
-- /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] — View/update policy settings; supports multi-update with quoted values; server_id allows remote guild management (owner or that guild's bot admin); required in DMs.
+- /sweep-now - Sweep members and sanitize nicknames according to current policy (bot admin only). Honors bypass role and enabled state.
+- /enable-sanitizer - Enable nickname enforcement for this server. Required before automatic sanitize events occur.
+- /disable-sanitizer - Disable enforcement (manual commands still allowed where appropriate).
+- /set-logging-channel [channel:#channel] - Set/view the channel that receives nickname update logs.
+- /set-bypass-role [role:@Role] - Set/view a role whose members are never sanitized.
+- /set-emoji-sanitization [value:bool] - Toggle whether emoji are stripped (true) or preserved (false).
+- /set-fallback-mode [mode:str] - Set/view fallback mode (`default|randomized|username`). Controls how empty/illegal results are replaced.
+- /set-keep-spaces [value:bool] - Toggle preserving original spacing (true) vs normalizing whitespace (false).
+- /set-min-length [value:int] - Set/view minimum allowed nickname length (clamped ≤ 8).
+- /set-max-length [value:int] - Set/view maximum allowed nickname length (clamped ≤ 32).
+- /set-check-count [value:int] - Set/view number of leading grapheme clusters to sanitize (0 = full name).
+- /set-cooldown-seconds [value:int] - Set/view per-user edit cooldown interval.
+- /set-enforce-bots [value:bool] - Toggle sanitization for other bots (never targets itself).
+- /set-fallback-label [value:str] - Set/view custom fallback label (1–20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` or `username` mode except final fallback in username mode.
+- /clear-logging-channel - Remove logging channel (reverts to none).
+- /clear-bypass-role - Remove bypass role (all members subject to policy again).
+- /reset-settings [server_id:str] [confirm:bool] - Reset a server’s sanitizer settings to global defaults (.env derived). server_id optional in-guild; required in DMs for remote resets. Requires confirm=true.
+- /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] - View/update policy settings; supports multi-update with quoted values; server_id allows remote guild management (owner or that guild's bot admin); required in DMs.
 
 ### Owner-only
 
-- /add-bot-admin user:@User [server_id:str] — Grant bot admin privileges for a server (current if omitted; server_id required in DMs).
-- /remove-bot-admin user:@User [server_id:str] — Revoke bot admin privileges for a server (current if omitted; server_id required in DMs).
-- /list-bot-admins [server_id:str] — List bot admins (current server if omitted; server_id required in DMs).
-- /global-bot-disable — Disable enforcement across all servers immediately.
-- /global-reset-settings — Reset sanitizer settings to defaults across every server.
-- /blacklist-server [server_id:str] [reason:str] [confirm:bool] — Blacklist a server; bot auto-leaves and purges its data on join/startup.
-- /unblacklist-server [server_id:str] [confirm:bool] — Remove a server from blacklist.
-- /set-blacklist-reason [server_id:str] [reason:str] — Set or clear a reason for a blacklisted server.
-- /list-blacklisted-servers — Enumerate all blacklisted server IDs & reasons.
-- /leave-server [server_id:str] [confirm:bool] — Leave a server and delete its stored configuration/admin data.
-- /dm-admin-report — DM a multi-message report of servers and bot admins.
-- /dm-server-settings — DM a multi-message list of all server settings (paste-friendly key=value pairs).
-- /delete-user-data [user:@User] — Purge a user’s stored data globally (cooldowns/admin entries).
-- /nuke-bot-admins — Remove all bot admins in current server.
-- /global-nuke-bot-admins — Remove all bot admins in all servers.
-- /global-delete-user-data — Purge ALL user data in ALL servers and announce in logging channels.
+- /add-bot-admin user:@User [server_id:str] - Grant bot admin privileges for a server (current if omitted; server_id required in DMs).
+- /remove-bot-admin user:@User [server_id:str] - Revoke bot admin privileges for a server (current if omitted; server_id required in DMs).
+- /list-bot-admins [server_id:str] - List bot admins (current server if omitted; server_id required in DMs).
+- /global-bot-disable - Disable enforcement across all servers immediately.
+- /global-reset-settings - Reset sanitizer settings to defaults across every server.
+- /blacklist-server [server_id:str] [reason:str] [confirm:bool] - Blacklist a server; bot auto-leaves and purges its data on join/startup.
+- /unblacklist-server [server_id:str] [confirm:bool] - Remove a server from blacklist.
+- /set-blacklist-reason [server_id:str] [reason:str] - Set or clear a reason for a blacklisted server.
+- /list-blacklisted-servers - Enumerate all blacklisted server IDs & reasons.
+- /leave-server [server_id:str] [confirm:bool] - Leave a server and delete its stored configuration/admin data.
+- /dm-admin-report - DM a multi-message report of servers and bot admins.
+- /dm-server-settings - DM a multi-message list of all server settings (paste-friendly key=value pairs).
+- /delete-user-data [user:@User] - Purge a user’s stored data globally (cooldowns/admin entries).
+- /nuke-bot-admins - Remove all bot admins in current server.
+- /global-nuke-bot-admins - Remove all bot admins in all servers.
+- /global-delete-user-data - Purge ALL user data in ALL servers and announce in logging channels.
 
 ### Notes
 
 - All command output is ephemeral.
 - Some destructive/owner commands require a confirmation boolean (confirm=true).
+- All destructive owner commands respect a separate cooldown window governed by OWNER_DESTRUCTIVE_COOLDOWN_SECONDS.
 - Owner-only server ID autocomplete is enforced. For /unblacklist-server, autocomplete lists only servers that are currently blacklisted (owner-only).
 - /set-policy without a value shows the current value.
 - /set-policy pairs accepts keys: `enabled, check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label, fallback_mode, enforce_bots`.
@@ -177,6 +179,7 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - Safety: Destructive operations (reset-settings, blacklist/unblacklist, leave-server) require `confirm=true`.
 - Admin user parameter now accepts a generic user mention (@User) rather than a guild Member object for cross-guild management.
 - Owner commands are now invocable from DMs (and user installs) while still enforcing OWNER_ID checks.
+- In DMs, commands that act on a guild require a server_id argument.
 - /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="true" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="true" cooldown_seconds="30" sanitize_emoji="true" enforce_bots="false" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
 - Use the literal string `none` (quoted or unquoted) to clear `logging_channel_id`, `bypass_role_id`, or `fallback_label`.
 - `/dm-server-settings` messages are chunked only between servers to respect Discord limits; each line per server is a complete pasteable set of pairs.
@@ -195,6 +198,8 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
   - Check the bot’s “Manage Nicknames” permission and role hierarchy
   - Confirm SWEEP_INTERVAL_SEC and that the member isn’t on cooldown
   - Ensure the user doesn’t have the bypass role and logging indicates attempts
+
+- If you’re the owner and destructive commands appear rate-limited unexpectedly, check OWNER_DESTRUCTIVE_COOLDOWN_SECONDS.
 
 - Database issues
   - Check DATABASE_URL and that the Postgres container is healthy
@@ -221,9 +226,9 @@ What is sent
 
 Control via environment variables
 
-- `NNSB_TELEMETRY_OPTOUT=1` — disable the census entirely (preferred)
-- `TELEMETRY_OPTOUT=1` — alternative opt‑out variable
-- `TELEMETRY_ENDPOINT=<https://telemetry.namelessnanashi.dev/census>` — override the POST endpoint
+- `NNSB_TELEMETRY_OPTOUT=1` - disable the census entirely (preferred)
+- `TELEMETRY_OPTOUT=1` - alternative opt‑out variable
+- `TELEMETRY_ENDPOINT=<https://telemetry.namelessnanashi.dev/census>` - override the POST endpoint
 
 Defaults
 
