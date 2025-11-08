@@ -1,10 +1,11 @@
 # This software uses NNCL 1.0 see LICENSE.md for more info
+import time
 from typing import Optional
 
 import discord  # type: ignore
 
 from .config import OWNER_DESTRUCTIVE_COOLDOWN_SECONDS, OWNER_ID
-import time
+
 
 def now() -> float:
     return time.time()
