@@ -1532,7 +1532,9 @@ class SanitizerBot(discord.Client):
                 display = str(v)
             text = f"Updated {key} to {display}."
             # Suppress the disabled warning if this operation enabled the bot
-            if warn_disabled and not (key == "enabled" and isinstance(v, bool) and v is True):
+            if warn_disabled and not (
+                key == "enabled" and isinstance(v, bool) and v is True
+            ):
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
         except Exception as e:
