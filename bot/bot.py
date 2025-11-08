@@ -2032,7 +2032,7 @@ class SanitizerBot(discord.Client):
             except Exception:
                 await interaction.response.send_message(
                     f"'{server_id}' is not a valid server ID.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
                 return
         else:
@@ -2053,14 +2053,14 @@ class SanitizerBot(discord.Client):
             if not await self._is_bot_admin(target_gid, interaction.user.id):
                 await interaction.response.send_message(
                     "You are not authorized to reset settings for that server.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
                 return
         # Require confirmation
         if not confirm:
             await interaction.response.send_message(
                 "Confirmation required: pass confirm=true to proceed.",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         # Perform actual reset
@@ -2069,7 +2069,7 @@ class SanitizerBot(discord.Client):
         except Exception as e:
             await interaction.response.send_message(
                 f"Failed to reset settings: {e}",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         note = "The sanitizer is disabled by default; A bot admin needs to run `/enable-sanitizer` to re-enable it."
@@ -2331,7 +2331,7 @@ class SanitizerBot(discord.Client):
             except Exception:
                 await interaction.response.send_message(
                     f"'{server_id}' is not a valid server ID.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
                 return
         else:
@@ -2365,7 +2365,7 @@ class SanitizerBot(discord.Client):
         )
         await interaction.response.send_message(
             f"Added {user.mention} as bot admin for {scope_note}.",
-            ephemeral=interaction.guild is not None,
+            ephemeral=True,
         )
 
     async def cmd_remove_admin(
@@ -2380,7 +2380,7 @@ class SanitizerBot(discord.Client):
             except Exception:
                 await interaction.response.send_message(
                     f"'{server_id}' is not a valid server ID.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
                 return
         else:
@@ -2414,7 +2414,7 @@ class SanitizerBot(discord.Client):
         )
         await interaction.response.send_message(
             f"Removed {user.mention} as bot admin for {scope_note}.",
-            ephemeral=interaction.guild is not None,
+            ephemeral=True,
         )
 
     async def cmd_blacklist_server(
@@ -2432,7 +2432,7 @@ class SanitizerBot(discord.Client):
         if not confirm:
             await interaction.response.send_message(
                 "Confirmation required: pass confirm=true to proceed.",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         if not self.db:
@@ -2445,7 +2445,7 @@ class SanitizerBot(discord.Client):
         except Exception:
             await interaction.response.send_message(
                 f"'{server_id}' is not a valid server ID.",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         # Try to capture a readable name; may be None if not cached
@@ -2471,7 +2471,7 @@ class SanitizerBot(discord.Client):
         suffix = f" Reason: {reason}" if (reason and reason.strip()) else ""
         await interaction.response.send_message(
             f"Blacklisted server ID {gid}{left_note}. Deleted {deleted_admins} admin entries.{suffix}",
-            ephemeral=interaction.guild is not None,
+            ephemeral=True,
         )
 
     async def cmd_unblacklist_server(
@@ -2493,7 +2493,7 @@ class SanitizerBot(discord.Client):
         if not confirm:
             await interaction.response.send_message(
                 "Confirmation required: pass confirm=true to proceed.",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         try:
@@ -2501,7 +2501,7 @@ class SanitizerBot(discord.Client):
         except Exception:
             await interaction.response.send_message(
                 f"'{server_id}' is not a valid server ID.",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         removed = await self.db.remove_blacklisted_guild(gid)
@@ -2510,7 +2510,7 @@ class SanitizerBot(discord.Client):
         else:
             msg = f"Server ID {gid} was not in the blacklist."
         await interaction.response.send_message(
-            msg, ephemeral=interaction.guild is not None
+            msg, ephemeral=True
         )
 
     async def cmd_set_blacklist_reason(
@@ -2534,7 +2534,7 @@ class SanitizerBot(discord.Client):
         except Exception:
             await interaction.response.send_message(
                 f"'{server_id}' is not a valid server ID.",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         # Upsert: preserve name, update reason
@@ -2543,7 +2543,7 @@ class SanitizerBot(discord.Client):
         except Exception as e:
             await interaction.response.send_message(
                 f"Failed to set blacklist reason: {e}",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         text = (
@@ -2552,7 +2552,7 @@ class SanitizerBot(discord.Client):
             else f"Cleared blacklist reason for {gid}."
         )
         await interaction.response.send_message(
-            text, ephemeral=interaction.guild is not None
+            text, ephemeral=True
         )
 
     async def cmd_list_blacklisted_servers(self, interaction: discord.Interaction):
@@ -2571,12 +2571,12 @@ class SanitizerBot(discord.Client):
         except Exception as e:
             await interaction.response.send_message(
                 f"Failed to load blacklist: {e}",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         if not entries:
             await interaction.response.send_message(
-                "Blacklist is empty.", ephemeral=interaction.guild is not None
+                "Blacklist is empty.", ephemeral=True
             )
             return
         lines = []
@@ -2588,7 +2588,7 @@ class SanitizerBot(discord.Client):
                 lines.append(f"• {label}")
         text = "Blacklisted servers:\n" + "\n".join(lines)
         await interaction.response.send_message(
-            text, ephemeral=interaction.guild is not None
+            text, ephemeral=True
         )
 
     async def cmd_list_bot_admins(
@@ -2612,7 +2612,7 @@ class SanitizerBot(discord.Client):
             except Exception:
                 await interaction.response.send_message(
                     f"'{server_id}' is not a valid server ID.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
                 return
         else:
@@ -2633,11 +2633,11 @@ class SanitizerBot(discord.Client):
             mentions = [f"<@{uid}>" for uid in ids]
             await interaction.response.send_message(
                 "Bot admins for this server: " + ", ".join(mentions),
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
         except Exception as e:
             await interaction.response.send_message(
-                f"Failed to fetch admins: {e}", ephemeral=interaction.guild is not None
+                f"Failed to fetch admins: {e}", ephemeral=True
             )
 
     async def cmd_dm_admin_report(self, interaction: discord.Interaction):
@@ -2682,11 +2682,11 @@ class SanitizerBot(discord.Client):
                 await owner_user.send(part)
             await interaction.response.send_message(
                 f"Sent you a DM with the admin report ({len(chunks)} message(s)).",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
         except Exception as e:
             await interaction.response.send_message(
-                f"Failed to send DM: {e}", ephemeral=interaction.guild is not None
+                f"Failed to send DM: {e}", ephemeral=True
             )
 
     async def cmd_dm_server_settings(self, interaction: discord.Interaction):
@@ -2753,11 +2753,11 @@ class SanitizerBot(discord.Client):
                 await owner_user.send(part)
             await interaction.response.send_message(
                 f"Sent you a DM with the server settings report ({len(chunks)} message(s)).",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
         except Exception as e:
             await interaction.response.send_message(
-                f"Failed to send DM: {e}", ephemeral=interaction.guild is not None
+                f"Failed to send DM: {e}", ephemeral=True
             )
 
     async def cmd_leave_server(
@@ -2779,7 +2779,7 @@ class SanitizerBot(discord.Client):
         if not confirm:
             await interaction.response.send_message(
                 "Confirmation required: pass confirm=true to proceed.",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         # Parse snowflake from text to int; Discord IDs exceed 32-bit
@@ -2788,7 +2788,7 @@ class SanitizerBot(discord.Client):
         except Exception:
             await interaction.response.send_message(
                 f"'{server_id}' is not a valid server ID.",
-                ephemeral=interaction.guild is not None,
+                ephemeral=True,
             )
             return
         guild = self.get_guild(gid)
@@ -2838,7 +2838,7 @@ class SanitizerBot(discord.Client):
             try:
                 await interaction.followup.send(
                     f"Leaving server '{guild.name}' and deleted {deleted_admins} admin entries.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
             except Exception:
                 pass
@@ -2846,7 +2846,7 @@ class SanitizerBot(discord.Client):
             try:
                 await interaction.response.send_message(
                     f"Leaving server '{guild.name}' and deleted {deleted_admins} admin entries.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
             except Exception:
                 pass
