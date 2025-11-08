@@ -95,4 +95,19 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
     if len(candidate) > settings.max_nick_length:
         candidate = candidate[: settings.max_nick_length]
 
+    min_len = getattr(settings, "min_nick_length", 0)
+    if min_len > 0:
+        cluster_count = len(re.findall(r"\X", candidate))
+        if cluster_count < min_len:
+            used_fallback = True
+            mode = getattr(settings, "fallback_mode", "default")
+            if mode == "randomized":
+                candidate = f"User{random.randrange(10000):04d}"
+            elif mode == "username":
+                candidate = ""
+            else:
+                candidate = settings.fallback_label or "Illegal Name"
+            if len(candidate) > settings.max_nick_length:
+                candidate = candidate[: settings.max_nick_length]
+
     return candidate, used_fallback
