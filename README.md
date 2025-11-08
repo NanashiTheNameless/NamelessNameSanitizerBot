@@ -40,7 +40,7 @@ Recommended
 Policy defaults (used until changed per-guild via commands)
 
 - CHECK_LENGTH: integer, default 0 — number of leading grapheme clusters to sanitize
-- MIN_NICK_LENGTH: integer, default 2 — minimum allowed nickname length
+- MIN_NICK_LENGTH: integer, default 3 — minimum allowed nickname length
 - MAX_NICK_LENGTH: integer, default 32 — maximum allowed nickname length
 - PRESERVE_SPACES: true|false, default true — keep or normalize spaces
 - COOLDOWN_SECONDS: integer, default 30 — cooldown between edits per user
@@ -173,7 +173,7 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - Owner-only server ID autocomplete is enforced. For /unblacklist-server, autocomplete lists only servers that are currently blacklisted (owner-only).
 - /set-policy without a value shows the current value.
 - /set-policy pairs accepts keys: `enabled, check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label, fallback_mode, enforce_bots`.
-- /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="true" check_length="0" min_nick_length="2" max_nick_length="32" preserve_spaces="true" cooldown_seconds="30" sanitize_emoji="true" enforce_bots="false" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
+- /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="true" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="true" cooldown_seconds="30" sanitize_emoji="true" enforce_bots="false" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
 - Use the literal string `none` (quoted or unquoted) to clear `logging_channel_id`, `bypass_role_id`, or `fallback_label`.
 - `/dm-server-settings` messages are chunked only between servers to respect Discord limits; each line per server is a complete pasteable set of pairs.
 - Boolean inputs for commands accept true/false, yes/no, on/off, and 1/0 (case-insensitive).
