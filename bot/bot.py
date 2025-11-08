@@ -1298,7 +1298,15 @@ class SanitizerBot(discord.Client):
     async def _ac_policy_value(self, interaction: discord.Interaction, current: str):
         # Derive key from focused interaction context
         raw_key = getattr(getattr(interaction, "namespace", object()), "key", None)
-        key = (raw_key or "").strip().lower()
+        rk = (raw_key or "").strip().lower()
+        # Normalize keys that include display annotations, e.g. "min_nick_length (integer)"
+        # Keep only the base identifier before any parentheses or trailing descriptors
+        if rk:
+            if "(" in rk:
+                rk = rk.split("(", 1)[0].strip()
+            if " " in rk:
+                rk = rk.split(" ", 1)[0].strip()
+        key = rk
         if not key:
             return []  # Cannot infer yet
         # Classification sets
@@ -1308,9 +1316,17 @@ class SanitizerBot(discord.Client):
             "max_nick_length",
             "cooldown_seconds",
         }
-        BOOL_KEYS = {"enabled", "preserve_spaces", "sanitize_emoji", "enforce_bots"}
+        BOOL_KEYS = {
+            "enabled",
+            "preserve_spaces",
+            "sanitize_emoji",
+            "enforce_bots"
+        }
         MODE_KEYS = {"fallback_mode"}
-        ID_KEYS = {"logging_channel_id", "bypass_role_id"}
+        ID_KEYS = {
+            "logging_channel_id",
+            "bypass_role_id"
+        }
         LABEL_KEYS = {"fallback_label"}
 
         cur = (current or "").strip()
