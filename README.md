@@ -134,7 +134,7 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - /set-logging-channel [channel:#channel] — Set/view the channel that receives nickname update logs.
 - /set-bypass-role [role:@Role] — Set/view a role whose members are never sanitized.
 - /set-emoji-sanitization [value:bool] — Toggle whether emoji are stripped (true) or preserved (false).
-- /set-fallback [mode:str] — Set/view fallback mode (`default|randomized|username`). Controls how empty/illegal results are replaced.
+- /set-fallback-mode [mode:str] — Set/view fallback mode (`default|randomized|username`). Controls how empty/illegal results are replaced.
 - /set-keep-spaces [value:bool] — Toggle preserving original spacing (true) vs normalizing whitespace (false).
 - /set-min-length [value:int] — Set/view minimum allowed nickname length (clamped ≤ 8).
 - /set-max-length [value:int] — Set/view maximum allowed nickname length (clamped ≤ 32).
