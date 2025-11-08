@@ -176,7 +176,7 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - Remote management: Add `server_id` to /set-policy or /reset-settings (and owner-only admin commands) to operate on another server. In DMs the `server_id` argument is required.
 - Safety: Destructive operations (reset-settings, blacklist/unblacklist, leave-server) require `confirm=true`.
 - Admin user parameter now accepts a generic user mention (@User) rather than a guild Member object for cross-guild management.
-- Owner commands are now invokable from DMs (and user installs) while still enforcing OWNER_ID checks.
+- Owner commands are now invocable from DMs (and user installs) while still enforcing OWNER_ID checks.
 - /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="true" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="true" cooldown_seconds="30" sanitize_emoji="true" enforce_bots="false" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
 - Use the literal string `none` (quoted or unquoted) to clear `logging_channel_id`, `bypass_role_id`, or `fallback_label`.
 - `/dm-server-settings` messages are chunked only between servers to respect Discord limits; each line per server is a complete pasteable set of pairs.
