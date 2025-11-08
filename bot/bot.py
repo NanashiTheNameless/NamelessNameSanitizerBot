@@ -1374,14 +1374,14 @@ class SanitizerBot(discord.Client):
             except Exception:
                 await interaction.response.send_message(
                     f"'{server_id}' is not a valid server ID.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
                 return
         else:
             if interaction.guild is None:
                 await interaction.response.send_message(
                     "server_id is required when used in DMs.",
-                    ephemeral=False,
+                    ephemeral=True,
                 )
                 return
             target_gid = interaction.guild.id
@@ -1396,7 +1396,7 @@ class SanitizerBot(discord.Client):
             if not await self._is_bot_admin(target_gid, interaction.user.id):
                 await interaction.response.send_message(
                     "You are not authorized to modify settings for that server.",
-                    ephemeral=interaction.guild is not None,
+                    ephemeral=True,
                 )
                 return
 
