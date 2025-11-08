@@ -508,3 +508,29 @@ class Database:
             async with conn.cursor() as cur:
                 await cur.execute("DELETE FROM guild_settings")
                 return int(cur.rowcount or 0)
+
+    async def purge_unknown_guilds(self, known_guild_ids: set[int]) -> int:
+        """Delete stored data for guilds that are not in known_guild_ids.
+
+        Removes from guild_admins and guild_settings. Returns total rows deleted.
+        """
+        assert self.pool is not None
+        if not known_guild_ids:
+            return 0
+        total = 0
+        async with self.pool.connection() as conn:
+            # Delete admin rows first
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "DELETE FROM guild_admins WHERE guild_id NOT IN (SELECT UNNEST(%s::BIGINT[]))",
+                    (list(known_guild_ids),),
+                )
+                total += int(cur.rowcount or 0)
+            # Delete settings rows
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "DELETE FROM guild_settings WHERE guild_id NOT IN (SELECT UNNEST(%s::BIGINT[]))",
+                    (list(known_guild_ids),),
+                )
+                total += int(cur.rowcount or 0)
+        return total
