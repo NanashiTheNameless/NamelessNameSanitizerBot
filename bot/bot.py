@@ -20,19 +20,19 @@ from discord.ext import tasks  # type: ignore
 from .config import (
     APPLICATION_ID,
     COMMAND_COOLDOWN_SECONDS,
-    OWNER_DESTRUCTIVE_COOLDOWN_SECONDS,
     COOLDOWN_TTL_SEC,
     DATABASE_URL,
     DM_OWNER_ON_GUILD_EVENTS,
+    OWNER_DESTRUCTIVE_COOLDOWN_SECONDS,
     OWNER_ID,
     SWEEP_INTERVAL_SEC,
     GuildSettings,
     parse_bool_str,
 )
 from .database import Database
+from .decorators import _acx, _ai
+from .helpers import now, owner_destructive_check, resolve_target_guild
 from .sanitizer import filter_allowed_chars, remove_marks_and_controls, sanitize_name
-from .decorators import _ai, _acx
-from .helpers import resolve_target_guild, owner_destructive_check, now
 
 try:
     from .telemetry import maybe_send_telemetry_background  # type: ignore
@@ -155,9 +155,13 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        @app_commands.describe(server_id="Optional server (guild) ID to enable; required in DMs or to target another server")
+        @app_commands.describe(
+            server_id="Optional server (guild) ID to enable; required in DMs or to target another server"
+        )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
-        async def _enable(interaction: discord.Interaction, server_id: Optional[str] = None):
+        async def _enable(
+            interaction: discord.Interaction, server_id: Optional[str] = None
+        ):
             await self.cmd_start(interaction, server_id)
 
         @self.tree.command(
@@ -166,9 +170,13 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        @app_commands.describe(server_id="Optional server (guild) ID to disable; required in DMs or to target another server")
+        @app_commands.describe(
+            server_id="Optional server (guild) ID to disable; required in DMs or to target another server"
+        )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
-        async def _disable(interaction: discord.Interaction, server_id: Optional[str] = None):
+        async def _disable(
+            interaction: discord.Interaction, server_id: Optional[str] = None
+        ):
             await self.cmd_stop(interaction, server_id)
 
         @self.tree.command(
@@ -306,8 +314,12 @@ class SanitizerBot(discord.Client):
             name="clear-logging-channel",
             description="Bot Admin Only: Clear the logging channel",
         )
-        @app_commands.describe(confirm="Type true to confirm clearing the logging channel")
-        async def _clear_logging_channel(interaction: discord.Interaction, confirm: Optional[bool] = False):
+        @app_commands.describe(
+            confirm="Type true to confirm clearing the logging channel"
+        )
+        async def _clear_logging_channel(
+            interaction: discord.Interaction, confirm: Optional[bool] = False
+        ):
             await self.cmd_clear_logging_channel(interaction, confirm)
 
         @self.tree.command(
@@ -315,7 +327,9 @@ class SanitizerBot(discord.Client):
             description="Bot Admin Only: Clear the bypass role",
         )
         @app_commands.describe(confirm="Type true to confirm clearing the bypass role")
-        async def _clear_bypass_role(interaction: discord.Interaction, confirm: Optional[bool] = False):
+        async def _clear_bypass_role(
+            interaction: discord.Interaction, confirm: Optional[bool] = False
+        ):
             await self.cmd_clear_bypass_role(interaction, confirm)
 
         @self.tree.command(
@@ -424,7 +438,9 @@ class SanitizerBot(discord.Client):
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
         @app_commands.describe(confirm="Type true to confirm global disable of the bot")
-        async def _global_disable(interaction: discord.Interaction, confirm: Optional[bool] = False):
+        async def _global_disable(
+            interaction: discord.Interaction, confirm: Optional[bool] = False
+        ):
             await self.cmd_global_bot_disable(interaction, confirm)
 
         @self.tree.command(
@@ -433,8 +449,12 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        @app_commands.describe(confirm="Type true to confirm resetting settings globally")
-        async def _global_reset_settings(interaction: discord.Interaction, confirm: Optional[bool] = False):
+        @app_commands.describe(
+            confirm="Type true to confirm resetting settings globally"
+        )
+        async def _global_reset_settings(
+            interaction: discord.Interaction, confirm: Optional[bool] = False
+        ):
             await self.cmd_global_reset_settings(interaction, confirm)
 
         @self.tree.command(
@@ -445,7 +465,7 @@ class SanitizerBot(discord.Client):
         @_acx(guilds=True, dms=True, private_channels=True)
         @app_commands.describe(
             server_id="Optional server (guild) ID to target; required in DMs or to nuke another server",
-            confirm="Type true to confirm removal of all bot admins"
+            confirm="Type true to confirm removal of all bot admins",
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _nuke_admins(
@@ -461,8 +481,12 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        @app_commands.describe(confirm="Type true to confirm removal of all bot admins globally")
-        async def _global_nuke_admins(interaction: discord.Interaction, confirm: Optional[bool] = False):
+        @app_commands.describe(
+            confirm="Type true to confirm removal of all bot admins globally"
+        )
+        async def _global_nuke_admins(
+            interaction: discord.Interaction, confirm: Optional[bool] = False
+        ):
             await self.cmd_global_nuke_bot_admins(interaction, confirm)
 
         @self.tree.command(
@@ -564,7 +588,9 @@ class SanitizerBot(discord.Client):
         )
         @_ai(guilds=True, users=True)
         @_acx(guilds=True, dms=True, private_channels=True)
-        @app_commands.describe(confirm="Type true to confirm deletion of ALL user data globally")
+        @app_commands.describe(
+            confirm="Type true to confirm deletion of ALL user data globally"
+        )
         async def _global_delete_user_data(
             interaction: discord.Interaction,
             confirm: Optional[bool] = False,
@@ -654,7 +680,9 @@ class SanitizerBot(discord.Client):
                 known_ids = {g.id for g in self.guilds}
                 removed = await self.db.purge_unknown_guilds(known_ids)
                 if removed:
-                    log.info("[CLEANUP] Purged stored data for %d unknown guild(s).", removed)
+                    log.info(
+                        "[CLEANUP] Purged stored data for %d unknown guild(s).", removed
+                    )
             except Exception as e:
                 log.debug("Failed purging unknown guild data: %s", e)
 
@@ -725,9 +753,15 @@ class SanitizerBot(discord.Client):
             try:
                 await self.db.clear_admins(guild.id)
                 await self.db.reset_guild_settings(guild.id)
-                log.info("[CLEANUP] Cleared stored data after leaving guild %s (%s)", guild.name, guild.id)
+                log.info(
+                    "[CLEANUP] Cleared stored data after leaving guild %s (%s)",
+                    guild.name,
+                    guild.id,
+                )
             except Exception as e:
-                log.debug("Failed to clear stored data for removed guild %s: %s", guild.id, e)
+                log.debug(
+                    "Failed to clear stored data for removed guild %s: %s", guild.id, e
+                )
 
     async def on_member_join(self, member: discord.Member):
         if member.bot:
@@ -985,7 +1019,9 @@ class SanitizerBot(discord.Client):
             return False
         return await self.db.is_admin(guild_id, user_id)
 
-    async def cmd_start(self, interaction: discord.Interaction, server_id: Optional[str] = None):
+    async def cmd_start(
+        self, interaction: discord.Interaction, server_id: Optional[str] = None
+    ):
         target_gid = await resolve_target_guild(interaction, server_id)
         if target_gid is None:
             return
@@ -1002,7 +1038,8 @@ class SanitizerBot(discord.Client):
             return
         if not await self._is_bot_admin(target_gid, interaction.user.id):
             await interaction.response.send_message(
-                "You are not authorized to start the bot in that server.", ephemeral=True
+                "You are not authorized to start the bot in that server.",
+                ephemeral=True,
             )
             return
         await self.db.set_setting(target_gid, "enabled", True)
@@ -1010,7 +1047,9 @@ class SanitizerBot(discord.Client):
             f"Sanitizer enabled for server {g.name} ({g.id}).", ephemeral=True
         )
 
-    async def cmd_stop(self, interaction: discord.Interaction, server_id: Optional[str] = None):
+    async def cmd_stop(
+        self, interaction: discord.Interaction, server_id: Optional[str] = None
+    ):
         target_gid = await resolve_target_guild(interaction, server_id)
         if target_gid is None:
             return
@@ -1973,7 +2012,9 @@ class SanitizerBot(discord.Client):
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_clear_logging_channel(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
+    async def cmd_clear_logging_channel(
+        self, interaction: discord.Interaction, confirm: Optional[bool] = False
+    ):
         if not interaction.guild:
             await interaction.response.send_message(
                 "This command can only be used in a server.", ephemeral=True
@@ -2004,7 +2045,9 @@ class SanitizerBot(discord.Client):
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_clear_bypass_role(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
+    async def cmd_clear_bypass_role(
+        self, interaction: discord.Interaction, confirm: Optional[bool] = False
+    ):
         if not interaction.guild:
             await interaction.response.send_message(
                 "This command can only be used in a server.", ephemeral=True
@@ -2170,7 +2213,9 @@ class SanitizerBot(discord.Client):
             f"Reset settings to defaults {scope_note}. {note}", ephemeral=True
         )
 
-    async def cmd_global_reset_settings(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
+    async def cmd_global_reset_settings(
+        self, interaction: discord.Interaction, confirm: Optional[bool] = False
+    ):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2313,7 +2358,12 @@ class SanitizerBot(discord.Client):
                 f"Failed to delete all user data{detail}", ephemeral=True
             )
 
-    async def cmd_nuke_bot_admins(self, interaction: discord.Interaction, server_id: Optional[str] = None, confirm: Optional[bool] = False):
+    async def cmd_nuke_bot_admins(
+        self,
+        interaction: discord.Interaction,
+        server_id: Optional[str] = None,
+        confirm: Optional[bool] = False,
+    ):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2355,7 +2405,9 @@ class SanitizerBot(discord.Client):
             f"Removed {deleted} bot admin(s) from {scope_note}.", ephemeral=True
         )
 
-    async def cmd_global_bot_disable(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
+    async def cmd_global_bot_disable(
+        self, interaction: discord.Interaction, confirm: Optional[bool] = False
+    ):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2388,7 +2440,9 @@ class SanitizerBot(discord.Client):
             ephemeral=True,
         )
 
-    async def cmd_global_nuke_bot_admins(self, interaction: discord.Interaction, confirm: Optional[bool] = False):
+    async def cmd_global_nuke_bot_admins(
+        self, interaction: discord.Interaction, confirm: Optional[bool] = False
+    ):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2630,9 +2684,7 @@ class SanitizerBot(discord.Client):
             msg = f"Removed server ID {gid} from blacklist."
         else:
             msg = f"Server ID {gid} was not in the blacklist."
-        await interaction.response.send_message(
-            msg, ephemeral=True
-        )
+        await interaction.response.send_message(msg, ephemeral=True)
 
     async def cmd_set_blacklist_reason(
         self,
@@ -2674,9 +2726,7 @@ class SanitizerBot(discord.Client):
             if (reason and reason.strip())
             else f"Cleared blacklist reason for {gid}."
         )
-        await interaction.response.send_message(
-            text, ephemeral=True
-        )
+        await interaction.response.send_message(text, ephemeral=True)
 
     async def cmd_list_blacklisted_servers(self, interaction: discord.Interaction):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
@@ -2710,9 +2760,7 @@ class SanitizerBot(discord.Client):
             else:
                 lines.append(f"• {label}")
         text = "Blacklisted servers:\n" + "\n".join(lines)
-        await interaction.response.send_message(
-            text, ephemeral=True
-        )
+        await interaction.response.send_message(text, ephemeral=True)
 
     async def cmd_list_bot_admins(
         self, interaction: discord.Interaction, server_id: Optional[str] = None
