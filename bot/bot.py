@@ -1343,6 +1343,7 @@ class SanitizerBot(discord.Client):
                 )
                 return
             updated = []
+            will_enable = False
             errors = []
             for tok in tokens:
                 k, v_raw = tok.split("=", 1)
@@ -1371,6 +1372,8 @@ class SanitizerBot(discord.Client):
                         "enabled",
                     }:
                         v = parse_bool_str(v_raw)
+                        if k == "enabled" and bool(v) is True:
+                            will_enable = True
                     elif k in {"logging_channel_id", "bypass_role_id"}:
                         v = (
                             int(v_raw)
@@ -1389,6 +1392,13 @@ class SanitizerBot(discord.Client):
                                     "fallback_label must be 1-20 characters: letters, numbers, spaces, or dashes"
                                 )
                             v = lab
+                    elif k == "fallback_mode":
+                        mv = v_raw.strip().lower()
+                        if mv not in {"default", "randomized", "username"}:
+                            raise ValueError(
+                                "fallback_mode must be one of: default, randomized, username"
+                            )
+                        v = mv
                     else:
                         errors.append(f"Unsupported key: {k}")
                         continue
@@ -1402,7 +1412,7 @@ class SanitizerBot(discord.Client):
             if errors:
                 msg.append("Errors: " + "; ".join(errors))
             text = "\n".join(msg) if msg else "No changes."
-            if warn_disabled:
+            if warn_disabled and not will_enable:
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
             return
@@ -1521,7 +1531,8 @@ class SanitizerBot(discord.Client):
             else:
                 display = str(v)
             text = f"Updated {key} to {display}."
-            if warn_disabled:
+            # Suppress the disabled warning if this operation enabled the bot
+            if warn_disabled and not (key == "enabled" and isinstance(v, bool) and v is True):
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
         except Exception as e:
