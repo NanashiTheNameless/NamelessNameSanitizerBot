@@ -1302,7 +1302,12 @@ class SanitizerBot(discord.Client):
         if not key:
             return []  # Cannot infer yet
         # Classification sets
-        INT_KEYS = {"check_length", "min_nick_length", "max_nick_length", "cooldown_seconds"}
+        INT_KEYS = {
+            "check_length",
+            "min_nick_length",
+            "max_nick_length",
+            "cooldown_seconds",
+        }
         BOOL_KEYS = {"enabled", "preserve_spaces", "sanitize_emoji", "enforce_bots"}
         MODE_KEYS = {"fallback_mode"}
         ID_KEYS = {"logging_channel_id", "bypass_role_id"}
@@ -1347,7 +1352,11 @@ class SanitizerBot(discord.Client):
                 gid = interaction.guild.id
             # If in DMs and no server_id, prompt user to provide it
             if gid is None:
-                return [discord.app_commands.Choice(name="Provide server_id for suggestions", value="none")]
+                return [
+                    discord.app_commands.Choice(
+                        name="Provide server_id for suggestions", value="none"
+                    )
+                ]
             if not cur_l or "none".startswith(cur_l):
                 out.append(discord.app_commands.Choice(name="none", value="none"))
             try:
@@ -1360,7 +1369,9 @@ class SanitizerBot(discord.Client):
                             label = f"#{nm} ({cid})" if nm else cid
                             hay = f"{nm} {cid}".lower()
                             if not cur_l or cur_l in hay:
-                                out.append(discord.app_commands.Choice(name=label, value=cid))
+                                out.append(
+                                    discord.app_commands.Choice(name=label, value=cid)
+                                )
                             if len(out) >= 25:
                                 break
                     else:  # bypass_role_id
@@ -1370,7 +1381,9 @@ class SanitizerBot(discord.Client):
                             label = f"@{nm} ({rid})" if nm else rid
                             hay = f"{nm} {rid}".lower()
                             if not cur_l or cur_l in hay:
-                                out.append(discord.app_commands.Choice(name=label, value=rid))
+                                out.append(
+                                    discord.app_commands.Choice(name=label, value=rid)
+                                )
                             if len(out) >= 25:
                                 break
             except Exception:
