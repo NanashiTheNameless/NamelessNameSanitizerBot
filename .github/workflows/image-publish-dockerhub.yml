@@ -38,7 +38,6 @@ jobs:
           flavor: |
             latest=true
           tags: |
-            type=sha,prefix=git-,format=short,enable=${{ startsWith(github.ref, 'refs/heads/') }}
             type=ref,event=tag
             type=raw,value=latest
 
@@ -47,6 +46,7 @@ jobs:
         with:
           context: .
           push: true
+          provenance: mode=max
           platforms: linux/amd64,linux/arm64,linux/ppc64le
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
