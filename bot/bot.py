@@ -1316,17 +1316,9 @@ class SanitizerBot(discord.Client):
             "max_nick_length",
             "cooldown_seconds",
         }
-        BOOL_KEYS = {
-            "enabled",
-            "preserve_spaces",
-            "sanitize_emoji",
-            "enforce_bots"
-        }
+        BOOL_KEYS = {"enabled", "preserve_spaces", "sanitize_emoji", "enforce_bots"}
         MODE_KEYS = {"fallback_mode"}
-        ID_KEYS = {
-            "logging_channel_id",
-            "bypass_role_id"
-        }
+        ID_KEYS = {"logging_channel_id", "bypass_role_id"}
         LABEL_KEYS = {"fallback_label"}
 
         cur = (current or "").strip()
