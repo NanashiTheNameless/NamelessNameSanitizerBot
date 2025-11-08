@@ -1312,14 +1312,13 @@ class SanitizerBot(discord.Client):
         # Integers
         if key in INT_KEYS:
             if key == "min_nick_length":
-                choices = await self._ac_min_length_value(interaction, current)
+                return await self._ac_min_length_value(interaction, current)
             elif key == "max_nick_length":
-                choices = await self._ac_max_length_value(interaction, current)
+                return await self._ac_max_length_value(interaction, current)
             elif key == "check_length":
-                choices = await self._ac_check_count_value(interaction, current)
+                return await self._ac_check_count_value(interaction, current)
             else:
-                choices = await self._ac_int_value(interaction, current)
-            return [discord.app_commands.Choice(name=c.name, value=str(c.value)) for c in choices][:25]
+                return await self._ac_int_value(interaction, current)
         # Booleans
         if key in BOOL_KEYS:
             return await self._ac_bool_value(interaction, current)
@@ -1332,46 +1331,48 @@ class SanitizerBot(discord.Client):
             ]
             cur_l = cur.lower()
             return [o for o in opts if cur_l in o.name][:25]
-        # IDs (channels/roles) + none sentinel
+        # IDs (channels/roles) + none sentinel; require server_id in DMs
         if key in ID_KEYS:
             cur_l = cur.lower()
             out: list[discord.app_commands.Choice[str]] = []
+            ns = getattr(interaction, "namespace", None)
+            server_id = getattr(ns, "server_id", None) if ns else None
+            gid: int | None = None
+            if server_id:
+                try:
+                    gid = int(server_id)
+                except Exception:
+                    gid = None
+            if gid is None and interaction.guild is not None:
+                gid = interaction.guild.id
+            # If in DMs and no server_id, prompt user to provide it
+            if gid is None:
+                return [discord.app_commands.Choice(name="Provide server_id for suggestions", value="none")]
             if not cur_l or "none".startswith(cur_l):
                 out.append(discord.app_commands.Choice(name="none", value="none"))
             try:
-                ns = getattr(interaction, "namespace", None)
-                server_id = getattr(ns, "server_id", None) if ns else None
-                gid: int | None = None
-                if server_id:
-                    try:
-                        gid = int(server_id)
-                    except Exception:
-                        gid = None
-                if gid is None and interaction.guild is not None:
-                    gid = interaction.guild.id
-                if gid is not None:
-                    g = self.get_guild(gid)
-                    if g is not None:
-                        if key == "logging_channel_id":
-                            for ch in getattr(g, "text_channels", [])[:100]:
-                                nm = getattr(ch, "name", "")
-                                cid = str(getattr(ch, "id", ""))
-                                label = f"#{nm} ({cid})" if nm else cid
-                                hay = f"{nm} {cid}".lower()
-                                if not cur_l or cur_l in hay:
-                                    out.append(discord.app_commands.Choice(name=label, value=cid))
-                                if len(out) >= 25:
-                                    break
-                        else:  # bypass_role_id
-                            for role in getattr(g, "roles", [])[:100]:
-                                nm = getattr(role, "name", "")
-                                rid = str(getattr(role, "id", ""))
-                                label = f"@{nm} ({rid})" if nm else rid
-                                hay = f"{nm} {rid}".lower()
-                                if not cur_l or cur_l in hay:
-                                    out.append(discord.app_commands.Choice(name=label, value=rid))
-                                if len(out) >= 25:
-                                    break
+                g = self.get_guild(gid)
+                if g is not None:
+                    if key == "logging_channel_id":
+                        for ch in getattr(g, "text_channels", [])[:100]:
+                            nm = getattr(ch, "name", "")
+                            cid = str(getattr(ch, "id", ""))
+                            label = f"#{nm} ({cid})" if nm else cid
+                            hay = f"{nm} {cid}".lower()
+                            if not cur_l or cur_l in hay:
+                                out.append(discord.app_commands.Choice(name=label, value=cid))
+                            if len(out) >= 25:
+                                break
+                    else:  # bypass_role_id
+                        for role in getattr(g, "roles", [])[:100]:
+                            nm = getattr(role, "name", "")
+                            rid = str(getattr(role, "id", ""))
+                            label = f"@{nm} ({rid})" if nm else rid
+                            hay = f"{nm} {rid}".lower()
+                            if not cur_l or cur_l in hay:
+                                out.append(discord.app_commands.Choice(name=label, value=rid))
+                            if len(out) >= 25:
+                                break
             except Exception:
                 pass
             return out[:25]
