@@ -578,8 +578,10 @@ class SanitizerBot(discord.Client):
         log.info("[STARTUP] Connected guilds: %s", gids or "<none>")
 
         if APPLICATION_ID:
-            invite = f"https://discord.com/oauth2/authorize?client_id={APPLICATION_ID}&scope=bot%20applications.commands&permissions=134217728"
+            invite = f"https://discord.com/oauth2/authorize?client_id={APPLICATION_ID}&scope=bot%20applications.commands&permissions=134217728&integration_type=0"
+            user_install = f"https://discord.com/oauth2/authorize?client_id={APPLICATION_ID}&scope=applications.commands&integration_type=1"
             log.info(f"[INFO] Bot invite link: {invite}")
+            log.info(f"[INFO] User-install link (DM commands): {user_install}")
         else:
             log.warning(
                 "[INFO] APPLICATION_ID is not set. Set it in your .env to generate a bot invite link."
