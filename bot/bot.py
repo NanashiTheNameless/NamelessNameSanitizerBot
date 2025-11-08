@@ -62,17 +62,42 @@ class SanitizerBot(discord.Client):
 
         self._policy_keys = [
             discord.app_commands.Choice(name="enabled (true/false)", value="enabled"),
-            discord.app_commands.Choice(name="check_length (integer)", value="check_length"),
-            discord.app_commands.Choice(name="min_nick_length (integer)", value="min_nick_length"),
-            discord.app_commands.Choice(name="max_nick_length (integer)", value="max_nick_length"),
-            discord.app_commands.Choice(name="cooldown_seconds (integer)", value="cooldown_seconds"),
-            discord.app_commands.Choice(name="preserve_spaces (true/false)", value="preserve_spaces"),
-            discord.app_commands.Choice(name="sanitize_emoji (true/false)", value="sanitize_emoji"),
-            discord.app_commands.Choice(name="enforce_bots (true/false)", value="enforce_bots"),
-            discord.app_commands.Choice(name="logging_channel_id (channel id or none)", value="logging_channel_id"),
-            discord.app_commands.Choice(name="bypass_role_id (role id or none)", value="bypass_role_id"),
-            discord.app_commands.Choice(name="fallback_mode (default|randomized|username)", value="fallback_mode"),
-            discord.app_commands.Choice(name="fallback_label (1-20, letters/numbers/spaces/dashes)", value="fallback_label"),
+            discord.app_commands.Choice(
+                name="check_length (integer)", value="check_length"
+            ),
+            discord.app_commands.Choice(
+                name="min_nick_length (integer)", value="min_nick_length"
+            ),
+            discord.app_commands.Choice(
+                name="max_nick_length (integer)", value="max_nick_length"
+            ),
+            discord.app_commands.Choice(
+                name="cooldown_seconds (integer)", value="cooldown_seconds"
+            ),
+            discord.app_commands.Choice(
+                name="preserve_spaces (true/false)", value="preserve_spaces"
+            ),
+            discord.app_commands.Choice(
+                name="sanitize_emoji (true/false)", value="sanitize_emoji"
+            ),
+            discord.app_commands.Choice(
+                name="enforce_bots (true/false)", value="enforce_bots"
+            ),
+            discord.app_commands.Choice(
+                name="logging_channel_id (channel id or none)",
+                value="logging_channel_id",
+            ),
+            discord.app_commands.Choice(
+                name="bypass_role_id (role id or none)", value="bypass_role_id"
+            ),
+            discord.app_commands.Choice(
+                name="fallback_mode (default|randomized|username)",
+                value="fallback_mode",
+            ),
+            discord.app_commands.Choice(
+                name="fallback_label (1-20, letters/numbers/spaces/dashes)",
+                value="fallback_label",
+            ),
         ]
 
     async def _dm_owner(self, content: str) -> bool:
