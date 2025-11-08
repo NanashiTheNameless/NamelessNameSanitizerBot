@@ -10,6 +10,7 @@ env:
 
 jobs:
   build-and-push:
+    name: Build and Push Docker Image (Docker Hub)
     runs-on: ubuntu-latest
     permissions:
       contents: read

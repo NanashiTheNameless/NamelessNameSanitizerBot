@@ -28,7 +28,7 @@ DISABLE:
 
 SHOW_ELAPSED_TIME: true
 
-MARKDOWN_FILTER_REGEX_EXCLUDE: '(LICENSE\.md|TermsOfService\.md|docs/licenses)'
+MARKDOWN_FILTER_REGEX_EXCLUDE: '(LICENSE\.md|TermsOfService\.md|PrivacyPolicy\.md|docs/licenses)'
 MARKDOWN_MARKDOWN_LINK_CHECK_DISABLE_ERRORS: true
 SPELL_FILTER_REGEX_EXCLUDE: (valestyles|\.github|docs/licenses)
 
