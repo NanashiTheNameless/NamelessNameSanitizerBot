@@ -6,11 +6,11 @@ from discord import app_commands  # type: ignore
 def _ai(guilds: bool = True, users: bool = True):
     """Return app_commands.allowed_installs if available, else identity decorator.
 
-    This makes commands usable via user-install (DMs) when the library supports it.
+    This makes commands usable via bot DMs when the library supports it.
     """
     AI = getattr(app_commands, "allowed_installs", None)
     if AI:
-        return AI(guilds=guilds, users=users)
+        return AI(guilds=guilds, users=False)
 
     def deco(f):
         return f

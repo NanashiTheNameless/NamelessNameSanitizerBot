@@ -1296,129 +1296,52 @@ class SanitizerBot(discord.Client):
         return [o for o in opts if cur_l in o.name][:25]
 
     async def _ac_policy_value(self, interaction: discord.Interaction, current: str):
-        # Robustly extract the key for which value autocomplete is being requested
-        raw_key = None
-        # Try to get from interaction.namespace (discord.py <2.4 style)
-        if hasattr(interaction, "namespace") and hasattr(interaction.namespace, "key"):
-            raw_key = getattr(interaction.namespace, "key", None)
-        # Try to get from interaction.data (discord.py >=2.4 style)
-        if not raw_key and hasattr(interaction, "data"):
-            # Look for the focused option
-            options = interaction.data.get("options", [])
-            for opt in options:
-                if opt.get("focused"):
-                    # Find the key argument in the same option set
-                    for o in options:
-                        if o.get("name") == "key":
-                            raw_key = o.get("value")
-                            break
-                    break
-        rk = (raw_key or "").strip().lower()
-        # Normalize keys that include display annotations, e.g. "min_nick_length (integer)"
-        # Keep only the base identifier before any parentheses or trailing descriptors
-        if rk:
-            if "(" in rk:
-                rk = rk.split("(", 1)[0].strip()
-            if " " in rk:
-                rk = rk.split(" ", 1)[0].strip()
-        key = rk
-        if not key:
-            return []  # Cannot infer yet
-        # Classification sets
-        INT_KEYS = {
+        key = getattr(getattr(interaction, "namespace", object()), "key", None)
+        key = (key or "").lower()
+
+        aliases = {
+            "enabled": "enabled",
+            "check_length": "check_length",
+            "min_nick_length": "min_nick_length",
+            "max_nick_length": "max_nick_length",
+            "cooldown_seconds": "cooldown_seconds",
+            "fallback_label": "fallback_label",
+        }
+        key = aliases.get(key, key)
+        if key in {
             "check_length",
             "min_nick_length",
             "max_nick_length",
             "cooldown_seconds",
-        }
-        BOOL_KEYS = {"enabled", "preserve_spaces", "sanitize_emoji", "enforce_bots"}
-        MODE_KEYS = {"fallback_mode"}
-        ID_KEYS = {"logging_channel_id", "bypass_role_id"}
-        LABEL_KEYS = {"fallback_label"}
-
-        cur = (current or "").strip()
-        # Integers
-        if key in INT_KEYS:
+        }:
+            # For min/max nick lengths, constrain suggestions appropriately
             if key == "min_nick_length":
-                return await self._ac_min_length_value(interaction, current)
+                choices = await self._ac_min_length_value(interaction, current)
             elif key == "max_nick_length":
-                return await self._ac_max_length_value(interaction, current)
+                choices = await self._ac_max_length_value(interaction, current)
             elif key == "check_length":
-                return await self._ac_check_count_value(interaction, current)
+                choices = await self._ac_check_count_value(interaction, current)
             else:
-                return await self._ac_int_value(interaction, current)
-        # Booleans
-        if key in BOOL_KEYS:
-            return await self._ac_bool_value(interaction, current)
-        # Fallback mode
-        if key in MODE_KEYS:
-            opts = [
-                discord.app_commands.Choice(name="default", value="default"),
-                discord.app_commands.Choice(name="randomized", value="randomized"),
-                discord.app_commands.Choice(name="username", value="username"),
+                choices = await self._ac_int_value(interaction, current)
+            return [
+                discord.app_commands.Choice(name=c.name, value=str(c.value))
+                for c in choices
             ]
-            cur_l = cur.lower()
-            return [o for o in opts if cur_l in o.name][:25]
-        # IDs (channels/roles) + none sentinel; require server_id in DMs
-        if key in ID_KEYS:
-            cur_l = cur.lower()
-            out: list[discord.app_commands.Choice[str]] = []
-            ns = getattr(interaction, "namespace", None)
-            server_id = getattr(ns, "server_id", None) if ns else None
-            gid: int | None = None
-            if server_id:
-                try:
-                    gid = int(server_id)
-                except Exception:
-                    gid = None
-            if gid is None and interaction.guild is not None:
-                gid = interaction.guild.id
-            # If in DMs and no server_id, prompt user to provide it
-            if gid is None:
-                return [
-                    discord.app_commands.Choice(
-                        name="Provide server_id for suggestions", value="none"
-                    )
+        if key in {
+            "preserve_spaces",
+            "sanitize_emoji",
+            "enforce_bots",
+            "fallback_mode",  # special-case handled below
+        }:
+            if key == "fallback_mode":
+                opts = [
+                    discord.app_commands.Choice(name="default", value="default"),
+                    discord.app_commands.Choice(name="randomized", value="randomized"),
+                    discord.app_commands.Choice(name="username", value="username"),
                 ]
-            if not cur_l or "none".startswith(cur_l):
-                out.append(discord.app_commands.Choice(name="none", value="none"))
-            try:
-                g = self.get_guild(gid)
-                if g is not None:
-                    if key == "logging_channel_id":
-                        for ch in getattr(g, "text_channels", [])[:100]:
-                            nm = getattr(ch, "name", "")
-                            cid = str(getattr(ch, "id", ""))
-                            label = f"#{nm} ({cid})" if nm else cid
-                            hay = f"{nm} {cid}".lower()
-                            if not cur_l or cur_l in hay:
-                                out.append(
-                                    discord.app_commands.Choice(name=label, value=cid)
-                                )
-                            if len(out) >= 25:
-                                break
-                    else:  # bypass_role_id
-                        for role in getattr(g, "roles", [])[:100]:
-                            nm = getattr(role, "name", "")
-                            rid = str(getattr(role, "id", ""))
-                            label = f"@{nm} ({rid})" if nm else rid
-                            hay = f"{nm} {rid}".lower()
-                            if not cur_l or cur_l in hay:
-                                out.append(
-                                    discord.app_commands.Choice(name=label, value=rid)
-                                )
-                            if len(out) >= 25:
-                                break
-            except Exception:
-                pass
-            return out[:25]
-        # Fallback label: suggest clearing sentinel only when matches current partial
-        if key in LABEL_KEYS:
-            cur_l = cur.lower()
-            opts = []
-            if not cur_l or "none".startswith(cur_l):
-                opts.append(discord.app_commands.Choice(name="none", value="none"))
-            return opts[:25]
+                cur_l = (current or "").lower()
+                return [o for o in opts if cur_l in o.name][:25]
+            return await self._ac_bool_value(interaction, current)
         return []
 
     async def _ac_guild_id(self, interaction: discord.Interaction, current: str):
@@ -1632,10 +1555,15 @@ class SanitizerBot(discord.Client):
             "min_nick_length",
             "max_nick_length",
             "cooldown_seconds",
+            "preserve_spaces",
+            "sanitize_emoji",
             "logging_channel_id",
             "bypass_role_id",
             "fallback_mode",
             "fallback_label",
+            "enforce_bots",
+            "fallback_mode",
+            "enabled",
         }
 
         def _unquote(s: str) -> str:
