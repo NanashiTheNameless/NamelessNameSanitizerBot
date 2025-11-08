@@ -174,7 +174,7 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - All destructive owner commands respect a separate cooldown window governed by OWNER_DESTRUCTIVE_COOLDOWN_SECONDS.
 - Owner-only server ID autocomplete is enforced. For /unblacklist-server, autocomplete lists only servers that are currently blacklisted (owner-only).
 - /set-policy without a value shows the current value.
-- /set-policy pairs accepts keys: `enabled, check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label, fallback_mode, enforce_bots`.
+- /set-policy pairs accepts keys: `enabled, check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, enforce_bots, logging_channel_id, bypass_role_id, fallback_mode, fallback_label`.
 - Remote management: Add `server_id` to /set-policy or /reset-settings (and owner-only admin commands) to operate on another server. In DMs the `server_id` argument is required.
 - Safety: Destructive operations (reset-settings, blacklist/unblacklist, leave-server) require `confirm=true`.
 - Admin user parameter now accepts a generic user mention (@User) rather than a guild Member object for cross-guild management.
