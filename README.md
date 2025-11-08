@@ -144,14 +144,14 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - /set-fallback-label [value:str] — Set/view custom fallback label (1–20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` or `username` mode except final fallback in username mode.
 - /clear-logging-channel — Remove logging channel (reverts to none).
 - /clear-bypass-role — Remove bypass role (all members subject to policy again).
-- /reset-settings — Reset this server’s sanitizer settings to global defaults (.env derived).
-- /set-policy [key:key] [value:value] [pairs:k=v ...] — View/update policy settings; supports multi-update with quoted values.
+- /reset-settings [server_id:str] [confirm:bool] — Reset a server’s sanitizer settings to global defaults (.env derived). server_id optional in-guild; required in DMs for remote resets. Requires confirm=true.
+- /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] — View/update policy settings; supports multi-update with quoted values; server_id allows remote guild management (owner or that guild's bot admin); required in DMs.
 
 ### Owner-only
 
-- /add-bot-admin user:Member — Grant bot admin privileges in the current server.
-- /remove-bot-admin user:Member — Revoke bot admin privileges in the current server.
-- /list-bot-admins — List bot admins (server context or pass server_id in DMs).
+- /add-bot-admin user:@User [server_id:str] — Grant bot admin privileges for a server (current if omitted; server_id required in DMs).
+- /remove-bot-admin user:@User [server_id:str] — Revoke bot admin privileges for a server (current if omitted; server_id required in DMs).
+- /list-bot-admins [server_id:str] — List bot admins (current server if omitted; server_id required in DMs).
 - /global-bot-disable — Disable enforcement across all servers immediately.
 - /global-reset-settings — Reset sanitizer settings to defaults across every server.
 - /blacklist-server [server_id:str] [reason:str] [confirm:bool] — Blacklist a server; bot auto-leaves and purges its data on join/startup.
@@ -173,6 +173,10 @@ Policies are stored per guild in Postgres; defaults are derived from `.env` unti
 - Owner-only server ID autocomplete is enforced. For /unblacklist-server, autocomplete lists only servers that are currently blacklisted (owner-only).
 - /set-policy without a value shows the current value.
 - /set-policy pairs accepts keys: `enabled, check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, logging_channel_id, bypass_role_id, fallback_label, fallback_mode, enforce_bots`.
+- Remote management: Add `server_id` to /set-policy or /reset-settings (and owner-only admin commands) to operate on another server. In DMs the `server_id` argument is required.
+- Safety: Destructive operations (reset-settings, blacklist/unblacklist, leave-server) require `confirm=true`.
+- Admin user parameter now accepts a generic user mention (@User) rather than a guild Member object for cross-guild management.
+- Owner commands are now invokable from DMs (and user installs) while still enforcing OWNER_ID checks.
 - /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="true" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="true" cooldown_seconds="30" sanitize_emoji="true" enforce_bots="false" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
 - Use the literal string `none` (quoted or unquoted) to clear `logging_channel_id`, `bypass_role_id`, or `fallback_label`.
 - `/dm-server-settings` messages are chunked only between servers to respect Discord limits; each line per server is a complete pasteable set of pairs.

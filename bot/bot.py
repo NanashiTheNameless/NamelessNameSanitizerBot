@@ -47,6 +47,28 @@ log = logging.getLogger("sanitizerbot")
 def now():
     return time.time()
 
+# Helper decorators: allow user-install and broader contexts when supported by discord.py
+def _ai(guilds: bool = True, users: bool = True):
+    AI = getattr(app_commands, "allowed_installs", None)
+    if AI:
+        return AI(guilds=guilds, users=users)
+
+    def deco(f):
+        return f
+
+    return deco
+
+
+def _acx(guilds: bool = True, dms: bool = True, private_channels: bool = True):
+    ACX = getattr(app_commands, "allowed_contexts", None)
+    if ACX:
+        return ACX(guilds=guilds, dms=dms, private_channels=private_channels)
+
+    def deco(f):
+        return f
+
+    return deco
+
 
 class SanitizerBot(discord.Client):
     def __init__(self, intents: discord.Intents):
@@ -171,15 +193,17 @@ class SanitizerBot(discord.Client):
             key="Policy key to change (ignored if 'pairs' is provided)",
             value="New value for the policy key (leave empty to view current)",
             pairs="Multiple key=value pairs separated by spaces, e.g. 'min_nick_length=3 max_nick_length=24'",
+            server_id="Optional server (guild) ID to modify; required in DMs or when editing another server",
         )
-        @app_commands.autocomplete(key=self._ac_policy_key, value=self._ac_policy_value)
+        @app_commands.autocomplete(key=self._ac_policy_key, value=self._ac_policy_value, server_id=self._ac_guild_id)
         async def _set_policy(
             interaction: discord.Interaction,
             key: Optional[str] = None,
             value: Optional[str] = None,
             pairs: Optional[str] = None,
+            server_id: Optional[str] = None,
         ):
-            await self.cmd_set_setting(interaction, key, value, pairs)
+            await self.cmd_set_setting(interaction, key, value, pairs, server_id)
 
         @self.tree.command(
             name="set-logging-channel",
@@ -311,8 +335,17 @@ class SanitizerBot(discord.Client):
             name="reset-settings",
             description="Bot Admin Only: Reset all sanitizer settings to defaults for this server",
         )
-        async def _reset_settings(interaction: discord.Interaction):
-            await self.cmd_reset_settings(interaction)
+        @app_commands.describe(
+            server_id="Optional server (guild) ID to reset; required in DMs or to target another server",
+            confirm="Type true to confirm"
+        )
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        async def _reset_settings(
+            interaction: discord.Interaction,
+            server_id: Optional[str] = None,
+            confirm: Optional[bool] = False,
+        ):
+            await self.cmd_reset_settings(interaction, server_id, confirm)
 
         @self.tree.command(
             name="sweep-now",
@@ -327,20 +360,30 @@ class SanitizerBot(discord.Client):
             name="add-bot-admin",
             description="Bot Owner Only: Add a bot admin for this server",
         )
-        async def _add_admin(interaction: discord.Interaction, user: discord.Member):
-            await self.cmd_add_admin(interaction, user)
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
+        @app_commands.describe(server_id="Optional server (guild) ID to modify; required in DMs or to target another server")
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        async def _add_admin(interaction: discord.Interaction, user: discord.User, server_id: Optional[str] = None):
+            await self.cmd_add_admin(interaction, user, server_id)
 
         @self.tree.command(
             name="remove-bot-admin",
             description="Bot Owner Only: Remove a bot admin for this server",
         )
-        async def _remove_admin(interaction: discord.Interaction, user: discord.Member):
-            await self.cmd_remove_admin(interaction, user)
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
+        @app_commands.describe(server_id="Optional server (guild) ID to modify; required in DMs or to target another server")
+        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        async def _remove_admin(interaction: discord.Interaction, user: discord.User, server_id: Optional[str] = None):
+            await self.cmd_remove_admin(interaction, user, server_id)
 
         @self.tree.command(
             name="list-bot-admins",
             description="Bot Owner Only: List bot admins for a server",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         @app_commands.describe(
             server_id="Optional server (guild) ID to list; required in DMs"
         )
@@ -354,6 +397,8 @@ class SanitizerBot(discord.Client):
             name="dm-admin-report",
             description="Bot Owner Only: DM a report of all servers and their bot admins",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _dm_admin_report(interaction: discord.Interaction):
             await self.cmd_dm_admin_report(interaction)
 
@@ -361,6 +406,8 @@ class SanitizerBot(discord.Client):
             name="dm-server-settings",
             description="Bot Owner Only: DM a report of all servers and their sanitizer settings",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _dm_server_settings(interaction: discord.Interaction):
             await self.cmd_dm_server_settings(interaction)
 
@@ -368,6 +415,8 @@ class SanitizerBot(discord.Client):
             name="global-bot-disable",
             description="Bot Owner Only: Disable the sanitizer bot in all servers",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _global_disable(interaction: discord.Interaction):
             await self.cmd_global_bot_disable(interaction)
 
@@ -375,6 +424,8 @@ class SanitizerBot(discord.Client):
             name="global-reset-settings",
             description="Bot Owner Only: Reset all sanitizer settings to defaults across all servers",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _global_reset_settings(interaction: discord.Interaction):
             await self.cmd_global_reset_settings(interaction)
 
@@ -382,6 +433,8 @@ class SanitizerBot(discord.Client):
             name="nuke-bot-admins",
             description="Bot Owner Only: Remove all bot admins in this server",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _nuke_admins(interaction: discord.Interaction):
             await self.cmd_nuke_bot_admins(interaction)
 
@@ -389,6 +442,8 @@ class SanitizerBot(discord.Client):
             name="global-nuke-bot-admins",
             description="Bot Owner Only: Remove all bot admins in all servers",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _global_nuke_admins(interaction: discord.Interaction):
             await self.cmd_global_nuke_bot_admins(interaction)
 
@@ -396,6 +451,8 @@ class SanitizerBot(discord.Client):
             name="blacklist-server",
             description="Bot Owner Only: Add a server ID to the blacklist (auto-leave on join/startup)",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         @app_commands.describe(
             server_id="Guild ID to blacklist",
             reason="Optional reason for blacklisting",
@@ -414,6 +471,8 @@ class SanitizerBot(discord.Client):
             name="unblacklist-server",
             description="Bot Owner Only: Remove a server ID from the blacklist",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         @app_commands.describe(
             server_id="Guild ID to remove from blacklist",
             confirm="Type true to confirm",
@@ -430,6 +489,8 @@ class SanitizerBot(discord.Client):
             name="set-blacklist-reason",
             description="Bot Owner Only: Update the reason for a blacklisted server",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         @app_commands.describe(
             server_id="Guild ID whose blacklist reason to set",
             reason="New reason text (empty to clear)",
@@ -446,6 +507,8 @@ class SanitizerBot(discord.Client):
             name="list-blacklisted-servers",
             description="Bot Owner Only: List all blacklisted server IDs",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _list_blacklisted_servers(interaction: discord.Interaction):
             await self.cmd_list_blacklisted_servers(interaction)
 
@@ -453,6 +516,8 @@ class SanitizerBot(discord.Client):
             name="leave-server",
             description="Bot Owner Only: Leave a server and delete its stored data",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         @app_commands.describe(
             server_id="The server (guild) ID to leave", confirm="Type true to confirm"
         )
@@ -468,6 +533,8 @@ class SanitizerBot(discord.Client):
             name="delete-user-data",
             description="Bot Owner Only: Delete a user's stored data across all servers (cooldowns/admin entries)",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _owner_delete_user_data(
             interaction: discord.Interaction, user: discord.User
         ):
@@ -477,6 +544,8 @@ class SanitizerBot(discord.Client):
             name="global-delete-user-data",
             description="Bot Owner Only: Delete all user data across all servers and announce in configured logging channels",
         )
+        @_ai(guilds=True, users=True)
+        @_acx(guilds=True, dms=True, private_channels=True)
         async def _global_delete_user_data(
             interaction: discord.Interaction,
         ):
@@ -1277,25 +1346,42 @@ class SanitizerBot(discord.Client):
         key: Optional[str] = None,
         value: Optional[str] = None,
         pairs: Optional[str] = None,
+        server_id: Optional[str] = None,
     ):
-        if not interaction.guild:
-            await interaction.response.send_message(
-                "This command can only be used in a server.", ephemeral=True
-            )
-            return
+        # Resolve target guild ID (allow remote management when specifying server_id)
+        if server_id:
+            try:
+                target_gid = int(server_id)
+            except Exception:
+                await interaction.response.send_message(
+                    f"'{server_id}' is not a valid server ID.",
+                    ephemeral=interaction.guild is not None,
+                )
+                return
+        else:
+            if interaction.guild is None:
+                await interaction.response.send_message(
+                    "server_id is required when used in DMs.",
+                    ephemeral=False,
+                )
+                return
+            target_gid = interaction.guild.id
+
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
             )
             return
+        # Permission check: owner bypass; otherwise must be bot admin of target guild
+        if not (OWNER_ID and interaction.user.id == OWNER_ID):
+            if not await self._is_bot_admin(target_gid, interaction.user.id):
+                await interaction.response.send_message(
+                    "You are not authorized to modify settings for that server.",
+                    ephemeral=interaction.guild is not None,
+                )
+                return
 
-        if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
-            await interaction.response.send_message(
-                "Only bot admins can modify settings.", ephemeral=True
-            )
-            return
-
-        settings = await self.db.get_settings(interaction.guild.id)
+        settings = await self.db.get_settings(target_gid)
         warn_disabled = None
         if not settings.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
@@ -1402,7 +1488,7 @@ class SanitizerBot(discord.Client):
                     else:
                         errors.append(f"Unsupported key: {k}")
                         continue
-                    await self.db.set_setting(interaction.guild.id, k, v)
+                    await self.db.set_setting(target_gid, k, v)
                     updated.append(f"{k}={v}")
                 except Exception as e:
                     errors.append(f"{k}: {e}")
@@ -1432,7 +1518,7 @@ class SanitizerBot(discord.Client):
         key = key_alias.get(raw_key, raw_key)
 
         if value is None:
-            s = await self.db.get_settings(interaction.guild.id)
+            s = await self.db.get_settings(target_gid)
             if key == "check_length":
                 cur = s.check_length
             elif key == "min_nick_length":
@@ -1518,7 +1604,7 @@ class SanitizerBot(discord.Client):
                     "Unsupported setting.", ephemeral=True
                 )
                 return
-            await self.db.set_setting(interaction.guild.id, key, v)
+            await self.db.set_setting(target_gid, key, v)
             # Build a friendly display of the value that was set
             if key == "logging_channel_id":
                 display = f"<#{v}>" if v else "None"
@@ -1914,25 +2000,57 @@ class SanitizerBot(discord.Client):
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_reset_settings(self, interaction: discord.Interaction):
-        if not interaction.guild:
-            await interaction.response.send_message(
-                "This command can only be used in a server.", ephemeral=True
-            )
-            return
+    async def cmd_reset_settings(self, interaction: discord.Interaction, server_id: Optional[str] = None, confirm: Optional[bool] = False):
+        # Determine target guild
+        if server_id:
+            try:
+                target_gid = int(server_id)
+            except Exception:
+                await interaction.response.send_message(
+                    f"'{server_id}' is not a valid server ID.",
+                    ephemeral=interaction.guild is not None,
+                )
+                return
+        else:
+            if interaction.guild is None:
+                await interaction.response.send_message(
+                    "server_id is required when used in DMs.",
+                    ephemeral=False,
+                )
+                return
+            target_gid = interaction.guild.id
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
             )
             return
-        if not await self._is_bot_admin(interaction.guild.id, interaction.user.id):
+        # Permission: owner bypass; otherwise bot admin of target guild
+        if not (OWNER_ID and interaction.user.id == OWNER_ID):
+            if not await self._is_bot_admin(target_gid, interaction.user.id):
+                await interaction.response.send_message(
+                    "You are not authorized to reset settings for that server.",
+                    ephemeral=interaction.guild is not None,
+                )
+                return
+        # Require confirmation
+        if not confirm:
             await interaction.response.send_message(
-                "Only bot admins can modify settings.", ephemeral=True
+                "Confirmation required: pass confirm=true to proceed.",
+                ephemeral=interaction.guild is not None,
+            )
+            return
+        # Perform actual reset
+        try:
+            await self.db.reset_guild_settings(target_gid)
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to reset settings: {e}", ephemeral=interaction.guild is not None,
             )
             return
         note = "The sanitizer is disabled by default; A bot admin needs to run `/enable-sanitizer` to re-enable it."
+        scope_note = "for that server" if (server_id and (interaction.guild is None or target_gid != getattr(interaction.guild, 'id', None))) else "for this server"
         await interaction.response.send_message(
-            f"Reset settings to defaults for this server. {note}", ephemeral=True
+            f"Reset settings to defaults {scope_note}. {note}", ephemeral=True
         )
 
     async def cmd_global_reset_settings(self, interaction: discord.Interaction):
@@ -2166,13 +2284,25 @@ class SanitizerBot(discord.Client):
         return sent
 
     async def cmd_add_admin(
-        self, interaction: discord.Interaction, user: discord.Member
+        self, interaction: discord.Interaction, user: discord.User, server_id: Optional[str] = None
     ):
-        if not interaction.guild:
-            await interaction.response.send_message(
-                "This command can only be used in a server.", ephemeral=True
-            )
-            return
+        # Determine target guild
+        if server_id:
+            try:
+                target_gid = int(server_id)
+            except Exception:
+                await interaction.response.send_message(
+                    f"'{server_id}' is not a valid server ID.",
+                    ephemeral=interaction.guild is not None,
+                )
+                return
+        else:
+            if interaction.guild is None:
+                await interaction.response.send_message(
+                    "server_id is required when used in DMs.", ephemeral=False
+                )
+                return
+            target_gid = interaction.guild.id
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2183,19 +2313,31 @@ class SanitizerBot(discord.Client):
                 "Only the bot owner can manage admins.", ephemeral=True
             )
             return
-        await self.db.add_admin(interaction.guild.id, user.id)
+        await self.db.add_admin(target_gid, user.id)
+        scope_note = "that server" if (server_id and (interaction.guild is None or target_gid != getattr(interaction.guild, 'id', None))) else "this server"
         await interaction.response.send_message(
-            f"Added {user.mention} as bot admin for this server.", ephemeral=True
+            f"Added {user.mention} as bot admin for {scope_note}.", ephemeral=interaction.guild is not None
         )
 
     async def cmd_remove_admin(
-        self, interaction: discord.Interaction, user: discord.Member
+        self, interaction: discord.Interaction, user: discord.User, server_id: Optional[str] = None
     ):
-        if not interaction.guild:
-            await interaction.response.send_message(
-                "This command can only be used in a server.", ephemeral=True
-            )
-            return
+        if server_id:
+            try:
+                target_gid = int(server_id)
+            except Exception:
+                await interaction.response.send_message(
+                    f"'{server_id}' is not a valid server ID.",
+                    ephemeral=interaction.guild is not None,
+                )
+                return
+        else:
+            if interaction.guild is None:
+                await interaction.response.send_message(
+                    "server_id is required when used in DMs.", ephemeral=False
+                )
+                return
+            target_gid = interaction.guild.id
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2206,9 +2348,10 @@ class SanitizerBot(discord.Client):
                 "Only the bot owner can manage admins.", ephemeral=True
             )
             return
-        await self.db.remove_admin(interaction.guild.id, user.id)
+        await self.db.remove_admin(target_gid, user.id)
+        scope_note = "that server" if (server_id and (interaction.guild is None or target_gid != getattr(interaction.guild, 'id', None))) else "this server"
         await interaction.response.send_message(
-            f"Removed {user.mention} as bot admin for this server.", ephemeral=True
+            f"Removed {user.mention} as bot admin for {scope_note}.", ephemeral=interaction.guild is not None
         )
 
     async def cmd_blacklist_server(
