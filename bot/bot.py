@@ -1296,8 +1296,23 @@ class SanitizerBot(discord.Client):
         return [o for o in opts if cur_l in o.name][:25]
 
     async def _ac_policy_value(self, interaction: discord.Interaction, current: str):
-        # Derive key from focused interaction context
-        raw_key = getattr(getattr(interaction, "namespace", object()), "key", None)
+        # Robustly extract the key for which value autocomplete is being requested
+        raw_key = None
+        # Try to get from interaction.namespace (discord.py <2.4 style)
+        if hasattr(interaction, "namespace") and hasattr(interaction.namespace, "key"):
+            raw_key = getattr(interaction.namespace, "key", None)
+        # Try to get from interaction.data (discord.py >=2.4 style)
+        if not raw_key and hasattr(interaction, "data"):
+            # Look for the focused option
+            options = interaction.data.get("options", [])
+            for opt in options:
+                if opt.get("focused"):
+                    # Find the key argument in the same option set
+                    for o in options:
+                        if o.get("name") == "key":
+                            raw_key = o.get("value")
+                            break
+                    break
         rk = (raw_key or "").strip().lower()
         # Normalize keys that include display annotations, e.g. "min_nick_length (integer)"
         # Keep only the base identifier before any parentheses or trailing descriptors
