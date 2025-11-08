@@ -211,8 +211,9 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-fallback-mode",
-            description="Bot Admin Only: Set or view the fallback mode: none|randomized|username",
+            description="Bot Admin Only: Set or view the fallback mode: default|randomized|username",
         )
+        @app_commands.autocomplete(mode=self._ac_fallback_mode)
         async def _set_fallback_mode(
             interaction: discord.Interaction, mode: Optional[str] = None
         ):
@@ -1116,6 +1117,19 @@ class SanitizerBot(discord.Client):
         if current_l and current_l.isdigit():
             vals = [current_l] + [v for v in base if v != current_l]
         return [discord.app_commands.Choice(name=v, value=int(v)) for v in vals][:25]
+
+    async def _ac_fallback_mode(self, interaction: discord.Interaction, current: str):
+        """Autocomplete handler for the /set-fallback-mode command.
+
+        Provides the valid fallback modes filtered by the user's current partial input.
+        """
+        opts = [
+            discord.app_commands.Choice(name="default", value="default"),
+            discord.app_commands.Choice(name="randomized", value="randomized"),
+            discord.app_commands.Choice(name="username", value="username"),
+        ]
+        cur_l = (current or "").lower()
+        return [o for o in opts if cur_l in o.name][:25]
 
     async def _ac_policy_value(self, interaction: discord.Interaction, current: str):
         key = getattr(getattr(interaction, "namespace", object()), "key", None)
