@@ -2145,12 +2145,21 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(text, ephemeral=True)
             return
         lab = value.strip()
+        if lab.lower() in {"none", "null", "unset"}:
+            await self.db.set_setting(interaction.guild.id, "fallback_label", None)
+            text = "fallback_label cleared (set to default)."
+            if warn_disabled:
+                text = f"{text}\n{warn_disabled}"
+            await interaction.response.send_message(text, ephemeral=True)
+            return
+
         if not (1 <= len(lab) <= 20) or not re.fullmatch(r"[A-Za-z0-9 \-]+", lab):
             await interaction.response.send_message(
                 "fallback_label must be 1-20 characters: letters, numbers, spaces, or dashes.",
                 ephemeral=True,
             )
             return
+
         await self.db.set_setting(interaction.guild.id, "fallback_label", lab)
         mode = getattr(settings, "fallback_mode", "default")
         text = f"fallback_label set to '{lab}'."
