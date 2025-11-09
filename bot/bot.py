@@ -23,11 +23,11 @@ from .config import (
     COOLDOWN_TTL_SEC,
     DATABASE_URL,
     DM_OWNER_ON_GUILD_EVENTS,
+    FALLBACK_LABEL,
     OWNER_DESTRUCTIVE_COOLDOWN_SECONDS,
     OWNER_ID,
     SWEEP_INTERVAL_SEC,
     GuildSettings,
-    FALLBACK_LABEL,
     parse_bool_str,
 )
 from .database import Database
@@ -2933,7 +2933,11 @@ class SanitizerBot(discord.Client):
                 f"fallback_mode={q(s.fallback_mode)}",
             ]
             fb = s.fallback_label
-            if fb is None or not str(fb).strip() or (FALLBACK_LABEL and str(fb).strip() == str(FALLBACK_LABEL).strip()):
+            if (
+                fb is None
+                or not str(fb).strip()
+                or (FALLBACK_LABEL and str(fb).strip() == str(FALLBACK_LABEL).strip())
+            ):
                 tokens.append(f"fallback_label={q('none')}")
             else:
                 tokens.append(f"fallback_label={q(s.fallback_label)}")
