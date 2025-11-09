@@ -27,6 +27,7 @@ from .config import (
     OWNER_ID,
     SWEEP_INTERVAL_SEC,
     GuildSettings,
+    FALLBACK_LABEL,
     parse_bool_str,
 )
 from .database import Database
@@ -2922,7 +2923,8 @@ class SanitizerBot(discord.Client):
                 f"logging_channel_id={q(s.logging_channel_id if s.logging_channel_id else 'none')}",
                 f"fallback_mode={q(s.fallback_mode)}",
             ]
-            if s.fallback_label is None or not str(s.fallback_label).strip():
+            fb = s.fallback_label
+            if fb is None or not str(fb).strip() or (FALLBACK_LABEL and str(fb).strip() == str(FALLBACK_LABEL).strip()):
                 tokens.append(f"fallback_label={q('none')}")
             else:
                 tokens.append(f"fallback_label={q(s.fallback_label)}")
