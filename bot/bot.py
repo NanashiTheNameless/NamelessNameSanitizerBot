@@ -1306,6 +1306,12 @@ class SanitizerBot(discord.Client):
             "max_nick_length": "max_nick_length",
             "cooldown_seconds": "cooldown_seconds",
             "fallback_label": "fallback_label",
+            "logging_channel_id": "logging_channel_id",
+            "bypass_role_id": "bypass_role_id",
+            "enforce_bots": "enforce_bots",
+            "preserve_spaces": "preserve_spaces",
+            "sanitize_emoji": "sanitize_emoji",
+            "fallback_mode": "fallback_mode",
         }
         key = aliases.get(key, key)
         if key in {
@@ -1328,6 +1334,7 @@ class SanitizerBot(discord.Client):
                 for c in choices
             ]
         if key in {
+            "enabled",
             "preserve_spaces",
             "sanitize_emoji",
             "enforce_bots",
@@ -1342,6 +1349,59 @@ class SanitizerBot(discord.Client):
                 cur_l = (current or "").lower()
                 return [o for o in opts if cur_l in o.name][:25]
             return await self._ac_bool_value(interaction, current)
+        # For ID-like settings suggest 'none' and current channel/role where applicable
+        if key in {"logging_channel_id", "bypass_role_id"}:
+            cur = (current or "").strip().lower()
+            choices: list[discord.app_commands.Choice[str]] = []
+            # Always include 'none' sentinel
+            if "none".startswith(cur) or not cur:
+                choices.append(discord.app_commands.Choice(name="none", value="none"))
+            try:
+                # Try to infer the target guild from interaction context or optional server_id
+                ns = getattr(interaction, "namespace", None)
+                server_id = None
+                if ns is not None:
+                    server_id = getattr(ns, "server_id", None)
+                gid = None
+                if server_id:
+                    try:
+                        gid = int(server_id)
+                    except Exception:
+                        gid = None
+                if gid is None and interaction.guild is not None:
+                    gid = interaction.guild.id
+                if gid is not None and key == "logging_channel_id":
+                    g = self.get_guild(gid)
+                    if g is not None:
+                        # Prioritize text channels; suggest a couple whose name or id matches
+                        for ch in list(getattr(g, "text_channels", []))[:100]:
+                            nm = getattr(ch, "name", "")
+                            cid = str(getattr(ch, "id", ""))
+                            label = f"#{nm} ({cid})" if nm else cid
+                            hay = f"{nm} {cid}".lower()
+                            if not cur or cur in hay:
+                                choices.append(
+                                    discord.app_commands.Choice(name=label, value=cid)
+                                )
+                            if len(choices) >= 25:
+                                break
+                if gid is not None and key == "bypass_role_id":
+                    g = self.get_guild(gid)
+                    if g is not None:
+                        for role in list(getattr(g, "roles", []))[:100]:
+                            nm = getattr(role, "name", "")
+                            rid = str(getattr(role, "id", ""))
+                            label = f"@{nm} ({rid})" if nm else rid
+                            hay = f"{nm} {rid}".lower()
+                            if not cur or cur in hay:
+                                choices.append(
+                                    discord.app_commands.Choice(name=label, value=rid)
+                                )
+                            if len(choices) >= 25:
+                                break
+            except Exception:
+                pass
+            return choices[:25]
         return []
 
     async def _ac_guild_id(self, interaction: discord.Interaction, current: str):
@@ -1555,15 +1615,10 @@ class SanitizerBot(discord.Client):
             "min_nick_length",
             "max_nick_length",
             "cooldown_seconds",
-            "preserve_spaces",
-            "sanitize_emoji",
             "logging_channel_id",
             "bypass_role_id",
             "fallback_mode",
             "fallback_label",
-            "enforce_bots",
-            "fallback_mode",
-            "enabled",
         }
 
         def _unquote(s: str) -> str:
