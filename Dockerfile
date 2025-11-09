@@ -1,4 +1,4 @@
-# This software uses NNCL 1.0 see LICENSE.md for more info
+# This software uses NNCL v1.1 see LICENSE.md for more info
 # Minimal production image for the Discord Sanitizer Bot.
 # Expects a requirements.txt at repository root and runs bot/main.py.
 
