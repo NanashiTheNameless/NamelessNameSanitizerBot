@@ -160,7 +160,6 @@ class SanitizerBot(discord.Client):
             name="enable-sanitizer",
             description="Bot Admin Only: Enable the sanitizer in this server",
         )
-
         @app_commands.describe(
             server_id="Optional server (guild) ID to enable; required in DMs or to target another server"
         )
@@ -174,7 +173,6 @@ class SanitizerBot(discord.Client):
             name="disable-sanitizer",
             description="Bot Admin Only: Disable the sanitizer in this server",
         )
-
         @app_commands.describe(
             server_id="Optional server (guild) ID to disable; required in DMs or to target another server"
         )
@@ -188,7 +186,6 @@ class SanitizerBot(discord.Client):
             name="set-policy",
             description="Bot Admin Only: Set or view policy values; supports multiple updates",
         )
-
         @app_commands.describe(
             key="Policy key to change (ignored if 'pairs' is provided)",
             value="New value for the policy key (leave empty to view current)",
@@ -372,7 +369,6 @@ class SanitizerBot(discord.Client):
             name="add-bot-admin",
             description="Bot Owner Only: Add a bot admin for this server",
         )
-
         @app_commands.describe(
             server_id="Optional server (guild) ID to modify; required in DMs or to target another server"
         )
@@ -388,7 +384,6 @@ class SanitizerBot(discord.Client):
             name="remove-bot-admin",
             description="Bot Owner Only: Remove a bot admin for this server",
         )
-
         @app_commands.describe(
             server_id="Optional server (guild) ID to modify; required in DMs or to target another server"
         )
@@ -404,7 +399,6 @@ class SanitizerBot(discord.Client):
             name="list-bot-admins",
             description="Bot Owner Only: List bot admins for a server",
         )
-
         @app_commands.describe(
             server_id="Optional server (guild) ID to list; required in DMs"
         )
@@ -418,7 +412,6 @@ class SanitizerBot(discord.Client):
             name="dm-admin-report",
             description="Bot Owner Only: DM a report of all servers and their bot admins",
         )
-
         async def _dm_admin_report(interaction: discord.Interaction):
             await self.cmd_dm_admin_report(interaction)
 
@@ -426,7 +419,6 @@ class SanitizerBot(discord.Client):
             name="dm-server-settings",
             description="Bot Owner Only: DM a report of all servers and their sanitizer settings",
         )
-
         async def _dm_server_settings(interaction: discord.Interaction):
             await self.cmd_dm_server_settings(interaction)
 
@@ -434,7 +426,6 @@ class SanitizerBot(discord.Client):
             name="global-bot-disable",
             description="Bot Owner Only: Disable the sanitizer bot in all servers",
         )
-
         @app_commands.describe(confirm="Type true to confirm global disable of the bot")
         async def _global_disable(
             interaction: discord.Interaction, confirm: Optional[bool] = False
@@ -445,7 +436,6 @@ class SanitizerBot(discord.Client):
             name="global-reset-settings",
             description="Bot Owner Only: Reset all sanitizer settings to defaults across all servers",
         )
-
         @app_commands.describe(
             confirm="Type true to confirm resetting settings globally"
         )
@@ -458,7 +448,6 @@ class SanitizerBot(discord.Client):
             name="nuke-bot-admins",
             description="Bot Owner Only: Remove all bot admins in this server",
         )
-
         @app_commands.describe(
             server_id="Optional server (guild) ID to target; required in DMs or to nuke another server",
             confirm="Type true to confirm removal of all bot admins",
@@ -475,7 +464,6 @@ class SanitizerBot(discord.Client):
             name="global-nuke-bot-admins",
             description="Bot Owner Only: Remove all bot admins in all servers",
         )
-
         @app_commands.describe(
             confirm="Type true to confirm removal of all bot admins globally"
         )
@@ -488,7 +476,6 @@ class SanitizerBot(discord.Client):
             name="blacklist-server",
             description="Bot Owner Only: Add a server ID to the blacklist (auto-leave on join/startup)",
         )
-
         @app_commands.describe(
             server_id="Guild ID to blacklist",
             reason="Optional reason for blacklisting",
@@ -507,7 +494,6 @@ class SanitizerBot(discord.Client):
             name="unblacklist-server",
             description="Bot Owner Only: Remove a server ID from the blacklist",
         )
-
         @app_commands.describe(
             server_id="Guild ID to remove from blacklist",
             confirm="Type true to confirm",
@@ -524,7 +510,6 @@ class SanitizerBot(discord.Client):
             name="set-blacklist-reason",
             description="Bot Owner Only: Update the reason for a blacklisted server",
         )
-
         @app_commands.describe(
             server_id="Guild ID whose blacklist reason to set",
             reason="New reason text (empty to clear)",
@@ -541,7 +526,6 @@ class SanitizerBot(discord.Client):
             name="list-blacklisted-servers",
             description="Bot Owner Only: List all blacklisted server IDs",
         )
-
         async def _list_blacklisted_servers(interaction: discord.Interaction):
             await self.cmd_list_blacklisted_servers(interaction)
 
@@ -549,7 +533,6 @@ class SanitizerBot(discord.Client):
             name="leave-server",
             description="Bot Owner Only: Leave a server and delete its stored data",
         )
-
         @app_commands.describe(
             server_id="The server (guild) ID to leave", confirm="Type true to confirm"
         )
@@ -565,7 +548,6 @@ class SanitizerBot(discord.Client):
             name="delete-user-data",
             description="Bot Owner Only: Delete a user's stored data across all servers (cooldowns/admin entries)",
         )
-
         async def _owner_delete_user_data(
             interaction: discord.Interaction, user: discord.User
         ):
@@ -575,7 +557,6 @@ class SanitizerBot(discord.Client):
             name="global-delete-user-data",
             description="Bot Owner Only: Delete all user data across all servers and announce in configured logging channels",
         )
-
         @app_commands.describe(
             confirm="Type true to confirm deletion of ALL user data globally"
         )
