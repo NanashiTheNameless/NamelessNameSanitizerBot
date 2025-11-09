@@ -366,7 +366,7 @@ class SanitizerBot(discord.Client):
         async def _sweep_now(interaction: discord.Interaction):
             await self.cmd_sweep_now(interaction)
 
-        # Owner-only (bottom)
+        # Owner-only
 
         @self.tree.command(
             name="add-bot-admin",
