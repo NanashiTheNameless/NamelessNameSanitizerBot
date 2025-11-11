@@ -95,7 +95,7 @@ The included Compose file provisions a named volume `botdata` mounted at `/app/d
 You don't need to create any host directory for this; Docker manages the named volume. To inspect the file inside the running container:
 
 ```bash
-docker compose exec bot ls -l /app/data
+docker compose exec bot ls -A -l /app/data
 ```
 
 ## Permissions and intents
