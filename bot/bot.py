@@ -687,7 +687,7 @@ class SanitizerBot(discord.Client):
                     await self._dm_owner(
                         f"Joined blacklisted guild: {guild.name} ({guild.id})"
                         + (
-                            f" — reason: {reason_txt}"
+                            f" - reason: {reason_txt}"
                             if (reason_txt and str(reason_txt).strip())
                             else ""
                         )
@@ -847,7 +847,7 @@ class SanitizerBot(discord.Client):
                         ch = None
                 if isinstance(ch, (discord.TextChannel, discord.Thread)):
                     try:
-                        await ch.send(f"Nickname updated: {member.mention} — `{name_now}` → `{candidate}` (via {source})")  # type: ignore
+                        await ch.send(f"Nickname updated: {member.mention} - `{name_now}` → `{candidate}` (via {source})")  # type: ignore
                     except Exception:
                         pass
             return True
@@ -2799,7 +2799,7 @@ class SanitizerBot(discord.Client):
         for gid, name, reason in entries:
             label = f"{name} ({gid})" if (name and name.strip()) else str(gid)
             if reason and reason.strip():
-                lines.append(f"• {label} — {reason}")
+                lines.append(f"• {label} - {reason}")
             else:
                 lines.append(f"• {label}")
         text = "Blacklisted servers:\n" + "\n".join(lines)
@@ -2866,7 +2866,7 @@ class SanitizerBot(discord.Client):
                 mentions = ", ".join(f"<@{uid}>" for uid in ids)
             else:
                 mentions = "<none>"
-            lines.append(f"• {g.name} ({g.id}) — admins: {len(ids)} — {mentions}")
+            lines.append(f"• {g.name} ({g.id}) - admins: {len(ids)} - {mentions}")
 
         # Chunk only between servers to respect message length limits
         chunks: list[str] = []
@@ -3064,7 +3064,7 @@ class SanitizerBot(discord.Client):
         try:
             await guild.leave()
             await self._dm_owner(
-                f"Left guild: {guild.name} ({guild.id}) — requested by owner."
+                f"Left guild: {guild.name} ({guild.id}) - requested by owner."
             )
         except Exception:
             # As a fallback, try to kick self if possible
