@@ -2,6 +2,13 @@
 # Docker Compose stack for Discord Sanitizer Bot and PostgreSQL.
 # Copy .env.example to .env and set required variables before running.
 
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+# BY USING/HOSTING THIS BOT YOU AGREE TO THE FOLLOWING DOCUMENTS:                     #
+# https://namelessnamesanitizerbot.namelessnanashi.dev/TermsOfService                 #
+# https://namelessnamesanitizerbot.namelessnanashi.dev/PrivacyPolicy                  #
+# https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md #
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+
 services:
   bot:
     build: .
