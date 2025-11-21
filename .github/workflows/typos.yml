@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        with:
+          persist-credentials: false
 
       - name: Install typos
         uses: crate-ci/typos@a1a16c7b7c25d1c27cc750525aada8b9ae68b716
