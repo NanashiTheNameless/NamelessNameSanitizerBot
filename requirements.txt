@@ -1,5 +1,5 @@
 discord.py>=2.6.4
-psycopg[binary]>=3.2
-psycopg_pool>=3.2
+psycopg[binary]>=3.2.12
+psycopg_pool>=3.2.7
 python-dotenv>=1.2.1
-regex>=2025.10.23
+regex>=2025.11.3
