@@ -18,6 +18,7 @@ Documentation-only edits should not modify runtime behavior.
 import asyncio
 import logging
 import os
+import sys
 import signal
 
 import discord  # type: ignore
@@ -42,6 +43,27 @@ log.setLevel(_LOG_LEVEL)
 
 # Validate Discord token on startup
 validate_discord_token(DISCORD_TOKEN)  # type: ignore
+
+def main():
+    # Check for required legal files
+    # Accept files in either Docker image (/app) or project root
+    base_dirs = [
+        os.path.dirname(os.path.dirname(__file__)),  # /app or project root
+        os.getcwd(),  # current working directory
+    ]
+    filenames = ["LICENSE.md", "PrivacyPolicy.md", "TermsOfService.md"]
+    missing = []
+    for fname in filenames:
+        found = False
+        for d in base_dirs:
+            if os.path.isfile(os.path.join(d, fname)):
+                found = True
+                break
+        if not found:
+            missing.append(fname)
+    if missing:
+        print(f"ERROR: Missing required legal files: {', '.join(missing)}", file=sys.stderr)
+        sys.exit(1)
 
 # Set up Discord intents
 intents = discord.Intents.default()
@@ -68,5 +90,6 @@ for _sig in ("SIGINT", "SIGTERM"):
 if __name__ == "__main__":
     try:
         bot.run(DISCORD_TOKEN, log_handler=None)
+        main()
     except KeyboardInterrupt:
         pass
