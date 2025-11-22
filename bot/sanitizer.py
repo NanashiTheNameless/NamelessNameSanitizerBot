@@ -1,4 +1,4 @@
-# This software uses NNCL v1.2 see LICENSE.md for more info
+# This software is licensed under NNCL v1.2 see LICENSE.md for more info
 """
 Nickname sanitization helpers using the 'regex' package for Unicode handling.
 
