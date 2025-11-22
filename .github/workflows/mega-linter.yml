@@ -51,6 +51,8 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Remove extra Authorization header
+        run: git config --local --unset-all http.https://github.com/.extraheader || true
       # Git Checkout
       - name: Checkout Code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
