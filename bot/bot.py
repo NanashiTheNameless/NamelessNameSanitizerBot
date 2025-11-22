@@ -2308,19 +2308,20 @@ class SanitizerBot(discord.Client):
             )
             if (c1 or 0) + (c2 or 0) == 0:
                 await interaction.response.send_message(
-                    "No stored data found for you in this server.",
+                    "No stored data found for you in this server. \nIf you want your data deleted across all servers, please DM the bot owner listed under /botinfo.",
                     ephemeral=True,
                 )
             else:
                 await interaction.response.send_message(
-                    f"Deleted your stored entries in this server (cooldowns: {c1}, admin entries: {c2}).",
+                    f"Deleted your stored database entries in this server (Cooldowns: {c1}, Admin status entries: {c2}). \nIf you want your data deleted across all servers, please DM the bot owner listed under /botinfo.",
                     ephemeral=True,
                 )
         except Exception as e:
             msg = str(e).strip()
             detail = f": {msg}" if msg else "."
             await interaction.response.send_message(
-                f"Failed to delete your data{detail}", ephemeral=True
+                f"Failed to delete your data{detail} \nPlease DM the bot developer and the owner listed under /botinfo with a screenshot of this error if you ever see this message.",
+                ephemeral=True,
             )
 
     async def cmd_delete_user_data(
