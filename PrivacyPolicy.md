@@ -1,8 +1,9 @@
 # Privacy Policy
 
-Last updated: 2025-11-06 (YYYY-MM-DD)
+Last updated: 2025-11-21 (YYYY-MM-DD)
 
-This page explains what NamelessNameSanitizerBot ("the Bot") does with data. By using the Bot, you agree to this policy.
+This page explains what NamelessNameSanitizerBot ("the Bot") does with data.
+By using the Bot, you agree to this policy.
 
 ## Quick summary
 
@@ -53,7 +54,7 @@ Data is processed where the operator hosts the Bot and its database. Operators a
 
 ## Contact
 
-Open a GitHub issue or contact your server owner/operator.
+Open a GitHub issue or contact the bot owner/operator. You can pull up the relevant using the `/botinfo` command.
 
 ## Changes
 

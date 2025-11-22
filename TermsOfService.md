@@ -1,6 +1,6 @@
 # Terms of Service
 
-Last updated: 2025-11-06 (YYYY-MM-DD)
+Last updated: 2025-11-21 (YYYY-MM-DD)
 
 By adding or using NamelessNameSanitizerBot ("the Bot") in your Discord server, you agree to these terms.
 
@@ -58,7 +58,7 @@ Licensed as described in [LICENSE.md](<https://github.com/NanashiTheNameless/Nam
 
 ## Contact
 
-Open a GitHub issue or contact the bot owner/operator.
+Open a GitHub issue or contact the bot owner/operator. You can pull up the relevant using the `/botinfo` command.
 
 ## Governing law
 
