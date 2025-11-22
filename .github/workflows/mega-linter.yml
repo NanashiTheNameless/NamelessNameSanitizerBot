@@ -54,8 +54,6 @@ jobs:
       # Git Checkout
       - name: Checkout Code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       # MegaLinter
       - name: MegaLinter
@@ -83,8 +81,7 @@ jobs:
           #   }}
           VALIDATE_ALL_CODEBASE: >-
             ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
           # Help MegaLinter compute diffs against the default branch
           DEFAULT_BRANCH: main
@@ -135,7 +132,7 @@ jobs:
           ) &&
           !contains(github.event.head_commit.message, 'skip fix')
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
           commit-message: "[MegaLinter] Apply linters automatic fixes"
           title: "[MegaLinter] Apply linters automatic fixes"
           labels: bot
