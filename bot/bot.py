@@ -549,9 +549,19 @@ class SanitizerBot(discord.Client):
             name="delete-user-data",
             description="Bot Owner Only: Delete a user's stored data across all servers (cooldowns/admin entries)",
         )
+        @app_commands.describe(
+            confirm="Type true to confirm deletion of user data"
+        )
         async def _owner_delete_user_data(
-            interaction: discord.Interaction, user: discord.User
+            interaction: discord.Interaction,
+            user: discord.User,
+            confirm: Optional[bool] = False,
         ):
+            if not confirm:
+                await interaction.response.send_message(
+                    "Confirmation required: Pass confirm=True to delete user data.", ephemeral=True
+                )
+                return
             await self.cmd_delete_user_data(interaction, user)
 
         @self.tree.command(
