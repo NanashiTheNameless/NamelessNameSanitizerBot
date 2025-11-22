@@ -18,8 +18,8 @@ Documentation-only edits should not modify runtime behavior.
 import asyncio
 import logging
 import os
-import sys
 import signal
+import sys
 
 import discord  # type: ignore
 
@@ -44,6 +44,7 @@ log.setLevel(_LOG_LEVEL)
 # Validate Discord token on startup
 validate_discord_token(DISCORD_TOKEN)  # type: ignore
 
+
 def main():
     # Check for required legal files
     # Accept files in either Docker image (/app) or project root
@@ -62,8 +63,12 @@ def main():
         if not found:
             missing.append(fname)
     if missing:
-        print(f"ERROR: Missing required legal files: {', '.join(missing)}", file=sys.stderr)
+        print(
+            f"ERROR: Missing required legal files: {', '.join(missing)}",
+            file=sys.stderr,
+        )
         sys.exit(1)
+
 
 # Set up Discord intents
 intents = discord.Intents.default()
