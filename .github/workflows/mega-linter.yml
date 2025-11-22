@@ -49,6 +49,8 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+      actions: write
+
 
     steps:
       # Git Checkout
@@ -132,7 +134,7 @@ jobs:
           ) &&
           !contains(github.event.head_commit.message, 'skip fix')
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "[MegaLinter] Apply linters automatic fixes"
           title: "[MegaLinter] Apply linters automatic fixes"
           labels: bot
