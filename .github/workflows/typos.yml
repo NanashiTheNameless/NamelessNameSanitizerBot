@@ -40,6 +40,7 @@ jobs:
       - name: Create Pull Request with fixes
         uses: NanashiTheNameless/create-pull-request@54090d376ec2f57a75a38f70e405cdf68933eed4
         with:
+          token: ${{ secrets.PAT }}
           branch: chore/typos-auto-fixes
           commit-message: "chore(typos): auto-fix spelling errors"
           title: "chore(typos): auto-fix spelling errors"
