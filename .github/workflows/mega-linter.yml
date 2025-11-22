@@ -51,7 +51,6 @@ jobs:
       pull-requests: write
       actions: write
 
-
     steps:
       # Git Checkout
       - name: Checkout Code
@@ -84,7 +83,6 @@ jobs:
           VALIDATE_ALL_CODEBASE: >-
             ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
           # Help MegaLinter compute diffs against the default branch
           DEFAULT_BRANCH: main
 
