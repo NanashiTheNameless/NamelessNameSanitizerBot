@@ -38,7 +38,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create Pull Request with fixes
-        uses: peter-evans/create-pull-request@b4733b9419fd47bbfa1807b15627e17cd70b5b22
+        uses: NanashiTheNameless/create-pull-request@54090d376ec2f57a75a38f70e405cdf68933eed4
         with:
           branch: chore/typos-auto-fixes
           commit-message: "chore(typos): auto-fix spelling errors"
