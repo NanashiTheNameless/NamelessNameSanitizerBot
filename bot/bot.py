@@ -3164,6 +3164,9 @@ class SanitizerBot(discord.Client):
                 "Only the bot owner can perform this action.", ephemeral=True
             )
             return
+        
+        # Defer immediately since this takes time
+        await interaction.response.defer(ephemeral=True)
         owner_user = interaction.user
 
         # Build admin report lines
@@ -3283,11 +3286,11 @@ class SanitizerBot(discord.Client):
                             cur_len += add_len
                     if chunk:
                         await owner_user.send("\n".join(chunk))
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "Sent you DMs with all reports.", ephemeral=True
             )
         except Exception as e:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"Failed to send all reports: {e}", ephemeral=True
             )
 
