@@ -3235,16 +3235,19 @@ class SanitizerBot(discord.Client):
 
         reports = [
             chunk_and_send_lines(
-                admin_lines, "Admin report for all guilds (servers) bot is in:\n"
+                admin_lines, "# Admin Report\n\nBot admins for all guilds (servers):\n"
             ),
             chunk_and_send_lines(
                 settings_lines,
-                "Server settings report for all guilds (servers) bot is in:\n",
+                "# Server Settings Report\n\nSettings for all guilds (servers):\n",
             ),
-            chunk_and_send_lines(bl_lines, "Blacklisted guilds (servers):\n"),
+            chunk_and_send_lines(bl_lines, "# Blacklist Report\n\nBlacklisted guilds (servers):\n"),
         ]
 
         try:
+            # Send opening message
+            await owner_user.send("**All Reports**\n\nGenerating admin, server settings, and blacklist reports...")
+            
             for idx, rep in enumerate(reports):
                 header = rep["header"]
                 lines = rep["lines"]
