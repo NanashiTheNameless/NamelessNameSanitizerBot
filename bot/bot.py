@@ -11,6 +11,7 @@ import logging
 import math
 import shlex
 from typing import Optional
+from io import BytesIO
 
 import discord  # type: ignore
 import regex as re  # type: ignore
@@ -2836,7 +2837,6 @@ class SanitizerBot(discord.Client):
                 lines.append(f"• {label} - {reason}")
             else:
                 lines.append(f"• {label}")
-        from io import BytesIO
         header = "Blacklisted servers:\n"
         text = header + ("\n".join(lines) if lines else "")
         try:
@@ -3219,7 +3219,6 @@ class SanitizerBot(discord.Client):
                 header = rep["header"]
                 lines = rep["lines"]
                 if attach_file:
-                    from io import BytesIO
                     full_text = header + ("\n".join(lines) if lines else "")
                     # Name files distinctly per report
                     fname = (
