@@ -2847,7 +2847,7 @@ class SanitizerBot(discord.Client):
             if attach_file:
                 await interaction.user.send(
                     file=discord.File(
-                        BytesIO(text.encode("utf-8")), filename="blacklist.txt"
+                        BytesIO(text.encode("utf-8")), filename="blacklist.md"
                     )
                 )
             else:
@@ -2878,7 +2878,7 @@ class SanitizerBot(discord.Client):
                 try:
                     await interaction.followup.send(
                         file=discord.File(
-                            BytesIO(text.encode("utf-8")), filename="blacklist.txt"
+                            BytesIO(text.encode("utf-8")), filename="blacklist.md"
                         ),
                         ephemeral=True,
                     )
@@ -3005,7 +3005,7 @@ class SanitizerBot(discord.Client):
             if attach_file:
                 await owner_user.send(
                     file=discord.File(
-                        BytesIO(full_text.encode("utf-8")), filename="admin-report.txt"
+                        BytesIO(full_text.encode("utf-8")), filename="admin-report.md"
                     )
                 )
             else:
@@ -3034,7 +3034,7 @@ class SanitizerBot(discord.Client):
                     await interaction.followup.send(
                         file=discord.File(
                             BytesIO(full_text.encode("utf-8")),
-                            filename="admin-report.txt",
+                            filename="admin-report.md",
                         ),
                         ephemeral=True,
                     )
@@ -3109,7 +3109,7 @@ class SanitizerBot(discord.Client):
                 await owner_user.send(
                     file=discord.File(
                         BytesIO(full_text.encode("utf-8")),
-                        filename="server-settings-report.txt",
+                        filename="server-settings-report.md",
                     )
                 )
             else:
@@ -3138,7 +3138,7 @@ class SanitizerBot(discord.Client):
                     await interaction.followup.send(
                         file=discord.File(
                             BytesIO(full_text.encode("utf-8")),
-                            filename="server-settings-report.txt",
+                            filename="server-settings-report.md",
                         ),
                         ephemeral=True,
                     )
@@ -3252,12 +3252,12 @@ class SanitizerBot(discord.Client):
                     full_text = header + ("\n".join(lines) if lines else "")
                     # Name files distinctly per report
                     fname = (
-                        "admin-report.txt"
+                        "admin-report.md"
                         if idx == 0
                         else (
-                            "server-settings-report.txt"
+                            "server-settings-report.md"
                             if idx == 1
-                            else "blacklist-report.txt"
+                            else "blacklist-report.md"
                         )
                     )
                     await owner_user.send(
