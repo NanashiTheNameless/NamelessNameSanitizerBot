@@ -14,10 +14,10 @@ def now() -> float:
 async def resolve_target_guild(
     interaction: discord.Interaction, server_id: Optional[str]
 ) -> Optional[int]:
-    """Resolve target guild id for commands supporting cross-guild operations.
+    """Resolve target guild (server) id for commands supporting cross-guild (server) operations.
 
     Sends ephemeral error messages to the interaction response when invalid/missing.
-    Returns the guild id or None if resolution failed (message already sent).
+    Returns the guild (server) id or None if resolution failed (message already sent).
     """
     if server_id:
         try:
@@ -25,7 +25,7 @@ async def resolve_target_guild(
         except Exception:
             try:
                 await interaction.response.send_message(
-                    f"'{server_id}' is not a valid server ID.", ephemeral=True
+                    f"'{server_id}' is not a valid guild (server) ID.", ephemeral=True
                 )
             except Exception:
                 pass
@@ -33,7 +33,7 @@ async def resolve_target_guild(
     if interaction.guild is None:
         try:
             await interaction.response.send_message(
-                "server_id is required when used in DMs.", ephemeral=True
+                "server_id is required when used in DMs for guild (server) operations.", ephemeral=True
             )
         except Exception:
             pass

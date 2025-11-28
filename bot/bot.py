@@ -141,12 +141,12 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="delete-my-data",
-            description="Everyone: Delete any of your data stored by the bot in this server (cooldowns/admin entries)",
+            description="Everyone: Delete any of your data stored by the bot in this guild (server) (cooldowns/admin entries)",
         )
         async def _delete_my_data(interaction: discord.Interaction):
             await self.cmd_delete_my_data(interaction)
 
-        # Guild/Server Admin
+        # Guild (Server) Admin
 
         @self.tree.command(
             name="sanitize-user",
@@ -159,10 +159,10 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="enable-sanitizer",
-            description="Bot Admin Only: Enable the sanitizer in this server",
+            description="Bot Admin Only: Enable the sanitizer in this guild (server)",
         )
         @app_commands.describe(
-            server_id="Optional server (guild) ID to enable; required in DMs or to target another server"
+            server_id="Optional guild (server) ID to enable; required in DMs or to target another guild (server)"
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _enable(
@@ -172,10 +172,10 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="disable-sanitizer",
-            description="Bot Admin Only: Disable the sanitizer in this server",
+            description="Bot Admin Only: Disable the sanitizer in this guild (server)",
         )
         @app_commands.describe(
-            server_id="Optional server (guild) ID to disable; required in DMs or to target another server"
+            server_id="Optional guild (server) ID to disable; required in DMs or to target another guild (server)"
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _disable(
@@ -191,7 +191,7 @@ class SanitizerBot(discord.Client):
             key="Policy key to change (ignored if 'pairs' is provided)",
             value="New value for the policy key (leave empty to view current)",
             pairs="Multiple key=value pairs separated by spaces, e.g. 'min_nick_length=3 max_nick_length=24'",
-            server_id="Optional server (guild) ID to modify; required in DMs or when editing another server",
+            server_id="Optional guild (server) ID to modify; required in DMs or when editing another guild (server)",
         )
         @app_commands.autocomplete(
             key=self._ac_policy_key,
@@ -343,10 +343,10 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="reset-settings",
-            description="Bot Admin Only: Reset all sanitizer settings to defaults for this server",
+            description="Bot Admin Only: Reset all sanitizer settings to defaults for this guild (server)",
         )
         @app_commands.describe(
-            server_id="Optional server (guild) ID to reset; required in DMs or to target another server",
+            server_id="Optional guild (server) ID to reset; required in DMs or to target another guild (server)",
             confirm="Type true to confirm",
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
@@ -359,7 +359,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="sweep-now",
-            description="Bot Admin Only: Immediately sweep and sanitize members in this server",
+            description="Bot Admin Only: Immediately sweep and sanitize members in this guild (server)",
         )
         async def _sweep_now(interaction: discord.Interaction):
             await self.cmd_sweep_now(interaction)
@@ -368,10 +368,10 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="add-bot-admin",
-            description="Bot Owner Only: Add a bot admin for this server",
+            description="Bot Owner Only: Add a bot admin for this guild (server)",
         )
         @app_commands.describe(
-            server_id="Optional server (guild) ID to modify; required in DMs or to target another server"
+            server_id="Optional guild (server) ID to modify; required in DMs or to target another guild (server)"
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _add_admin(
@@ -383,10 +383,10 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="remove-bot-admin",
-            description="Bot Owner Only: Remove a bot admin for this server",
+            description="Bot Owner Only: Remove a bot admin for this guild (server)",
         )
         @app_commands.describe(
-            server_id="Optional server (guild) ID to modify; required in DMs or to target another server"
+            server_id="Optional guild (server) ID to modify; required in DMs or to target another guild (server)"
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _remove_admin(
@@ -398,10 +398,10 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="list-bot-admins",
-            description="Bot Owner Only: List bot admins for a server",
+            description="Bot Owner Only: List bot admins for a guild (server)",
         )
         @app_commands.describe(
-            server_id="Optional server (guild) ID to list; required in DMs"
+            server_id="Optional guild (server) ID to list; required in DMs"
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _list_admins(
@@ -411,21 +411,31 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="dm-admin-report",
-            description="Bot Owner Only: DM a report of all servers and their bot admins",
+            description="Bot Owner Only: DM a report of all guilds (servers) and their bot admins",
         )
-        async def _dm_admin_report(interaction: discord.Interaction):
-            await self.cmd_dm_admin_report(interaction)
+        @app_commands.describe(
+            attach_file="Optional: attach the report as a file (default: false)",
+        )
+        async def _dm_admin_report(
+            interaction: discord.Interaction, attach_file: Optional[bool] = False
+        ):
+            await self.cmd_dm_admin_report(interaction, attach_file)
 
         @self.tree.command(
             name="dm-server-settings",
-            description="Bot Owner Only: DM a report of all servers and their sanitizer settings",
+            description="Bot Owner Only: DM a report of all guilds (servers) and their sanitizer settings",
         )
-        async def _dm_server_settings(interaction: discord.Interaction):
-            await self.cmd_dm_server_settings(interaction)
+        @app_commands.describe(
+            attach_file="Optional: attach the report as a file (default: false)",
+        )
+        async def _dm_server_settings(
+            interaction: discord.Interaction, attach_file: Optional[bool] = False
+        ):
+            await self.cmd_dm_server_settings(interaction, attach_file)
 
         @self.tree.command(
             name="global-bot-disable",
-            description="Bot Owner Only: Disable the sanitizer bot in all servers",
+            description="Bot Owner Only: Disable the sanitizer bot in all guilds (servers)",
         )
         @app_commands.describe(confirm="Type true to confirm global disable of the bot")
         async def _global_disable(
@@ -435,7 +445,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="global-reset-settings",
-            description="Bot Owner Only: Reset all sanitizer settings to defaults across all servers",
+            description="Bot Owner Only: Reset all sanitizer settings to defaults across all guilds (servers)",
         )
         @app_commands.describe(
             confirm="Type true to confirm resetting settings globally"
@@ -447,10 +457,10 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="nuke-bot-admins",
-            description="Bot Owner Only: Remove all bot admins in this server",
+            description="Bot Owner Only: Remove all bot admins in this guild (server)",
         )
         @app_commands.describe(
-            server_id="Optional server (guild) ID to target; required in DMs or to nuke another server",
+            server_id="Optional guild (server) ID to target; required in DMs or to nuke another guild (server)",
             confirm="Type true to confirm removal of all bot admins",
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
@@ -463,7 +473,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="global-nuke-bot-admins",
-            description="Bot Owner Only: Remove all bot admins in all servers",
+            description="Bot Owner Only: Remove all bot admins in all guilds (servers)",
         )
         @app_commands.describe(
             confirm="Type true to confirm removal of all bot admins globally"
@@ -474,11 +484,35 @@ class SanitizerBot(discord.Client):
             await self.cmd_global_nuke_bot_admins(interaction, confirm)
 
         @self.tree.command(
-            name="blacklist-server",
-            description="Bot Owner Only: Add a server ID to the blacklist (auto-leave on join/startup)",
+            name="dm-blacklisted-servers",
+            description="Bot Owner Only: DM the bot owner a list of blacklisted guilds (servers)",
         )
         @app_commands.describe(
-            server_id="Guild ID to blacklist",
+            attach_file="Optional: attach full list as a file when large (default: false)",
+        )
+        async def _dm_blacklisted_servers(
+            interaction: discord.Interaction, attach_file: Optional[bool] = False
+        ):
+            await self.cmd_list_blacklisted_servers(interaction, attach_file)
+
+        @self.tree.command(
+            name="dm-all-reports",
+            description="Bot Owner Only: DM the bot owner all reports (admins, settings, blacklist)",
+        )
+        @app_commands.describe(
+            attach_file="Optional: attach each report as a file (default: false)",
+        )
+        async def _dm_all_reports(
+            interaction: discord.Interaction, attach_file: Optional[bool] = False
+        ):
+            await self.cmd_dm_all_reports(interaction, attach_file)
+
+        @self.tree.command(
+            name="blacklist-server",
+            description="Bot Owner Only: Blacklist a guild (server) and leave/delete its stored data",
+        )
+        @app_commands.describe(
+            server_id="The guild (server) ID to blacklist",
             reason="Optional reason for blacklisting",
             confirm="Type true to confirm",
         )
@@ -493,12 +527,9 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="unblacklist-server",
-            description="Bot Owner Only: Remove a server ID from the blacklist",
+            description="Bot Owner Only: Remove a guild (server) from the blacklist",
         )
-        @app_commands.describe(
-            server_id="Guild ID to remove from blacklist",
-            confirm="Type true to confirm",
-        )
+        @app_commands.describe(server_id="The guild (server) ID to unblacklist", confirm="Type true to confirm")
         @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
         async def _unblacklist_server(
             interaction: discord.Interaction,
@@ -509,13 +540,13 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-blacklist-reason",
-            description="Bot Owner Only: Update the reason for a blacklisted server",
+            description="Bot Owner Only: Update the reason for a blacklisted guild (server)",
         )
         @app_commands.describe(
-            server_id="Guild ID whose blacklist reason to set",
+            server_id="Guild (server) ID whose blacklist reason to set",
             reason="New reason text (empty to clear)",
         )
-        @app_commands.autocomplete(server_id=self._ac_guild_id)
+        @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
         async def _set_blacklist_reason(
             interaction: discord.Interaction,
             server_id: str,
@@ -524,18 +555,11 @@ class SanitizerBot(discord.Client):
             await self.cmd_set_blacklist_reason(interaction, server_id, reason)
 
         @self.tree.command(
-            name="list-blacklisted-servers",
-            description="Bot Owner Only: List all blacklisted server IDs",
-        )
-        async def _list_blacklisted_servers(interaction: discord.Interaction):
-            await self.cmd_list_blacklisted_servers(interaction)
-
-        @self.tree.command(
             name="leave-server",
-            description="Bot Owner Only: Leave a server and delete its stored data",
+            description="Bot Owner Only: Leave a guild (server) and delete its stored data",
         )
         @app_commands.describe(
-            server_id="The server (guild) ID to leave", confirm="Type true to confirm"
+            server_id="The guild (server) ID to leave", confirm="Type true to confirm"
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
         async def _leave_server(
@@ -547,7 +571,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="delete-user-data",
-            description="Bot Owner Only: Delete a user's stored data across all servers (cooldowns/admin entries)",
+            description="Bot Owner Only: Delete a user's stored data across all guilds (servers) (cooldowns/admin entries)",
         )
         @app_commands.describe(confirm="Type true to confirm deletion of user data")
         async def _owner_delete_user_data(
@@ -565,7 +589,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="global-delete-user-data",
-            description="Bot Owner Only: Delete all user data across all servers and announce in configured logging channels",
+            description="Bot Owner Only: Delete all user data across all guilds (servers) and announce in configured logging channels",
         )
         @app_commands.describe(
             confirm="Type true to confirm deletion of ALL user data globally"
@@ -2779,7 +2803,9 @@ class SanitizerBot(discord.Client):
         )
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_list_blacklisted_servers(self, interaction: discord.Interaction):
+    async def cmd_list_blacklisted_servers(
+        self, interaction: discord.Interaction, attach_file: Optional[bool] = False
+    ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
@@ -2810,8 +2836,85 @@ class SanitizerBot(discord.Client):
                 lines.append(f"• {label} - {reason}")
             else:
                 lines.append(f"• {label}")
-        text = "Blacklisted servers:\n" + "\n".join(lines)
-        await interaction.response.send_message(text, ephemeral=True)
+        from io import BytesIO
+        header = "Blacklisted servers:\n"
+        text = header + ("\n".join(lines) if lines else "")
+        try:
+            # When attach_file is enabled, send only the file (no inline text), regardless of length
+            if attach_file:
+                await interaction.user.send(
+                    file=discord.File(BytesIO(text.encode("utf-8")), filename="blacklist.txt")
+                )
+            else:
+                # Split between entries: send header first, then chunk lines to respect ~1800-char limit
+                header = "Blacklisted servers:\n"
+                await interaction.user.send(header.rstrip())
+                chunk: list[str] = []
+                cur_len = 0
+                for line in lines or ["<none>"]:
+                    add_len = (1 if chunk else 0) + len(line)
+                    if cur_len + add_len > 1800:
+                        await interaction.user.send("\n".join(chunk))
+                        chunk = [line]
+                        cur_len = len(line)
+                    else:
+                        chunk.append(line)
+                        cur_len += add_len
+                if chunk:
+                    await interaction.user.send("\n".join(chunk))
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "I've sent you the blacklist via DM.",
+                    ephemeral=True,
+                )
+        except Exception:
+            # DM failed; send ephemerally. Respect attach_file option: if enabled, send only the file.
+            if attach_file:
+                try:
+                    await interaction.followup.send(
+                        file=discord.File(BytesIO(text.encode("utf-8")), filename="blacklist.txt"),
+                        ephemeral=True,
+                    )
+                except Exception:
+                    # As last resort, split between entries and send as multiple ephemeral messages
+                    header = "Blacklisted servers:\n"
+                    if not interaction.response.is_done():
+                        await interaction.response.send_message(header.rstrip(), ephemeral=True)
+                    else:
+                        await interaction.followup.send(header.rstrip(), ephemeral=True)
+                    chunk: list[str] = []
+                    cur_len = 0
+                    for line in lines or ["<none>"]:
+                        add_len = (1 if chunk else 0) + len(line)
+                        if cur_len + add_len > 2000:
+                            await interaction.followup.send("\n".join(chunk), ephemeral=True)
+                            chunk = [line]
+                            cur_len = len(line)
+                        else:
+                            chunk.append(line)
+                            cur_len += add_len
+                    if chunk:
+                        await interaction.followup.send("\n".join(chunk), ephemeral=True)
+            else:
+                # Split between entries and send ephemerally via response/followup (~1800-char chunks)
+                header = "Blacklisted servers:\n"
+                if not interaction.response.is_done():
+                    await interaction.response.send_message(header.rstrip(), ephemeral=True)
+                else:
+                    await interaction.followup.send(header.rstrip(), ephemeral=True)
+                chunk: list[str] = []
+                cur_len = 0
+                for line in lines or ["<none>"]:
+                    add_len = (1 if chunk else 0) + len(line)
+                    if cur_len + add_len > 1800:
+                        await interaction.followup.send("\n".join(chunk), ephemeral=True)
+                        chunk = [line]
+                        cur_len = len(line)
+                    else:
+                        chunk.append(line)
+                        cur_len += add_len
+                if chunk:
+                    await interaction.followup.send("\n".join(chunk), ephemeral=True)
 
     async def cmd_list_bot_admins(
         self, interaction: discord.Interaction, server_id: Optional[str] = None
@@ -2852,7 +2955,9 @@ class SanitizerBot(discord.Client):
                 f"Failed to fetch admins: {e}", ephemeral=True
             )
 
-    async def cmd_dm_admin_report(self, interaction: discord.Interaction):
+    async def cmd_dm_admin_report(
+        self, interaction: discord.Interaction, attach_file: Optional[bool] = False
+    ):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2876,32 +2981,53 @@ class SanitizerBot(discord.Client):
                 mentions = "<none>"
             lines.append(f"• {g.name} ({g.id}) - admins: {len(ids)} - {mentions}")
 
-        # Chunk only between servers to respect message length limits
-        chunks: list[str] = []
-        header = "Admin report for all servers bot is in:\n"
-        cur = header
-        for line in lines or ["<none>"]:
-            if len(cur) + len(line) + 1 > 1800:
-                chunks.append(cur)
-                cur = ""
-            cur += ("\n" if cur else "") + line
-        if cur:
-            chunks.append(cur)
-
         try:
             owner_user = interaction.user
-            for part in chunks:
-                await owner_user.send(part)
+            header = "Admin report for all guilds (servers) bot is in:\n"
+            full_text = header + ("\n".join(lines) if lines else "<none>")
+            if attach_file:
+                await owner_user.send(
+                    file=discord.File(BytesIO(full_text.encode("utf-8")), filename="admin-report.txt")
+                )
+            else:
+                # Chunk at ~1800 chars, only between entries; send header first
+                await owner_user.send(header.rstrip())
+                chunk: list[str] = []
+                cur_len = 0
+                for line in lines or ["<none>"]:
+                    add_len = (1 if chunk else 0) + len(line)
+                    if cur_len + add_len > 1800:
+                        await owner_user.send("\n".join(chunk))
+                        chunk = [line]
+                        cur_len = len(line)
+                    else:
+                        chunk.append(line)
+                        cur_len += add_len
+                if chunk:
+                    await owner_user.send("\n".join(chunk))
             await interaction.response.send_message(
-                f"Sent you a DM with the admin report ({len(chunks)} message(s)).",
+                "Sent you a DM with the admin report.",
                 ephemeral=True,
             )
         except Exception as e:
-            await interaction.response.send_message(
-                f"Failed to send DM: {e}", ephemeral=True
-            )
+            if attach_file:
+                try:
+                    await interaction.followup.send(
+                        file=discord.File(BytesIO(full_text.encode("utf-8")), filename="admin-report.txt"),
+                        ephemeral=True,
+                    )
+                except Exception:
+                    await interaction.response.send_message(
+                        full_text[:2000], ephemeral=True
+                    )
+            else:
+                await interaction.response.send_message(
+                    f"Failed to send DM: {e}", ephemeral=True
+                )
 
-    async def cmd_dm_server_settings(self, interaction: discord.Interaction):
+    async def cmd_dm_server_settings(
+        self, interaction: discord.Interaction, attach_file: Optional[bool] = False
+    ):
         if not self.db:
             await interaction.response.send_message(
                 "Database not configured.", ephemeral=True
@@ -2953,28 +3079,178 @@ class SanitizerBot(discord.Client):
             pair_str = " ".join(tokens)
             lines.append("• " + label + "\n" + f"```{pair_str}```")
 
-        chunks: list[str] = []
-        header = "Server settings report for all servers bot is in:\n"
-        cur = header
-        for line in lines or ["<none>"]:
-            if len(cur) + len(line) + 1 > 1800:
-                chunks.append(cur)
-                cur = ""
-            cur += ("\n" if cur else "") + line
-        if cur:
-            chunks.append(cur)
-
         try:
             owner_user = interaction.user
-            for part in chunks:
-                await owner_user.send(part)
+            header = "Server settings report for all guilds (servers) bot is in:\n"
+            full_text = header + ("\n".join(lines) if lines else "<none>")
+            if attach_file:
+                await owner_user.send(
+                    file=discord.File(BytesIO(full_text.encode("utf-8")), filename="server-settings-report.txt")
+                )
+            else:
+                # Chunk at ~1800 chars, only between entries; send header first
+                await owner_user.send(header.rstrip())
+                chunk: list[str] = []
+                cur_len = 0
+                for line in lines or ["<none>"]:
+                    add_len = (1 if chunk else 0) + len(line)
+                    if cur_len + add_len > 1800:
+                        await owner_user.send("\n".join(chunk))
+                        chunk = [line]
+                        cur_len = len(line)
+                    else:
+                        chunk.append(line)
+                        cur_len += add_len
+                if chunk:
+                    await owner_user.send("\n".join(chunk))
             await interaction.response.send_message(
-                f"Sent you a DM with the server settings report ({len(chunks)} message(s)).",
+                "Sent you a DM with the server settings report.",
                 ephemeral=True,
             )
         except Exception as e:
+            if attach_file:
+                try:
+                    await interaction.followup.send(
+                        file=discord.File(BytesIO(full_text.encode("utf-8")), filename="server-settings-report.txt"),
+                        ephemeral=True,
+                    )
+                except Exception:
+                    await interaction.response.send_message(
+                        full_text[:2000], ephemeral=True
+                    )
+            else:
+                await interaction.response.send_message(
+                    f"Failed to send DM: {e}", ephemeral=True
+                )
+
+    async def cmd_dm_all_reports(
+        self, interaction: discord.Interaction, attach_file: Optional[bool] = False
+    ):
+        if not self.db:
             await interaction.response.send_message(
-                f"Failed to send DM: {e}", ephemeral=True
+                "Database not configured.", ephemeral=True
+            )
+            return
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        owner_user = interaction.user
+
+        # Build admin report lines
+        admin_lines: list[str] = []
+        for g in sorted(self.guilds, key=lambda gg: (gg.name or "", gg.id)):
+            try:
+                ids = await self.db.list_admins(g.id)
+            except Exception:
+                ids = []
+            mentions = ", ".join(f"<@{uid}>" for uid in ids) if ids else "<none>"
+            admin_lines.append(f"• {g.name} ({g.id}) - admins: {len(ids)} - {mentions}")
+
+        # Build server settings lines
+        settings_lines: list[str] = []
+        for g in sorted(self.guilds, key=lambda gg: (gg.name or "", gg.id)):
+            try:
+                s = await self.db.get_settings(g.id)
+            except Exception:
+                s = GuildSettings(g.id)
+            label = f"{g.name} ({g.id})"
+
+            def b(v: bool) -> str:
+                return "true" if v else "false"
+
+            def q(v: str | int | bool | None) -> str:
+                return f'"{str(v)}"'
+
+            tokens: list[str] = [
+                f"enabled={q(b(s.enabled))}",
+                f"check_length={q(s.check_length)}",
+                f"enforce_bots={q(b(s.enforce_bots))}",
+                f"sanitize_emoji={q(b(s.sanitize_emoji))}",
+                f"preserve_spaces={q(s.preserve_spaces)}",
+                f"min_nick_length={q(s.min_nick_length)}",
+                f"max_nick_length={q(s.max_nick_length)}",
+                f"cooldown_seconds={q(s.cooldown_seconds)}",
+                f"bypass_role_id={q(s.bypass_role_id if s.bypass_role_id else 'none')}",
+                f"logging_channel_id={q(s.logging_channel_id if s.logging_channel_id else 'none')}",
+                f"fallback_mode={q(s.fallback_mode)}",
+            ]
+            fb = s.fallback_label
+            if (
+                fb is None
+                or not str(fb).strip()
+                or (FALLBACK_LABEL and str(fb).strip() == str(FALLBACK_LABEL).strip())
+            ):
+                tokens.append(f"fallback_label={q('none')}")
+            else:
+                tokens.append(f"fallback_label={q(s.fallback_label)}")
+            pair_str = " ".join(tokens)
+            settings_lines.append("• " + label + "\n" + f"```{pair_str}```")
+
+        # Build blacklist lines
+        bl_lines: list[str] = []
+        try:
+            entries = await self.db.list_blacklisted_guilds()
+        except Exception:
+            entries = []
+        for gid, name, reason in entries:
+            label = f"{name} ({gid})" if (name and name.strip()) else str(gid)
+            if reason and reason.strip():
+                bl_lines.append(f"• {label} - {reason}")
+            else:
+                bl_lines.append(f"• {label}")
+
+        # Send each report either as file or chunked messages at 1800 characters
+        def chunk_and_send_lines(lines: list[str], header: str):
+            return {
+                "header": header,
+                "lines": lines or ["<none>"]
+            }
+
+        reports = [
+            chunk_and_send_lines(admin_lines, "Admin report for all guilds (servers) bot is in:\n"),
+            chunk_and_send_lines(settings_lines, "Server settings report for all guilds (servers) bot is in:\n"),
+            chunk_and_send_lines(bl_lines, "Blacklisted guilds (servers):\n"),
+        ]
+
+        try:
+            for idx, rep in enumerate(reports):
+                header = rep["header"]
+                lines = rep["lines"]
+                if attach_file:
+                    from io import BytesIO
+                    full_text = header + ("\n".join(lines) if lines else "")
+                    # Name files distinctly per report
+                    fname = (
+                        "admin-report.txt" if idx == 0 else
+                        "server-settings-report.txt" if idx == 1 else
+                        "blacklist-report.txt"
+                    )
+                    await owner_user.send(
+                        file=discord.File(BytesIO(full_text.encode("utf-8")), filename=fname)
+                    )
+                else:
+                    await owner_user.send(header.rstrip())
+                    chunk: list[str] = []
+                    cur_len = 0
+                    for line in lines:
+                        add_len = (1 if chunk else 0) + len(line)
+                        if cur_len + add_len > 1800:
+                            await owner_user.send("\n".join(chunk))
+                            chunk = [line]
+                            cur_len = len(line)
+                        else:
+                            chunk.append(line)
+                            cur_len += add_len
+                    if chunk:
+                        await owner_user.send("\n".join(chunk))
+            await interaction.response.send_message(
+                "Sent you DMs with all reports.", ephemeral=True
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to send all reports: {e}", ephemeral=True
             )
 
     async def cmd_leave_server(
