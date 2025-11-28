@@ -3164,7 +3164,7 @@ class SanitizerBot(discord.Client):
                 "Only the bot owner can perform this action.", ephemeral=True
             )
             return
-        
+
         # Defer immediately since this takes time
         await interaction.response.defer(ephemeral=True)
         owner_user = interaction.user
@@ -3244,13 +3244,17 @@ class SanitizerBot(discord.Client):
                 settings_lines,
                 "# Server Settings Report\n\nSettings for all guilds (servers):\n",
             ),
-            chunk_and_send_lines(bl_lines, "# Blacklist Report\n\nBlacklisted guilds (servers):\n"),
+            chunk_and_send_lines(
+                bl_lines, "# Blacklist Report\n\nBlacklisted guilds (servers):\n"
+            ),
         ]
 
         try:
             # Send opening message
-            await owner_user.send("**All Reports**\n\nGenerating admin, server settings, and blacklist reports...")
-            
+            await owner_user.send(
+                "**All Reports**\n\nGenerating admin, server settings, and blacklist reports..."
+            )
+
             for idx, rep in enumerate(reports):
                 header = rep["header"]
                 lines = rep["lines"]
