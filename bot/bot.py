@@ -593,7 +593,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="global-delete-user-data",
-            description="Bot Owner Only: Delete all user data across all guilds (servers) and announce in configured logging channels",
+            description="Bot Owner Only: Delete all user data globally and announce in logging channels",
         )
         @app_commands.describe(
             confirm="Type true to confirm deletion of ALL user data globally"
