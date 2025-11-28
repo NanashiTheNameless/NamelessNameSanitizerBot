@@ -33,7 +33,8 @@ async def resolve_target_guild(
     if interaction.guild is None:
         try:
             await interaction.response.send_message(
-                "server_id is required when used in DMs for guild (server) operations.", ephemeral=True
+                "server_id is required when used in DMs for guild (server) operations.",
+                ephemeral=True,
             )
         except Exception:
             pass

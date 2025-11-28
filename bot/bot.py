@@ -10,8 +10,8 @@ import asyncio
 import logging
 import math
 import shlex
-from typing import Optional
 from io import BytesIO
+from typing import Optional
 
 import discord  # type: ignore
 import regex as re  # type: ignore
@@ -530,7 +530,10 @@ class SanitizerBot(discord.Client):
             name="unblacklist-server",
             description="Bot Owner Only: Remove a guild (server) from the blacklist",
         )
-        @app_commands.describe(server_id="The guild (server) ID to unblacklist", confirm="Type true to confirm")
+        @app_commands.describe(
+            server_id="The guild (server) ID to unblacklist",
+            confirm="Type true to confirm",
+        )
         @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
         async def _unblacklist_server(
             interaction: discord.Interaction,
@@ -2843,7 +2846,9 @@ class SanitizerBot(discord.Client):
             # When attach_file is enabled, send only the file (no inline text), regardless of length
             if attach_file:
                 await interaction.user.send(
-                    file=discord.File(BytesIO(text.encode("utf-8")), filename="blacklist.txt")
+                    file=discord.File(
+                        BytesIO(text.encode("utf-8")), filename="blacklist.txt"
+                    )
                 )
             else:
                 # Split between entries: send header first, then chunk lines to respect ~1800-char limit
@@ -2872,14 +2877,18 @@ class SanitizerBot(discord.Client):
             if attach_file:
                 try:
                     await interaction.followup.send(
-                        file=discord.File(BytesIO(text.encode("utf-8")), filename="blacklist.txt"),
+                        file=discord.File(
+                            BytesIO(text.encode("utf-8")), filename="blacklist.txt"
+                        ),
                         ephemeral=True,
                     )
                 except Exception:
                     # As last resort, split between entries and send as multiple ephemeral messages
                     header = "Blacklisted servers:\n"
                     if not interaction.response.is_done():
-                        await interaction.response.send_message(header.rstrip(), ephemeral=True)
+                        await interaction.response.send_message(
+                            header.rstrip(), ephemeral=True
+                        )
                     else:
                         await interaction.followup.send(header.rstrip(), ephemeral=True)
                     chunk: list[str] = []
@@ -2887,19 +2896,25 @@ class SanitizerBot(discord.Client):
                     for line in lines or ["<none>"]:
                         add_len = (1 if chunk else 0) + len(line)
                         if cur_len + add_len > 2000:
-                            await interaction.followup.send("\n".join(chunk), ephemeral=True)
+                            await interaction.followup.send(
+                                "\n".join(chunk), ephemeral=True
+                            )
                             chunk = [line]
                             cur_len = len(line)
                         else:
                             chunk.append(line)
                             cur_len += add_len
                     if chunk:
-                        await interaction.followup.send("\n".join(chunk), ephemeral=True)
+                        await interaction.followup.send(
+                            "\n".join(chunk), ephemeral=True
+                        )
             else:
                 # Split between entries and send ephemerally via response/followup (~1800-char chunks)
                 header = "Blacklisted servers:\n"
                 if not interaction.response.is_done():
-                    await interaction.response.send_message(header.rstrip(), ephemeral=True)
+                    await interaction.response.send_message(
+                        header.rstrip(), ephemeral=True
+                    )
                 else:
                     await interaction.followup.send(header.rstrip(), ephemeral=True)
                 chunk: list[str] = []
@@ -2907,7 +2922,9 @@ class SanitizerBot(discord.Client):
                 for line in lines or ["<none>"]:
                     add_len = (1 if chunk else 0) + len(line)
                     if cur_len + add_len > 1800:
-                        await interaction.followup.send("\n".join(chunk), ephemeral=True)
+                        await interaction.followup.send(
+                            "\n".join(chunk), ephemeral=True
+                        )
                         chunk = [line]
                         cur_len = len(line)
                     else:
@@ -2987,7 +3004,9 @@ class SanitizerBot(discord.Client):
             full_text = header + ("\n".join(lines) if lines else "<none>")
             if attach_file:
                 await owner_user.send(
-                    file=discord.File(BytesIO(full_text.encode("utf-8")), filename="admin-report.txt")
+                    file=discord.File(
+                        BytesIO(full_text.encode("utf-8")), filename="admin-report.txt"
+                    )
                 )
             else:
                 # Chunk at ~1800 chars, only between entries; send header first
@@ -3013,7 +3032,10 @@ class SanitizerBot(discord.Client):
             if attach_file:
                 try:
                     await interaction.followup.send(
-                        file=discord.File(BytesIO(full_text.encode("utf-8")), filename="admin-report.txt"),
+                        file=discord.File(
+                            BytesIO(full_text.encode("utf-8")),
+                            filename="admin-report.txt",
+                        ),
                         ephemeral=True,
                     )
                 except Exception:
@@ -3085,7 +3107,10 @@ class SanitizerBot(discord.Client):
             full_text = header + ("\n".join(lines) if lines else "<none>")
             if attach_file:
                 await owner_user.send(
-                    file=discord.File(BytesIO(full_text.encode("utf-8")), filename="server-settings-report.txt")
+                    file=discord.File(
+                        BytesIO(full_text.encode("utf-8")),
+                        filename="server-settings-report.txt",
+                    )
                 )
             else:
                 # Chunk at ~1800 chars, only between entries; send header first
@@ -3111,7 +3136,10 @@ class SanitizerBot(discord.Client):
             if attach_file:
                 try:
                     await interaction.followup.send(
-                        file=discord.File(BytesIO(full_text.encode("utf-8")), filename="server-settings-report.txt"),
+                        file=discord.File(
+                            BytesIO(full_text.encode("utf-8")),
+                            filename="server-settings-report.txt",
+                        ),
                         ephemeral=True,
                     )
                 except Exception:
@@ -3203,14 +3231,16 @@ class SanitizerBot(discord.Client):
 
         # Send each report either as file or chunked messages at 1800 characters
         def chunk_and_send_lines(lines: list[str], header: str):
-            return {
-                "header": header,
-                "lines": lines or ["<none>"]
-            }
+            return {"header": header, "lines": lines or ["<none>"]}
 
         reports = [
-            chunk_and_send_lines(admin_lines, "Admin report for all guilds (servers) bot is in:\n"),
-            chunk_and_send_lines(settings_lines, "Server settings report for all guilds (servers) bot is in:\n"),
+            chunk_and_send_lines(
+                admin_lines, "Admin report for all guilds (servers) bot is in:\n"
+            ),
+            chunk_and_send_lines(
+                settings_lines,
+                "Server settings report for all guilds (servers) bot is in:\n",
+            ),
             chunk_and_send_lines(bl_lines, "Blacklisted guilds (servers):\n"),
         ]
 
@@ -3222,12 +3252,18 @@ class SanitizerBot(discord.Client):
                     full_text = header + ("\n".join(lines) if lines else "")
                     # Name files distinctly per report
                     fname = (
-                        "admin-report.txt" if idx == 0 else
-                        "server-settings-report.txt" if idx == 1 else
-                        "blacklist-report.txt"
+                        "admin-report.txt"
+                        if idx == 0
+                        else (
+                            "server-settings-report.txt"
+                            if idx == 1
+                            else "blacklist-report.txt"
+                        )
                     )
                     await owner_user.send(
-                        file=discord.File(BytesIO(full_text.encode("utf-8")), filename=fname)
+                        file=discord.File(
+                            BytesIO(full_text.encode("utf-8")), filename=fname
+                        )
                     )
                 else:
                     await owner_user.send(header.rstrip())
