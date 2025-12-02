@@ -1,4 +1,4 @@
-# NamelessNameSanitizerBot
+# NamelessNameSanitizerBot [![Ask DeepWiki](<https://deepwiki.com/badge.svg>)](<https://deepwiki.com/NanashiTheNameless/NamelessNameSanitizerBot>)
 
 Discord bot that keeps member nicknames clean and consistent, with Unicode-aware sanitization, per-guild (server) policies, and admin controls. Built for Docker and backed by PostgreSQL.
 
