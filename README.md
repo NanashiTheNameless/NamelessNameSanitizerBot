@@ -123,11 +123,11 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - /botinfo - Display instance owner, developer attribution, source repository, policy, and legal links (ephemeral).
 - /delete-my-data - Erase any of your stored data in the current guild (server) (cooldown and admin entries) immediately.
 
-### Guild (Server) Admin
+### Guild (Server) Admin (requires Manage Nicknames permission)
 
-- /sanitize-user [member:Member] - Force-sanitize a member now (requires Manage Nicknames permission or bot admin). Respects cooldown if configured.
+- /sanitize-user [member:Member] - Force-sanitize a member now. Respects cooldown if configured.
 
-### Bot admin
+### Bot admin (requires Manage Nicknames permission; internal database authorization also required)
 
 - /sweep-now - Sweep members and sanitize nicknames according to current policy (bot admin only). Honors bypass role and enabled state.
 - /enable-sanitizer - Enable nickname enforcement for this guild (server). Required before automatic sanitize events occur.
@@ -148,7 +148,7 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)’s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=true.
 - /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] - View/update policy settings; supports multi-update with quoted values; server_id allows remote guild (server) management (owner or that guild (server)'s bot admin); required in DMs.
 
-### Owner-only
+### Bot Owner Only (invisible to all users at Discord API level)
 
 - /add-bot-admin [user:@User] [server_id:str] - Grant bot admin privileges for a guild (server) (current if omitted; server_id required in DMs).
 - /remove-bot-admin [user:@User] [server_id:str] - Revoke bot admin privileges for a guild (server) (current if omitted; server_id required in DMs).
@@ -197,15 +197,28 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 
 - Bot not changing nicknames
   - Verify /enable-sanitizer was run in the guild (server)
-  - Check the bot’s “Manage Nicknames” permission and role hierarchy
-  - Confirm SWEEP_INTERVAL_SEC and that the member isn’t on cooldown
-  - Ensure the user doesn’t have the bypass role and logging indicates attempts
+  - Check the bot's "Manage Nicknames" permission and role hierarchy
+  - The bot's role should be above the roles of users you want it to modify
+  - Confirm SWEEP_INTERVAL_SEC and that the member isn't on cooldown
+  - Ensure the user doesn't have the bypass role and logging indicates attempts
 
-- If you’re the owner and destructive commands appear rate-limited unexpectedly, check OWNER_DESTRUCTIVE_COOLDOWN_SECONDS.
+- If you're the owner and destructive commands appear rate-limited unexpectedly, check OWNER_DESTRUCTIVE_COOLDOWN_SECONDS.
 
 - Database issues
   - Check DATABASE_URL and that the Postgres container is healthy
   - The bot creates/updates tables on startup; review logs for errors
+
+## Command authorization model
+
+This bot uses a **two-tier authorization system** to protect sensitive commands:
+
+1. **Discord-level permissions** (via `@app_commands.default_permissions`)
+   - `/sanitize-user` and bot admin commands require "Manage Nicknames" permission at the Discord API level, making them invisible to users without that permission.
+   - Owner-only commands use `@app_commands.default_permissions()` (with no args) to be completely invisible at the Discord API level.
+
+2. **Internal database authorization** (via handlers)
+   - **Bot admin commands:** Require Manage Nicknames at the Discord level (visible only to those with that permission), but each handler also checks the database to verify the user is a bot admin for that guild (server) before execution.
+   - **Owner-only commands:** All handlers check `OWNER_ID` to ensure only the bot owner can execute them.
 
 ## Security & privacy
 

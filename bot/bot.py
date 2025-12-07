@@ -154,6 +154,7 @@ class SanitizerBot(discord.Client):
             name="sanitize-user",
             description="Manage Nicknames Required: Clean up a member's nickname now",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _sanitize(interaction: discord.Interaction, member: discord.Member):
             await self.cmd_sanitize(interaction, member)
 
@@ -163,6 +164,7 @@ class SanitizerBot(discord.Client):
             name="enable-sanitizer",
             description="Bot Admin Only: Enable the sanitizer in this guild (server)",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.describe(
             server_id="Optional guild (server) ID to enable; required in DMs or to target another guild (server)"
         )
@@ -176,6 +178,7 @@ class SanitizerBot(discord.Client):
             name="disable-sanitizer",
             description="Bot Admin Only: Disable the sanitizer in this guild (server)",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.describe(
             server_id="Optional guild (server) ID to disable; required in DMs or to target another guild (server)"
         )
@@ -189,6 +192,7 @@ class SanitizerBot(discord.Client):
             name="set-policy",
             description="Bot Admin Only: Set or view policy values; supports multiple updates",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.describe(
             key="Policy key to change (ignored if 'pairs' is provided)",
             value="New value for the policy key (leave empty to view current)",
@@ -213,6 +217,7 @@ class SanitizerBot(discord.Client):
             name="set-logging-channel",
             description="Bot Admin Only: Set or view the channel to receive nickname change logs",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _set_logging_channel(
             interaction: discord.Interaction,
             channel: Optional[discord.TextChannel] = None,
@@ -223,6 +228,7 @@ class SanitizerBot(discord.Client):
             name="set-bypass-role",
             description="Bot Admin Only: Set or view a role that bypasses nickname sanitization",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _set_bypass_role(
             interaction: discord.Interaction, role: Optional[discord.Role] = None
         ):
@@ -232,6 +238,7 @@ class SanitizerBot(discord.Client):
             name="set-emoji-sanitization",
             description="Bot Admin Only: Enable/disable removing emoji in nicknames or view current value",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _set_emoji(
             interaction: discord.Interaction, value: Optional[bool] = None
         ):
@@ -241,6 +248,7 @@ class SanitizerBot(discord.Client):
             name="set-fallback-mode",
             description="Bot Admin Only: Set or view the fallback mode: default|randomized|username",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(mode=self._ac_fallback_mode)
         async def _set_fallback_mode(
             interaction: discord.Interaction, mode: Optional[str] = None
@@ -251,6 +259,7 @@ class SanitizerBot(discord.Client):
             name="set-keep-spaces",
             description="Set or view whether to keep original spacing (true) or normalize spaces (false)",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _set_keep_spaces(
             interaction: discord.Interaction, value: Optional[bool] = None
         ):
@@ -260,6 +269,7 @@ class SanitizerBot(discord.Client):
             name="set-min-length",
             description="Bot Admin Only: Set or view the minimum allowed nickname length",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(value=self._ac_min_length_value)
         async def _set_min_nick_length(
             interaction: discord.Interaction, value: Optional[int] = None
@@ -270,6 +280,7 @@ class SanitizerBot(discord.Client):
             name="set-max-length",
             description="Bot Admin Only: Set or view the maximum allowed nickname length",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(value=self._ac_max_length_value)
         async def _set_max_nick_length(
             interaction: discord.Interaction, value: Optional[int] = None
@@ -280,6 +291,7 @@ class SanitizerBot(discord.Client):
             name="set-check-count",
             description="Bot Admin Only: Set or view the number of leading characters (grapheme clusters) to sanitize",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(value=self._ac_check_count_value)
         async def _set_check_count(
             interaction: discord.Interaction, value: Optional[int] = None
@@ -290,6 +302,7 @@ class SanitizerBot(discord.Client):
             name="set-cooldown-seconds",
             description="Bot Admin Only: Set or view the cooldown (in seconds) between nickname edits per user",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(value=self._ac_int_value)
         async def _set_cooldown(
             interaction: discord.Interaction, value: Optional[int] = None
@@ -300,6 +313,7 @@ class SanitizerBot(discord.Client):
             name="set-enforce-bots",
             description="Bot Admin Only: Enable/disable enforcing nickname rules on other bots or view current value",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _set_enforce_bots(
             interaction: discord.Interaction, value: Optional[bool] = None
         ):
@@ -309,6 +323,7 @@ class SanitizerBot(discord.Client):
             name="set-fallback-label",
             description="Bot Admin Only: Set or view the fallback nickname used when a name is fully illegal",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _set_fallback_label(
             interaction: discord.Interaction, value: Optional[str] = None
         ):
@@ -318,6 +333,7 @@ class SanitizerBot(discord.Client):
             name="clear-logging-channel",
             description="Bot Admin Only: Clear the logging channel",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.describe(
             confirm="Type true to confirm clearing the logging channel"
         )
@@ -330,6 +346,7 @@ class SanitizerBot(discord.Client):
             name="clear-bypass-role",
             description="Bot Admin Only: Clear the bypass role",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.describe(confirm="Type true to confirm clearing the bypass role")
         async def _clear_bypass_role(
             interaction: discord.Interaction, confirm: Optional[bool] = False
@@ -340,6 +357,7 @@ class SanitizerBot(discord.Client):
             name="clear-fallback-label",
             description="Bot Admin Only: Clear the fallback nickname",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _clear_fallback_label(interaction: discord.Interaction):
             await self.cmd_clear_fallback_label(interaction)
 
@@ -347,6 +365,7 @@ class SanitizerBot(discord.Client):
             name="reset-settings",
             description="Bot Admin Only: Reset all sanitizer settings to defaults for this guild (server)",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.describe(
             server_id="Optional guild (server) ID to reset; required in DMs or to target another guild (server)",
             confirm="Type true to confirm",
@@ -363,6 +382,7 @@ class SanitizerBot(discord.Client):
             name="sweep-now",
             description="Bot Admin Only: Immediately sweep and sanitize members in this guild (server)",
         )
+        @app_commands.default_permissions(manage_nicknames=True)
         async def _sweep_now(interaction: discord.Interaction):
             await self.cmd_sweep_now(interaction)
 
@@ -372,6 +392,7 @@ class SanitizerBot(discord.Client):
             name="add-bot-admin",
             description="Bot Owner Only: Add a bot admin for this guild (server)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             server_id="Optional guild (server) ID to modify; required in DMs or to target another guild (server)"
         )
@@ -387,6 +408,7 @@ class SanitizerBot(discord.Client):
             name="remove-bot-admin",
             description="Bot Owner Only: Remove a bot admin for this guild (server)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             server_id="Optional guild (server) ID to modify; required in DMs or to target another guild (server)"
         )
@@ -402,6 +424,7 @@ class SanitizerBot(discord.Client):
             name="list-bot-admins",
             description="Bot Owner Only: List bot admins for a guild (server)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             server_id="Optional guild (server) ID to list; required in DMs"
         )
@@ -415,6 +438,7 @@ class SanitizerBot(discord.Client):
             name="dm-admin-report",
             description="Bot Owner Only: DM a report of all guilds (servers) and their bot admins",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             attach_file="Optional: attach the report as a file (default: false)",
         )
@@ -427,6 +451,7 @@ class SanitizerBot(discord.Client):
             name="dm-server-settings",
             description="Bot Owner Only: DM a report of all guilds (servers) and their sanitizer settings",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             attach_file="Optional: attach the report as a file (default: false)",
         )
@@ -439,6 +464,7 @@ class SanitizerBot(discord.Client):
             name="global-bot-disable",
             description="Bot Owner Only: Disable the sanitizer bot in all guilds (servers)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(confirm="Type true to confirm global disable of the bot")
         async def _global_disable(
             interaction: discord.Interaction, confirm: Optional[bool] = False
@@ -449,6 +475,7 @@ class SanitizerBot(discord.Client):
             name="global-reset-settings",
             description="Bot Owner Only: Reset all sanitizer settings to defaults across all guilds (servers)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             confirm="Type true to confirm resetting settings globally"
         )
@@ -461,6 +488,7 @@ class SanitizerBot(discord.Client):
             name="nuke-bot-admins",
             description="Bot Owner Only: Remove all bot admins in this guild (server)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             server_id="Optional guild (server) ID to target; required in DMs or to nuke another guild (server)",
             confirm="Type true to confirm removal of all bot admins",
@@ -477,6 +505,7 @@ class SanitizerBot(discord.Client):
             name="global-nuke-bot-admins",
             description="Bot Owner Only: Remove all bot admins in all guilds (servers)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             confirm="Type true to confirm removal of all bot admins globally"
         )
@@ -489,6 +518,7 @@ class SanitizerBot(discord.Client):
             name="dm-blacklisted-servers",
             description="Bot Owner Only: DM the bot owner a list of blacklisted guilds (servers)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             attach_file="Optional: attach full list as a file when large (default: false)",
         )
@@ -501,6 +531,7 @@ class SanitizerBot(discord.Client):
             name="dm-all-reports",
             description="Bot Owner Only: DM the bot owner all reports (admins, settings, blacklist)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             attach_file="Optional: attach each report as a file (default: false)",
         )
@@ -513,6 +544,7 @@ class SanitizerBot(discord.Client):
             name="blacklist-server",
             description="Bot Owner Only: Blacklist a guild (server) and leave/delete its stored data",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             server_id="The guild (server) ID to blacklist",
             reason="Optional reason for blacklisting",
@@ -531,6 +563,7 @@ class SanitizerBot(discord.Client):
             name="unblacklist-server",
             description="Bot Owner Only: Remove a guild (server) from the blacklist",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             server_id="The guild (server) ID to unblacklist",
             confirm="Type true to confirm",
@@ -547,6 +580,7 @@ class SanitizerBot(discord.Client):
             name="set-blacklist-reason",
             description="Bot Owner Only: Update the reason for a blacklisted guild (server)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             server_id="Guild (server) ID whose blacklist reason to set",
             reason="New reason text (empty to clear)",
@@ -563,6 +597,7 @@ class SanitizerBot(discord.Client):
             name="leave-server",
             description="Bot Owner Only: Leave a guild (server) and delete its stored data",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             server_id="The guild (server) ID to leave", confirm="Type true to confirm"
         )
@@ -578,6 +613,7 @@ class SanitizerBot(discord.Client):
             name="delete-user-data",
             description="Bot Owner Only: Delete a user's stored data across all guilds (servers) (cooldowns/admin entries)",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(confirm="Type true to confirm deletion of user data")
         async def _owner_delete_user_data(
             interaction: discord.Interaction,
@@ -596,6 +632,7 @@ class SanitizerBot(discord.Client):
             name="global-delete-user-data",
             description="Bot Owner Only: Delete all user data globally and announce in logging channels",
         )
+        @app_commands.default_permissions()
         @app_commands.describe(
             confirm="Type true to confirm deletion of ALL user data globally"
         )
