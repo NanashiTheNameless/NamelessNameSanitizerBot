@@ -3394,7 +3394,7 @@ class SanitizerBot(discord.Client):
         try:
             await guild.leave()
             await self._dm_owner(
-                f"Left guild: {guild.name} ({guild.id}) - requested by owner."
+                f"Left guild: {guild.name} ({guild.id}) - Requested by bot owner."
             )
         except Exception:
             # As a fallback, try to kick self if possible
