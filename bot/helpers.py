@@ -1,4 +1,4 @@
-# This software is licensed under NNCL v1.2 see LICENSE.md for more info
+# This software is licensed under NNCL v1.3 see LICENSE.md for more info
 # https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md
 import time
 from typing import Optional
