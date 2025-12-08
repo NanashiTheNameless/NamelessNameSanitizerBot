@@ -1,3 +1,5 @@
+// This software is licensed under NNCL v1.2 see LICENSE.md for more info
+// https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/gh-pages/LICENSE.md
 // Lightweight starfield, shared across pages
 (function(){
   const canvas = document.getElementById('stars');
