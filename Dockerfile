@@ -15,7 +15,7 @@ COPY requirements.txt .
 # Install runtime deps and temporary build toolchain for wheels; purge build tools after install
 RUN apk add --no-cache tzdata ca-certificates \
     && update-ca-certificates \
-    && apk add --no-cache --virtual .build-deps build-base \
+    && apk add --no-cache --virtual .build-deps build-base git \
     && pip install --no-cache-dir pip==25.3 \
     && pip install --no-cache-dir -r requirements.txt \
     && apk del .build-deps
