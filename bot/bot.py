@@ -1373,7 +1373,7 @@ class SanitizerBot(discord.Client):
                 opts = [
                     discord.app_commands.Choice(name="default", value="default"),
                     discord.app_commands.Choice(name="randomized", value="randomized"),
-                    discord.app_commands.Choice(name="username", value="username"),
+                    discord.app_commands.Choice(name="static", value="static"),
                 ]
                 cur_l = (current or "").lower()
                 return [o for o in opts if cur_l in o.name][:25]
