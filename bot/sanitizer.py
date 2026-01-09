@@ -45,11 +45,11 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
         mode = getattr(settings, "fallback_mode", "default")
         if mode == "randomized":
             candidate = f"User{random.randrange(10000):04d}"
-        elif mode == "username":
-            candidate = ""
-        else:
-            # default mode uses custom fallback_label if set, else literal
+        elif mode == "static":
             candidate = settings.fallback_label or "Illegal Name"
+        else:
+            # default mode returns empty to trigger username attempt
+            candidate = ""
         if len(candidate) > settings.max_nick_length:
             candidate = candidate[: settings.max_nick_length]
         return candidate, True
@@ -88,10 +88,11 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
         mode = getattr(settings, "fallback_mode", "default")
         if mode == "randomized":
             candidate = f"User{random.randrange(10000):04d}"
-        elif mode == "username":
-            candidate = ""
-        else:
+        elif mode == "static":
             candidate = settings.fallback_label or "Illegal Name"
+        else:
+            # default mode returns empty to trigger username attempt
+            candidate = ""
 
     if len(candidate) > settings.max_nick_length:
         candidate = candidate[: settings.max_nick_length]
@@ -104,10 +105,11 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
             mode = getattr(settings, "fallback_mode", "default")
             if mode == "randomized":
                 candidate = f"User{random.randrange(10000):04d}"
-            elif mode == "username":
-                candidate = ""
-            else:
+            elif mode == "static":
                 candidate = settings.fallback_label or "Illegal Name"
+            else:
+                # default mode returns empty to trigger username attempt
+                candidate = ""
             if len(candidate) > settings.max_nick_length:
                 candidate = candidate[: settings.max_nick_length]
 

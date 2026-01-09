@@ -63,7 +63,7 @@ PRESERVE_SPACES = getenv_bool("PRESERVE_SPACES", True)
 SANITIZE_EMOJI = getenv_bool("SANITIZE_EMOJI", True)
 ENFORCE_BOTS = getenv_bool("ENFORCE_BOTS", False)
 FALLBACK_MODE = os.getenv("FALLBACK_MODE", "default").strip().lower()
-if FALLBACK_MODE not in ("default", "randomized", "username"):
+if FALLBACK_MODE not in ("default", "randomized", "static"):
     FALLBACK_MODE = "default"
 FALLBACK_LABEL = os.getenv("FALLBACK_LABEL", "Illegal Name").strip()
 COOLDOWN_TTL_SEC = getenv_int("COOLDOWN_TTL_SEC", max(86400, COOLDOWN_SECONDS * 10))

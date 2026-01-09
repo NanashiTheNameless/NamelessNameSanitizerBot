@@ -93,7 +93,7 @@ class SanitizerBot(discord.Client):
                 name="bypass_role_id (role id or none)", value="bypass_role_id"
             ),
             discord.app_commands.Choice(
-                name="fallback_mode (default|randomized|username)",
+                name="fallback_mode (default|randomized|static)",
                 value="fallback_mode",
             ),
             discord.app_commands.Choice(
@@ -246,7 +246,7 @@ class SanitizerBot(discord.Client):
 
         @self.tree.command(
             name="set-fallback-mode",
-            description="Bot Admin Only: Set or view the fallback mode: default|randomized|username",
+            description="Bot Admin Only: Set or view the fallback mode: default|randomized|static",
         )
         @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(mode=self._ac_fallback_mode)
@@ -871,10 +871,10 @@ class SanitizerBot(discord.Client):
         name_now = member.nick or getattr(member, "global_name", None) or member.name
         candidate, used_fallback = sanitize_name(name_now, settings)
 
-        # If we had to fallback and server mode is 'username', attempt sanitizing the account username instead
+        # If we had to fallback and server mode is 'default', attempt sanitizing the account username instead
         if (
             used_fallback
-            and getattr(settings, "fallback_mode", "default") == "username"
+            and getattr(settings, "fallback_mode", "default") == "default"
         ):
             base_username = getattr(member, "name", None)
             if base_username and base_username != name_now:
@@ -1150,10 +1150,10 @@ class SanitizerBot(discord.Client):
         )
         candidate, used_fallback = sanitize_name(current_name, settings)
 
-        # If fallback occurred and server mode is 'username', attempt user's account username
+        # If fallback occurred and server mode is 'default', attempt user's account username
         if (
             used_fallback
-            and getattr(settings, "fallback_mode", "default") == "username"
+            and getattr(settings, "fallback_mode", "default") == "default"
         ):
             base_username = getattr(member, "name", None)
             if base_username and base_username != current_name:
@@ -1325,7 +1325,7 @@ class SanitizerBot(discord.Client):
         opts = [
             discord.app_commands.Choice(name="default", value="default"),
             discord.app_commands.Choice(name="randomized", value="randomized"),
-            discord.app_commands.Choice(name="username", value="username"),
+            discord.app_commands.Choice(name="static", value="static"),
         ]
         cur_l = (current or "").lower()
         return [o for o in opts if cur_l in o.name][:25]
@@ -1725,9 +1725,9 @@ class SanitizerBot(discord.Client):
                             v = lab
                     elif k == "fallback_mode":
                         mv = v_raw.strip().lower()
-                        if mv not in {"default", "randomized", "username"}:
+                        if mv not in {"default", "randomized", "static"}:
                             raise ValueError(
-                                "fallback_mode must be one of: default, randomized, username"
+                                "fallback_mode must be one of: default, randomized, static"
                             )
                         v = mv
                     else:
@@ -1819,9 +1819,9 @@ class SanitizerBot(discord.Client):
                 v = parse_bool_str(value)
             elif key == "fallback_mode":
                 mv = value.strip().lower()
-                if mv not in {"default", "randomized", "username"}:
+                if mv not in {"default", "randomized", "static"}:
                     raise ValueError(
-                        "fallback_mode must be one of: default, randomized, username"
+                        "fallback_mode must be one of: default, randomized, static"
                     )
                 v = mv
             elif key in {"logging_channel_id", "bypass_role_id"}:
@@ -2023,7 +2023,7 @@ class SanitizerBot(discord.Client):
         warn_disabled = None
         if not s.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
-        valid = {"default", "randomized", "username"}
+        valid = {"default", "randomized", "static"}
         if mode is None:
             text = f"Current fallback_mode: {getattr(s, 'fallback_mode', 'default')}"
             if warn_disabled:
@@ -2033,7 +2033,7 @@ class SanitizerBot(discord.Client):
         mval = mode.strip().lower()
         if mval not in valid:
             await interaction.response.send_message(
-                "Invalid mode. Use one of: default, randomized, username.",
+                "Invalid mode. Use one of: default, randomized, static.",
                 ephemeral=True,
             )
             return

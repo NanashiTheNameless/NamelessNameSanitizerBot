@@ -46,8 +46,8 @@ Policy defaults (used until changed per-guild (server) via commands)
 - COOLDOWN_SECONDS: integer, default 30 - cooldown between edits per user
 - SANITIZE_EMOJI: true|false, default true - if true, emoji are removed
 - ENFORCE_BOTS: true|false, default false - default toggle for enforcing nickname rules on other bot accounts. The bot never sanitizes its own account.
-- FALLBACK_MODE: default|randomized|username, default default - how fallback names are chosen when a sanitized result is empty/illegal
-- FALLBACK_LABEL: string, default "Illegal Name" - global default fallback label; used in fallback_mode=default and as the final fallback in username mode
+- FALLBACK_MODE: default|randomized|static, default default - how fallback names are chosen when a sanitized result is empty/illegal
+- FALLBACK_LABEL: string, default "Illegal Name" - global default fallback label; used in fallback_mode=static and as the final fallback in default mode
 - COOLDOWN_TTL_SEC: integer, default max(86400, COOLDOWN_SECONDS*10) - retention for per-user cooldown entries; older entries are purged automatically.
 - OWNER_DESTRUCTIVE_COOLDOWN_SECONDS: integer, default 10 - separate cooldown applied only to destructive owner-only commands (e.g. blacklist, unblacklist, global resets) so routine admin actions aren’t throttled.
 
@@ -135,14 +135,14 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - /set-logging-channel [channel:#channel] - Set/view the channel that receives nickname update logs.
 - /set-bypass-role [role:@Role] - Set/view a role whose members are never sanitized.
 - /set-emoji-sanitization [value:bool] - Toggle whether emoji are stripped (true) or preserved (false).
-- /set-fallback-mode [mode:str] - Set/view fallback mode (`default|randomized|username`). Controls how empty/illegal results are replaced.
+- /set-fallback-mode [mode:str] - Set/view fallback mode (`default|randomized|static`). Controls how empty/illegal results are replaced.
 - /set-keep-spaces [value:bool] - Toggle preserving original spacing (true) vs normalizing whitespace (false).
 - /set-min-length [value:int] - Set/view minimum allowed nickname length (clamped ≤ 8).
 - /set-max-length [value:int] - Set/view maximum allowed nickname length (clamped ≤ 32).
 - /set-check-count [value:int] - Set/view number of leading grapheme clusters to sanitize (0 = full name).
 - /set-cooldown-seconds [value:int] - Set/view per-user edit cooldown interval.
 - /set-enforce-bots [value:bool] - Toggle sanitization for other bots (never targets itself).
-- /set-fallback-label [value:str] - Set/view custom fallback label (1–20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` or `username` mode except final fallback in username mode.
+- /set-fallback-label [value:str] - Set/view custom fallback label (1–20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` mode; used in `static` mode and as final fallback in `default` mode.
 - /clear-logging-channel [confirm:bool] - Remove logging channel (reverts to none). Requires confirm=true.
 - /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=true.
 - /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)’s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=true.
