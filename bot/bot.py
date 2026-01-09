@@ -872,10 +872,7 @@ class SanitizerBot(discord.Client):
         candidate, used_fallback = sanitize_name(name_now, settings)
 
         # If we had to fallback and server mode is 'default', attempt sanitizing the account username instead
-        if (
-            used_fallback
-            and getattr(settings, "fallback_mode", "default") == "default"
-        ):
+        if used_fallback and getattr(settings, "fallback_mode", "default") == "default":
             base_username = getattr(member, "name", None)
             if base_username and base_username != name_now:
                 alt_candidate, alt_used_fallback = sanitize_name(
@@ -1151,10 +1148,7 @@ class SanitizerBot(discord.Client):
         candidate, used_fallback = sanitize_name(current_name, settings)
 
         # If fallback occurred and server mode is 'default', attempt user's account username
-        if (
-            used_fallback
-            and getattr(settings, "fallback_mode", "default") == "default"
-        ):
+        if used_fallback and getattr(settings, "fallback_mode", "default") == "default":
             base_username = getattr(member, "name", None)
             if base_username and base_username != current_name:
                 alt_candidate, alt_used_fallback = sanitize_name(
