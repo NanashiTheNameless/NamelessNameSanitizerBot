@@ -26,7 +26,8 @@
         <nav class="nav-links" aria-label="Primary">
           <a href="/install" class="btn">Install</a>
           <a href="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot" class="btn secondary" target="_blank" rel="noopener">Source</a>
-          <a href="/TermsOfService" class="btn secondary">Terms</a>
+          <a href="/PrivacyPolicy" class="btn secondary">Privacy Policy</a>
+          <a href="/TermsOfService" class="btn secondary">Terms of Service</a>
           <a href="/license" class="btn secondary">License</a>
         </nav>
       </div>
@@ -35,39 +36,39 @@
     <div class="content">
       <div class="card">
         <h1>Privacy Policy</h1>
-  <p><em>Last updated: 2025-11-21 (YYYY-MM-DD)</em></p>
+  <p><em>Last updated: 2026-01-11 (YYYY-MM-DD)</em></p>
         <div>
-          <p>This page explains what NamelessNameSanitizerBot ("the Bot") does with data.<br>By using the Bot, you agree to this policy.</p>
+          <p>This page explains what NamelessNameSanitizerBot ("The Bot") does with data.<br>By using The Bot, you agree to this policy.</p>
           <h2>Quick summary</h2>
           <ul>
-            <li>We do not read or store message content.</li>
-            <li>We only use basic Discord metadata needed to work (e.g., guild ID, user ID, roles, current nickname) and per‑guild settings.</li>
-            <li>Optional features may post nickname‑change notices in a server log channel and/or DM the bot owner about guild join/leave events.</li>
-            <li>Anonymous, opt‑out telemetry counts how many instances run. It never includes message content, user IDs, or guild IDs.</li>
+            <li>The Bot does not read or store message content.</li>
+            <li>The Bot only uses basic Discord metadata needed to work (e.g., guild ID, user ID, roles, current nickname) and per-guild settings.</li>
+            <li>Optional features may post nickname-change notices in a server log channel and/or DM the bot owner about guild join/leave events.</li>
+            <li>Anonymous, opt-out self-host telemetry counts how many instances of The Bot are being run at any given time. It never includes any PII, message content, User IDs, or Guild IDs.</li>
           </ul>
-          <h2>What we process</h2>
+          <h2>What The Bot processes</h2>
           <ul>
             <li>Discord metadata to decide if and how to sanitize nicknames.</li>
-            <li>Per‑guild settings (policy values, admin lists, feature toggles, optional logging channel ID, optional bypass role ID, and fallback label).</li>
+            <li>Per-guild settings (policy values, admin lists, feature toggles, optional logging channel ID, optional bypass role ID, and fallback label).</li>
             <li>Minimal operational data such as cooldown timestamps (per user) and guild blacklist entries (guild ID, optional name, optional reason).</li>
           </ul>
-          <p>We do not process or store message content and we do not require the Message Content intent.</p>
+          <p>The Bot does not process or store message content and The Bot does not require the Message Content intent.</p>
           <h2>Storage and retention</h2>
           <ul>
-            <li>Per‑guild settings/admin lists are stored in a database and kept until you change or delete them.</li>
-            <li>Cooldown entries are auto‑purged after a delay.</li>
+            <li>Per-guild settings/admin lists are stored in a database and kept until you change or delete them.</li>
+            <li>Cooldown entries are auto-purged after a delay.</li>
             <li>If a guild is blacklisted, the bot leaves and deletes stored settings/admins for that guild; blacklist entries remain until removed.</li>
           </ul>
           <h2>Sharing</h2>
           <ul>
-            <li>We do not sell or share data with third parties.</li>
+            <li>We do not sell or share any data with third parties.</li>
             <li>Hosting/infrastructure providers used by the operator may process data under their own policies.</li>
           </ul>
-          <h2>Telemetry (opt‑out)</h2>
+          <h2>Self-hosting Telemetry (opt-out)</h2>
           <ul>
-            <li><strong>Purpose:</strong> privacy‑preserving census of self‑hosted usage.</li>
+            <li><strong>Purpose:</strong> privacy-preserving census of self-hosted usage.</li>
             <li><strong>When:</strong> once on startup and then every 2 hours (UTC), in the background.</li>
-            <li><strong>Data sent:</strong> SHA‑256 hash of a random instance ID (not a guild/user ID), current UTC date (YYYY‑MM‑DD), project name, and a static count value of 1.</li>
+            <li><strong>Data sent:</strong> SHA-256 hash of a randomly generated instance ID (not a guild/user ID), Current UTC date (YYYY-MM-DD), Static Project name, and a static count value of 1.</li>
             <li><strong>Public stats:</strong> <a href="https://telemetry.namelessnanashi.dev/">https://telemetry.namelessnanashi.dev/</a></li>
           </ul>
           <h2>Your controls</h2>
@@ -81,7 +82,7 @@
           <h2>Where processing happens</h2>
           <p>Data is processed where the operator hosts the Bot and its database. Operators are responsible for any legal compliance in their region.</p>
           <h2>Contact</h2>
-          <p>Open a GitHub issue or contact the bot owner/operator. You can pull up the relevant using the <code>/botinfo</code> command.</p>
+          <p>Open a GitHub issue or contact the bot owner/operator. You can pull up the relevant information using the <code>/botinfo</code> command.</p>
           <h2>Changes</h2>
           <p>We may update this policy. Continued use means you accept the changes.</p>
         </div>
