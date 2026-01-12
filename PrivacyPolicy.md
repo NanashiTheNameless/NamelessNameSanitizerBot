@@ -1,41 +1,41 @@
 # Privacy Policy
 
-Last updated: 2025-11-21 (YYYY-MM-DD)
+Last updated: 2026-01-11 (YYYY-MM-DD)
 
-This page explains what NamelessNameSanitizerBot ("the Bot") does with data.
-By using the Bot, you agree to this policy.
+This page explains what NamelessNameSanitizerBot ("The Bot") does with data.
+By using The Bot, you agree to this policy.
 
 ## Quick summary
 
-- We do not read or store message content.
-- We only use basic Discord metadata needed to work (e.g., guild ID, user ID, roles, current nickname) and per‑guild settings.
-- Optional features may post nickname‑change notices in a server log channel and/or DM the bot owner about guild join/leave events.
-- Anonymous, opt‑out telemetry counts how many instances run. It never includes message content, user IDs, or guild IDs.
+- The Bot does not read or store message content.
+- The Bot only uses basic Discord metadata needed to work (e.g., guild ID, user ID, roles, current nickname) and per-guild settings.
+- Optional features may post nickname-change notices in a server log channel and/or DM the bot owner about guild join/leave events.
+- Anonymous, opt-out self-host telemetry counts how many instances of The Bot are being run at any given time. It never includes any PII, message content, User IDs, or Guild IDs.
 
-## What we process
+## What The Bot processes
 
 - Discord metadata to decide if and how to sanitize nicknames.
 - Per‑guild settings (policy values, admin lists, feature toggles, optional logging channel ID, optional bypass role ID, and fallback label).
 - Minimal operational data such as cooldown timestamps (per user) and guild blacklist entries (guild ID, optional name, optional reason).
 
-We do not process or store message content and we do not require the Message Content intent.
+The Bot does not process or store message content and The Bot does not require the Message Content intent.
 
 ## Storage and retention
 
-- Per‑guild settings/admin lists are stored in a database and kept until you change or delete them.
-- Cooldown entries are auto‑purged after a delay.
+- Per-guild settings/admin lists are stored in a database and kept until you change or delete them.
+- Cooldown entries are auto-purged after a delay.
 - If a guild is blacklisted, the bot leaves and deletes stored settings/admins for that guild; blacklist entries remain until removed.
 
 ## Sharing
 
-- We do not sell or share data with third parties.
+- We do not sell or share any data with third parties.
 - Hosting/infrastructure providers used by the operator may process data under their own policies.
 
-## Telemetry (opt‑out)
+## Self-hosting Telemetry (opt-out)
 
-- Purpose: privacy‑preserving census of self‑hosted usage.
+- Purpose: privacy-preserving census of self-hosted usage.
 - When: once on startup and then every 2 hours (UTC), in the background.
-- Data sent: SHA‑256 hash of a random instance ID (not a guild/user ID), current UTC date (YYYY‑MM‑DD), project name, and a static count value of 1.
+- Data sent: SHA-256 hash of a randomly generated instance ID (not a guild/user ID), Current UTC date (YYYY-MM-DD), Static Project name, and a static count value of 1.
 - Public stats: <https://telemetry.namelessnanashi.dev/>
 
 ## Your controls
@@ -54,7 +54,7 @@ Data is processed where the operator hosts the Bot and its database. Operators a
 
 ## Contact
 
-Open a GitHub issue or contact the bot owner/operator. You can pull up the relevant using the `/botinfo` command.
+Open a GitHub issue or contact the bot owner/operator. You can pull up the relevant information using the `/botinfo` command.
 
 ## Changes
 

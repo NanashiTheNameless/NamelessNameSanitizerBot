@@ -1,17 +1,17 @@
 # Terms of Service
 
-Last updated: 2025-11-21 (YYYY-MM-DD)
+Last updated: 2026-01-11 (YYYY-MM-DD)
 
 By adding or using NamelessNameSanitizerBot ("the Bot") in your Discord server, you agree to these terms.
 
 ## What the Bot does
 
-Enforces nickname rules with per‑guild settings and optional logging. It can optionally DM the bot owner about guild join/leave events.
+The bot enforces nickname rules with per-guild settings and optional logging. The bot can optionally DM the bot owner about guild join/leave events.
 
 ## Using the Bot
 
 - Follow Discord’s Terms and Community Guidelines.
-- Follow the bot's terms and license.
+- Follow and agree to The Bot's Terms of Service, Privacy Policy, and License.
 - Only add/configure the Bot if you have permission to do so.
 
 ## Acceptable use
@@ -20,14 +20,14 @@ Do not use the Bot to break laws, harass people, evade Discord policies, attack/
 
 ## Permissions & data
 
-- Needs relevant Discord permissions (e.g., Manage Nicknames) to work.
-- Stores minimal per‑guild configuration and operational data. No message content is stored.
-- May log nickname changes to a configured channel and guild join/leave events (if enabled). Owner‑only commands may DM summaries of guild settings.
+- The bot needs relevant Discord permissions (e.g., Manage Nicknames) to work.
+- The bot stores minimal per-guild configuration and operational data. No message content is read or stored.
+- The bot may log nickname changes to a configured logging channel and DM the bot owner guild join/leave events (if enabled). Bot Owner-only commands may DM the bot owner a list of guild settings.
 - Tell members that automated nickname changes may occur.
 
-### Anonymous telemetry (opt‑out)
+### Anonymous self-hosting telemetry (opt-out)
 
-To estimate adoption, the Bot sends a tiny census event once on startup and every 2 hours (UTC). Please see the Privacy Policy for more info.
+To estimate self-hosted adoption, the Bot sends a tiny census event once on startup and every 2 hours (UTC). Please see the Privacy Policy for more info.
 
 ## Changes & availability
 
@@ -38,7 +38,7 @@ To estimate adoption, the Bot sends a tiny census event once on startup and ever
 
 ## Policy Consistency for Forks / Self-Hosted Instances
 
-Any public fork, re‑deployment, or self‑hosted instance of the Bot that interacts with third parties MUST adopt verbatim (word‑for‑word) the official Terms of Service, Privacy Policy, and License provided with this software, except for purely cosmetic formatting adjustments (for example, heading styles or link formatting) and substitution of the operational contact method. Substantive changes, omissions, or additions are prohibited unless separately and conspicuously approved in writing by the original maintainers. If you cannot or will not comply, do not expose the Bot (or any derivative) for third‑party use.
+Any public fork, re-deployment, or self-hosted instance of the Bot that interacts with third parties MUST adopt verbatim (word-for-word) the official Terms of Service, Privacy Policy, and License provided with this software, except for purely cosmetic formatting adjustments (for example, heading styles or link formatting) and substitution of the operational contact method. Substantive changes, omissions, or additions are prohibited unless separately and conspicuously approved in writing by the original maintainers. If you cannot or will not comply, do not expose the Bot (or any derivative) for third-party use (This includes in Public guilds or guilds with more than 100 users).
 
 ## Liability
 
