@@ -16,7 +16,7 @@ If you want a production-friendly, self-hosting optimized setup (pre-tuned Docke
 - Opt-in per-guild (server): enable/disable the bot with a simple command
 - Optional logging channel for every nickname change
 - Optional bypass role so trusted members aren't modified
-- Docker- and compose-friendly deployment with Postgres
+- Docker and compose-friendly deployment with Postgres
 - Optional enforcement for bot accounts (disabled by default)
 
 ## Requirements
