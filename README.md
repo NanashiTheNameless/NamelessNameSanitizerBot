@@ -142,7 +142,7 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - /set-check-count [value:int] - Set/view number of leading grapheme clusters to sanitize (0 = full name).
 - /set-cooldown-seconds [value:int] - Set/view per-user edit cooldown interval.
 - /set-enforce-bots [value:bool] - Toggle sanitization for other bots (never targets itself).
-- /set-fallback-label [value:str] - Set/view custom fallback label (1–20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` mode; used in `static` mode and as final fallback in `default` mode.
+- /set-fallback-label [value:str] - Set/view custom fallback label (1-20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` mode; used in `static` mode and as final fallback in `default` mode.
 - /clear-logging-channel [confirm:bool] - Remove logging channel (reverts to none). Requires confirm=true.
 - /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=true.
 - /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)’s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=true.
@@ -273,6 +273,6 @@ See [LICENSE.md](<./LICENSE.md>).
 
 If you're using an AI assistant to help with this repo, see:
 
-- [AGENTS.md](<./AGENTS.md>) – general guidance for LLM agents working in this repo
-- [CLAUDE.md](<./CLAUDE.md>) – provider-specific notes for Anthropic Claude
-- [COPILOT.md](<./COPILOT.md>) – provider-specific notes for GitHub Copilot in VS Code
+- [AGENTS.md](<./AGENTS.md>) - general guidance for LLM agents working in this repo
+- [CLAUDE.md](<./CLAUDE.md>) - provider-specific notes for Anthropic Claude
+- [COPILOT.md](<./COPILOT.md>) - provider-specific notes for GitHub Copilot in VS Code
