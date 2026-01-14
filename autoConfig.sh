@@ -35,9 +35,9 @@ prompt_with_default() {
     local default_value="$2"
     local input_value
     if [ -z "$default_value" ]; then
-        read -p "$prompt_text: " input_value
+        read -r -p "$prompt_text: " input_value
     else
-        read -p "$prompt_text [$default_value]: " input_value
+        read -r -p "$prompt_text [$default_value]: " input_value
         input_value="${input_value:-$default_value}"
     fi
     echo "$input_value"
@@ -47,7 +47,7 @@ prompt_with_default() {
 prompt_secret() {
     local prompt_text="$1"
     local input_value
-    read -p "$prompt_text: " input_value
+    read -r -p "$prompt_text: " input_value
     echo "$input_value"
 }
 
