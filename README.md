@@ -15,7 +15,7 @@ If you want a production-friendly, self-hosting optimized setup (pre-tuned Docke
 - Admin model with owner controls; per-guild (server) bot admins stored in DB
 - Opt-in per-guild (server): enable/disable the bot with a simple command
 - Optional logging channel for every nickname change
-- Optional bypass role so trusted members aren’t modified
+- Optional bypass role so trusted members aren't modified
 - Docker- and compose-friendly deployment with Postgres
 - Optional enforcement for bot accounts (disabled by default)
 
@@ -49,7 +49,7 @@ Policy defaults (used until changed per-guild (server) via commands)
 - FALLBACK_MODE: default|randomized|static, default default - how fallback names are chosen when a sanitized result is empty/illegal
 - FALLBACK_LABEL: string, default "Illegal Name" - global default fallback label; used in fallback_mode=static and as the final fallback in default mode
 - COOLDOWN_TTL_SEC: integer, default max(86400, COOLDOWN_SECONDS*10) - retention for per-user cooldown entries; older entries are purged automatically.
-- OWNER_DESTRUCTIVE_COOLDOWN_SECONDS: integer, default 10 - separate cooldown applied only to destructive owner-only commands (e.g. blacklist, unblacklist, global resets) so routine admin actions aren’t throttled.
+- OWNER_DESTRUCTIVE_COOLDOWN_SECONDS: integer, default 10 - separate cooldown applied only to destructive owner-only commands (e.g. blacklist, unblacklist, global resets) so routine admin actions aren't throttled.
 
 Runtime
 
@@ -76,13 +76,37 @@ Click to install the bot to your guild (server):
 
 ## Run with Docker Compose
 
-1) Copy `.env.example` to `.env` and update values. Ensure at minimum `DISCORD_TOKEN` is set. For Compose, the default `DATABASE_URL` already matches the provided Postgres service.
+### 1. Generate your `.env` configuration
 
-2) Start the stack (using the local Dockerfile build or switch the compose service to use the published image):
+Choose one of the following:
+
+**Option A: Automatic (recommended)**
+
+Run the interactive setup script:
 
 ```bash
-docker compose up -d --build
+./autoConfig.sh
 ```
+
+The script will prompt you for Discord credentials, database settings, and policy defaults, then generate a secure `.env` file.
+
+**Option B: Manual**
+
+Copy `.env.example` to `.env` and edit it:
+
+```bash
+cp .env.example .env
+```
+
+At minimum, set `DISCORD_TOKEN`. For Docker Compose, the default `DATABASE_URL` already matches the included Postgres service.
+
+### 2. Start the services
+
+```bash
+docker compose up -d -build
+```
+
+This builds and starts the bot and database containers.
 
 If you want a production-friendly, self-hosting optimized setup (pre-tuned Docker image and Compose stack), see:
 
@@ -100,8 +124,8 @@ docker compose exec bot ls -A -l /app/data
 
 ## Permissions and intents
 
-- Bot requires the “Manage Nicknames” permission to edit nicknames.
-- For automatic sweeps and join handling, enable the “Guild (server) Members Intent”.
+- Bot requires the "Manage Nicknames" permission to edit nicknames.
+- For automatic sweeps and join handling, enable the "Guild (server) Members Intent".
 
 ## How it works
 
@@ -109,7 +133,7 @@ The bot sanitizes the leading part of nicknames using Unicode-aware rules:
 
 - Removes controls, format characters, and combining marks (Cf, Cc, Mn, Me)
 - Optionally strips emoji; when disabled, emoji sequences are preserved
-- Respects grapheme clusters so combined glyphs aren’t split
+- Respects grapheme clusters so combined glyphs aren't split
 - Applies length and spacing policies
 
 By default, other bots are not targeted. If you set `enforce_bots` to true for a guild (server), the bot will include bot accounts in sanitization actions. It will never attempt to change its own nickname.
@@ -145,7 +169,7 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - /set-fallback-label [value:str] - Set/view custom fallback label (1-20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` mode; used in `static` mode and as final fallback in `default` mode.
 - /clear-logging-channel [confirm:bool] - Remove logging channel (reverts to none). Requires confirm=true.
 - /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=true.
-- /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)’s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=true.
+- /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)'s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=true.
 - /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] - View/update policy settings; supports multi-update with quoted values; server_id allows remote guild (server) management (owner or that guild (server)'s bot admin); required in DMs.
 
 ### Bot Owner Only (invisible to all users at Discord API level)
@@ -159,11 +183,11 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - /unblacklist-server [server_id:str] [confirm:bool] - Remove a guild (server) from blacklist.
 - /set-blacklist-reason [server_id:str] [reason:str] - Set or clear a reason for a blacklisted guild (server).
  -/dm-blacklisted-servers [attach_file:bool] - DM the bot owner a list of blacklisted guild (server) IDs & reasons. Optional `attach_file` (defaults to false). When true, the bot sends the report as a file and does not include inline text.
- -/dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to false). When `attach_file=true`, the bot uploads three separate files — `admin-report.txt`, `server-settings-report.txt`, and `blacklist-report.txt` — and does not include inline text. When `attach_file=false`, reports are sent as messages with safe chunking.
+ -/dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to false). When `attach_file=true`, the bot uploads three separate files - `admin-report.txt`, `server-settings-report.txt`, and `blacklist-report.txt` - and does not include inline text. When `attach_file=false`, reports are sent as messages with safe chunking.
 - /leave-server [server_id:str] [confirm:bool] - Leave a guild (server) and delete its stored configuration/admin data.
 - /dm-admin-report - DM a multi-message report of guilds (servers) and bot admins.
 - /dm-server-settings - DM a multi-message list of all guild (server) settings (paste-friendly key=value pairs).
-- /delete-user-data [user:@User] - Purge a user’s stored data globally (cooldowns/admin entries).
+- /delete-user-data [user:@User] - Purge a user's stored data globally (cooldowns/admin entries).
 - /nuke-bot-admins [server_id:str] [confirm:bool] - Remove all bot admins for a guild (server) (current guild (server) if omitted in-guild; server_id required in DMs). Requires confirm=true.
 - /global-nuke-bot-admins [confirm:bool] - Remove all bot admins in all guilds (servers). Requires confirm=true.
 - /global-delete-user-data [confirm:bool] - Purge ALL user data in ALL guilds (servers) and announce in logging channels. Requires confirm=true.
@@ -183,7 +207,7 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - In DMs, commands that act on a guild (server) require a server_id argument.
 - /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="true" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="true" cooldown_seconds="30" sanitize_emoji="true" enforce_bots="false" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
 - Use the literal string `none` (quoted or unquoted) to clear `logging_channel_id`, `bypass_role_id`, or `fallback_label`.
-- Messages that may be long are chunked safely below Discord's 2000‑character limit. Chunking starts around 1800 characters and only breaks between entries to preserve readability.
+- Messages that may be long are chunked safely below Discord's 2000-character limit. Chunking starts around 1800 characters and only breaks between entries to preserve readability.
 - `/dm-server-settings` messages are chunked only between guilds (servers); each line per guild (server) is a complete pasteable set of pairs.
 - Boolean inputs for commands accept true/false, yes/no, on/off, and 1/0 (case-insensitive).
 - Protected (cannot be set via commands): `OWNER_ID, DISCORD_TOKEN, SWEEP_BATCH, APPLICATION_ID`.
@@ -191,7 +215,7 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 
 ## Troubleshooting
 
-- Commands don’t appear
+- Commands don't appear
   - Allow several minutes for Discord to propagate global slash commands after startup sync
   - Ensure the bot has application.commands scope and correct permissions
 
@@ -224,7 +248,7 @@ This bot uses a **two-tier authorization system** to protect sensitive commands:
 
 See [SECURITY.md](<./SECURITY.md>) in this repo and the policies on the project site:
 
-- The bot does not log message content and doesn’t require the Message Content intent.
+- The bot does not log message content and doesn't require the Message Content intent.
 - Logging channel (if set) only receives a short notice when a nickname is changed.
 - Minimal data storage: per-guild (server) config and per-user cooldown timestamps. Cooldowns are purged automatically after COOLDOWN_TTL_SEC.
 - Users can request deletion via /delete-my-data; bot owners can execute /delete-user-data or /global-delete-user-data when legally required.
@@ -235,8 +259,8 @@ This project includes a tiny, privacy‑respecting census to estimate how many p
 
 What is sent
 
-- A stable, anonymous instance identifier hashed with SHA‑256 (never the raw value)
-- The current date (UTC) in `YYYY‑MM‑DD` format
+- A stable, anonymous instance identifier hashed with SHA-256 (never the raw value)
+- The current date (UTC) in `YYYY-MM-DD` format
 - Project name (see below)
 
 Control via environment variables

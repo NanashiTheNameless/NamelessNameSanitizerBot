@@ -12,13 +12,13 @@ Set expectations in your prompt
 Effective workflows
 
 - Inline chat: Ask Copilot to explain a function, propose a minimal fix, or generate tests. Keep the scope tight.
-- PR review: Use “/explain” and “/tests” style prompts to generate summaries and test ideas; verify results manually.
+- PR review: Use "/explain" and "/tests" style prompts to generate summaries and test ideas; verify results manually.
 - Task lists: Provide a short checklist and ask Copilot to apply edits file-by-file.
 
 Safety and compliance
 
 - Never paste secrets (DISCORD_TOKEN, DATABASE_URL). Redact values.
-- Don’t accept large sweeping refactors in one go. Prefer small, reviewable diffs.
+- Don't accept large sweeping refactors in one go. Prefer small, reviewable diffs.
 - Stick to licenses compatible with MIT; avoid code pastes from random sources.
 
 Validation before commit

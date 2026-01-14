@@ -15,7 +15,7 @@ By using The Bot, you agree to this policy.
 ## What The Bot processes
 
 - Discord metadata to decide if and how to sanitize nicknames.
-- Per‑guild settings (policy values, admin lists, feature toggles, optional logging channel ID, optional bypass role ID, and fallback label).
+- Per-guild settings (policy values, admin lists, feature toggles, optional logging channel ID, optional bypass role ID, and fallback label).
 - Minimal operational data such as cooldown timestamps (per user) and guild blacklist entries (guild ID, optional name, optional reason).
 
 The Bot does not process or store message content and The Bot does not require the Message Content intent.

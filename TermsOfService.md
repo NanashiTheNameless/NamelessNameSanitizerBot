@@ -10,7 +10,7 @@ The bot enforces nickname rules with per-guild settings and optional logging. Th
 
 ## Using the Bot
 
-- Follow Discord’s Terms and Community Guidelines.
+- Follow Discord's Terms and Community Guidelines.
 - Follow and agree to The Bot's Terms of Service, Privacy Policy, and License.
 - Only add/configure the Bot if you have permission to do so.
 
@@ -32,8 +32,8 @@ To estimate self-hosted adoption, the Bot sends a tiny census event once on star
 ## Changes & availability
 
 - Provided "as is" without uptime guarantees.
-- Features and terms may change; the “Last updated” date will reflect updates. Continued use means acceptance.
-- Blacklisted guilds: The bot owner may blacklist any guild(s) for any reason; the Bot leaves and deletes that guild’s stored settings/admins.
+- Features and terms may change; the "Last updated" date will reflect updates. Continued use means acceptance.
+- Blacklisted guilds: The bot owner may blacklist any guild(s) for any reason; the Bot leaves and deletes that guild's stored settings/admins.
 - Command cooldown: operator may enable a short per‑user cooldown (owners and bot admins exempt).
 
 ## Policy Consistency for Forks / Self-Hosted Instances
@@ -54,7 +54,7 @@ Admins can remove the Bot any time. We may suspend or terminate access if misuse
 
 ## Open-Source
 
-Licensed as described in [LICENSE.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md>). Contributions welcome under the repository’s guidelines.
+Licensed as described in [LICENSE.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md>). Contributions welcome under the repository's guidelines.
 
 ## Contact
 
@@ -62,4 +62,4 @@ Open a GitHub issue or contact the bot owner/operator. You can pull up the relev
 
 ## Governing law
 
-These terms follow the laws of the operator’s jurisdiction unless a different law applies.
+These terms follow the laws of the operator's jurisdiction unless a different law applies.

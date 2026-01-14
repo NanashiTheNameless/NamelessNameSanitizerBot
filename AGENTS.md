@@ -11,7 +11,7 @@ Other agents are allowed but must follow the same constraints.
 
 Scope of acceptable AI use
 
-- Drafting code within this repo’s existing architecture (Python 3.12+, discord.py 2.x, Postgres via psycopg)
+- Drafting code within this repo's existing architecture (Python 3.12+, discord.py 2.x, Postgres via psycopg)
 - Writing docs, comments, READMEs, and changelogs
 - Generating tests, fixtures, or small utilities
 - Refactoring for clarity, safety, or performance without changing public behavior unless agreed in the PR
@@ -19,7 +19,7 @@ Scope of acceptable AI use
 Do not use AI to
 
 - Paste secrets, tokens, credentials, or private URLs (DISCORD_TOKEN, DATABASE_URL with passwords, etc.)
-- Introduce copyrighted code you don’t have the right to use (copy/paste from the internet or books)
+- Introduce copyrighted code you don't have the right to use (copy/paste from the internet or books)
 - Upload proprietary data to third‑party tools without approval
 - Bypass review or ship unverified changes
 
@@ -35,7 +35,7 @@ Licensing and attribution
 
 - Prefer built-in/standard libs or dependencies already in requirements.txt.
 - If suggesting new dependencies, they must be OSI-approved. Document rationale in the PR.
-- Do not include code that requires attribution you can’t satisfy.
+- Do not include code that requires attribution you can't satisfy.
 
 Quality gates for AI-generated changes
 
