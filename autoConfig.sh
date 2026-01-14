@@ -134,8 +134,8 @@ OWNER_ID=$OWNER_ID
 # Ensure they are secure and not guessable in production environments.
 # ONCE SET, DO NOT CHANGE THESE VALUES UNLESS YOU KNOW WHAT YOU ARE DOING.
 POSTGRES_DB=bot # Don't change this
-POSTGRES_USER=$POSTGRES_USER
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+POSTGRES_USER=$POSTGRES_USER # Don't change this
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD # Don't change this
 
 # Application (client) ID used to generate invite links. Optional but recommended.
 APPLICATION_ID=$APPLICATION_ID
