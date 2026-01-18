@@ -43,6 +43,7 @@ jobs:
           tags: |
             type=ref,event=tag
             type=raw,value=latest
+          labels: |
             org.opencontainers.image.licenses=PROPRIETARY
 
       - name: Build and push
