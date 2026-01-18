@@ -25,9 +25,24 @@ services:
       - botdata:/app/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-      - ./LICENSE.md:/app/LICENSE.md:ro
-      - ./PrivacyPolicy.md:/app/PrivacyPolicy.md:ro
-      - ./TermsOfService.md:/app/TermsOfService.md:ro
+      - type: bind
+        source: ./LICENSE.md
+        target: /app/LICENSE.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./PrivacyPolicy.md
+        target: /app/PrivacyPolicy.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./TermsOfService.md
+        target: /app/TermsOfService.md
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       db:
         condition: service_healthy
