@@ -25,6 +25,9 @@ services:
       - botdata:/app/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      - ./LICENSE.md:/app/LICENSE.md:ro
+      - ./PrivacyPolicy.md:/app/PrivacyPolicy.md:ro
+      - ./TermsOfService.md:/app/TermsOfService.md:ro
     depends_on:
       db:
         condition: service_healthy

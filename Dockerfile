@@ -4,12 +4,6 @@ FROM python:alpine
 
 WORKDIR /app
 
-COPY LICENSE.md .
-
-COPY PrivacyPolicy.md .
-
-COPY TermsOfService.md .
-
 COPY requirements.txt .
 
 # Install runtime deps and temporary build toolchain for wheels; purge build tools after install
