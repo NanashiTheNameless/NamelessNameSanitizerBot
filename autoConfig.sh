@@ -78,7 +78,7 @@ validate_discord_token() {
 	fi
 
 	local seg0="${token%%.*}"
-	while (( ${#seg0} % 4 )); do
+	while ((${#seg0} % 4)); do
 		seg0="${seg0}="
 	done
 	if ! printf '%s' "$seg0" | base64 --decode >/dev/null 2>&1; then
