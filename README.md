@@ -63,7 +63,7 @@ Runtime
 Use your Application (Client) ID to invite the bot:
 
 ```text
-https://discord.com/oauth2/authorize?client_id=<YOUR_APP_ID>&scope=bot%20applications.commands&permissions=134217728
+https://discord.com/oauth2/authorize?client_id=<YOUR_APP_ID>&scope=bot%20applications.commands&permissions=134217728&integration_type=0
 ```
 
 Replace `YOUR_APP_ID` with your APPLICATION_ID. Adjust `permissions` as needed, or manage via roles.
