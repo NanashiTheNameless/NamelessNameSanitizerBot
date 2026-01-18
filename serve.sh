@@ -18,4 +18,4 @@ PY
 fi
 
 printf 'Serving %s at http://localhost:%s\n' "$ROOT" "$PORT"
-python3 -m http.server "$PORT"
+exec python3 -m http.server "$PORT"
