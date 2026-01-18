@@ -6,6 +6,19 @@
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let stars = [];
+
+  function draw(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const s of stars) {
+      ctx.globalAlpha = s.alpha;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -14,25 +27,17 @@
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       r: Math.random() * 1.1 + 0.2,
-      a: Math.random() * 1,
-      v: (Math.random() * 0.015) + 0.005
+      alpha: 0.3 + Math.random() * 0.7 // static brightness per star
     }));
+    draw();
   }
-  window.addEventListener('resize', resize);
+
+  // Redraw on resize; debounce to avoid excessive work during resize drags
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 100);
+  });
+
   resize();
-  function frame(){
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (const s of stars) {
-      s.a += s.v;
-      const alpha = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(s.a));
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
 })();
