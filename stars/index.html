@@ -34,5 +34,10 @@
     </header>
     <div class="sky"><canvas id="stars"></canvas></div>
     <script src="/assets/stars.js" defer></script>
+    <script>
+      if (new URLSearchParams(window.location.search).get('noheader') === 'true') {
+        document.querySelector('header.navbar').style.display = 'none';
+      }
+    </script>
   </body>
   </html>
