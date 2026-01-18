@@ -23,7 +23,7 @@ a { color: #8ab4ff; text-decoration: none; }
 a:hover { text-decoration: underline; }
 .actions { margin-top: 18px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .btn { background: linear-gradient(180deg, #2a77ff, #174ee6); border: 0; color: white; padding: 12px 18px;
-  border-radius: 10px; font-weight: 600; cursor: pointer; font-size: clamp(15px, 1.5vw, 17px); box-shadow: 0 6px 18px rgba(39, 118, 255, 0.35); }
+  border-radius: 10px; font-weight: 600; cursor: pointer; font-size: clamp(15px, 1.5vw, 17px); box-shadow: 0 0 18px 3px rgba(39, 118, 255, 0.35); }
 .btn[disabled] { filter: grayscale(0.6) brightness(0.8); cursor: not-allowed; }
 .btn.secondary { background: transparent; border: 1px solid rgba(255,255,255,0.14); color: #e6edf3; box-shadow: none; }
 .notice { font-size: clamp(16px, 1.6vw, 19px); color: #c6d2df; }
