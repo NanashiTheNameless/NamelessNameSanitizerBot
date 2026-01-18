@@ -8,24 +8,23 @@
   const ctx = canvas.getContext('2d');
   let stars = [];
 
+  const TWO_PI = Math.PI * 2;
+
   // Render all stars and halos to the canvas
   function draw(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (const s of stars) {
-      // Draw soft halo glow using radial gradient
-      if (s.haloR > 0 && s.haloA > 0) {
-        const grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.haloR);
-        grad.addColorStop(0, `rgba(${s.c[0]}, ${s.c[1]}, ${s.c[2]}, ${s.haloA})`);
-        grad.addColorStop(1, `rgba(${s.c[0]}, ${s.c[1]}, ${s.c[2]}, 0)`);
-        ctx.fillStyle = grad;
-        ctx.fillRect(s.x - s.haloR, s.y - s.haloR, s.haloR * 2, s.haloR * 2);
+      // Draw prebuilt halo gradient if present
+      if (s.haloGradient) {
+        ctx.fillStyle = s.haloGradient;
+        ctx.fillRect(s.haloRect[0], s.haloRect[1], s.haloRect[2], s.haloRect[3]);
       }
 
       // Draw star core
       ctx.globalAlpha = s.alpha;
-      ctx.fillStyle = `rgb(${s.c[0]}, ${s.c[1]}, ${s.c[2]})`;
+      ctx.fillStyle = s.fill;
       ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.arc(s.x, s.y, s.r, 0, TWO_PI);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -119,7 +118,17 @@
       }
     }
     const c = randomTint();
-    return { x, y, r, alpha, haloR, haloA, c };
+    const fill = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+    let haloGradient = null;
+    let haloRect = null;
+    if (haloR > 0 && haloA > 0) {
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, haloR);
+      grad.addColorStop(0, `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${haloA})`);
+      grad.addColorStop(1, `rgba(${c[0]}, ${c[1]}, ${c[2]}, 0)`);
+      haloGradient = grad;
+      haloRect = [x - haloR, y - haloR, haloR * 2, haloR * 2];
+    }
+    return { x, y, r, alpha, haloR, haloA, c, fill, haloGradient, haloRect };
   }
 
   // Debounce resize handler to avoid excessive redrawing during window drag
