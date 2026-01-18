@@ -54,25 +54,49 @@ prompt_secret() {
 # Function to validate Discord token format
 validate_discord_token() {
 	local token="$1"
-	# Token should be at least 50 characters and contain only alphanumeric, dots, hyphens, and underscores
+
 	if [[ -z "$token" ]]; then
-		echo "Error: Discord token cannot be empty"
-		exit 1
+		echo "Error: DISCORD_TOKEN is missing." >&2
+		return 1
 	fi
-	if [[ ${#token} -lt 50 ]]; then
-		echo "Error: Discord token appears too short (expected 50+ characters)"
-		exit 1
+
+	if [[ "$token" =~ [[:space:]] ]]; then
+		echo "Error: DISCORD_TOKEN contains whitespace; remove spaces or line breaks." >&2
+		return 1
 	fi
+
+	local dot_count
+	dot_count=$(grep -o "\." <<<"$token" | wc -l | tr -d '[:space:]')
+	if [[ "${dot_count:-0}" -ne 2 ]]; then
+		echo "Error: DISCORD_TOKEN appears malformed (expected three segments separated by '.'). Re-copy the token." >&2
+		return 1
+	fi
+
 	if ! [[ "$token" =~ ^[A-Za-z0-9._-]+$ ]]; then
-		echo "Error: Discord token contains invalid characters"
-		exit 1
+		echo "Error: DISCORD_TOKEN contains unexpected characters. Re-copy the token without special characters." >&2
+		return 1
 	fi
+
+	local seg0="${token%%.*}"
+	while (( ${#seg0} % 4 )); do
+		seg0="${seg0}="
+	done
+	if ! printf '%s' "$seg0" | base64 --decode >/dev/null 2>&1; then
+		echo "Warning: DISCORD_TOKEN first segment did not decode via base64; continuing. If login fails, regenerate the token." >&2
+	fi
+
+	return 0
 }
 
 # Collect user inputs
 echo "Discord Configuration:"
-DISCORD_TOKEN=$(prompt_secret "Discord bot token (keep this secret)")
-validate_discord_token "$DISCORD_TOKEN"
+while :; do
+	DISCORD_TOKEN=$(prompt_secret "Discord bot token (keep this secret)")
+	if validate_discord_token "$DISCORD_TOKEN"; then
+		break
+	fi
+	echo "Validation failed. Please enter the Discord bot token again."
+done
 OWNER_ID=$(prompt_with_default "Your Discord user ID (you will be the bot owner)" "221701506561212416")
 APPLICATION_ID=$(prompt_with_default "Application ID from Discord Developer Portal (for invite links)" "0")
 
