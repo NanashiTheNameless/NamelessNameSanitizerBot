@@ -95,7 +95,7 @@ for _sig in ("SIGINT", "SIGTERM"):
 
 if __name__ == "__main__":
     try:
-        bot.run(DISCORD_TOKEN, log_handler=None)
         main()
+        bot.run(DISCORD_TOKEN, log_handler=None)
     except KeyboardInterrupt:
         pass
