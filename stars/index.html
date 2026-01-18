@@ -38,6 +38,12 @@
       if (new URLSearchParams(window.location.search).get('noheader') === 'true') {
         document.querySelector('header.navbar').style.display = 'none';
       }
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          window.dispatchEvent(new Event('resize'));
+        }
+      });
     </script>
   </body>
   </html>
