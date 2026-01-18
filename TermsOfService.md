@@ -1,6 +1,6 @@
 # Terms of Service
 
-Last updated: 2026-01-11 (YYYY-MM-DD)
+Last updated: 2026-01-17 (YYYY-MM-DD)
 
 By adding or using NamelessNameSanitizerBot ("the Bot") in your Discord server, you agree to these terms.
 
@@ -23,7 +23,7 @@ Do not use the Bot to break laws, harass people, evade Discord policies, attack/
 - The bot needs relevant Discord permissions (e.g., Manage Nicknames) to work.
 - The bot stores minimal per-guild configuration and operational data. No message content is read or stored.
 - The bot may log nickname changes to a configured logging channel and DM the bot owner guild join/leave events (if enabled). Bot Owner-only commands may DM the bot owner a list of guild settings.
-- Tell members that automated nickname changes may occur.
+- It is suggested but not required to tell guild members that automated nickname changes may occur.
 
 ### Anonymous self-hosting telemetry (opt-out)
 
