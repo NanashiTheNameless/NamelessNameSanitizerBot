@@ -35,9 +35,7 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     const area = canvas.width * canvas.height;
-    const base = area / 8000;
-    const variation = 0.7 + Math.random() * 0.6; // Star count varies by +-30%
-    const count = Math.min(400, Math.max(40, Math.floor(base * variation)));
+    const count = Math.round(area / 3000);
     stars = Array.from({ length: count }, () => makeStar());
     draw();
   }
