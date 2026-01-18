@@ -130,9 +130,9 @@ class SanitizerBot(discord.Client):
                 msg = (
                     f"**Instance Owner: {owner_mention}**\n"
                     f"**Bot Developer: {dev_mention}**\n"
-                    f"[Bot Website](<https://namelessnamesanitizerbot.namelessnanashi.dev/>)\n"
-                    f"[Terms Of Service](<https://namelessnamesanitizerbot.namelessnanashi.dev/TermsOfService/>)\n"
-                    f"[Privacy Policy](<https://namelessnamesanitizerbot.namelessnanashi.dev/PrivacyPolicy/>)\n"
+                    f"[Bot Website](<https://nnsb.namelessnanashi.dev/>)\n"
+                    f"[Terms Of Service](<https://nnsb.namelessnanashi.dev/TermsOfService/>)\n"
+                    f"[Privacy Policy](<https://nnsb.namelessnanashi.dev/PrivacyPolicy/>)\n"
                     f"[Source Code](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/>)"
                 )
                 await interaction.response.send_message(msg, ephemeral=True)
