@@ -9,13 +9,13 @@
 //   - Red (dnd): Bot has errors or required credits are missing
 //
 // REQUIRED: Must include these two entries or bot will show license violation error:
-//   - "Made By NamelessNanashi"
+//   - "Bot Coded By NamelessNanashi"
 //   - "Licensed under NNCL, see /botinfo"
 {
   "statuses": [
     // REQUIRED - Author credit (DO NOT REMOVE OR EDIT)
     {
-      "text": "Bot Made By NamelessNanashi",
+      "text": "Bot Coded By NamelessNanashi",
       "duration": 45,
       "type": "listening"
     },

@@ -177,7 +177,7 @@ class SanitizerBot(discord.Client):
                             # Check for required statuses
                             status_texts = [s["text"] for s in self._status_messages]
                             required_statuses = [
-                                "Bot Made By NamelessNanashi",
+                                "Bot Coded By NamelessNanashi",
                                 "Licensed under NNCL, see /botinfo",
                             ]
                             missing_statuses = [
