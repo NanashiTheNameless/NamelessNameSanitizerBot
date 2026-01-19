@@ -10,8 +10,8 @@ COPY requirements.txt .
 RUN apk add --no-cache tzdata ca-certificates \
     && update-ca-certificates \
     && apk add --no-cache --virtual .build-deps build-base git \
-    && pip install --root-user-action --no-cache-dir pip>=25.3 \
-    && pip install --root-user-action --no-cache-dir -r requirements.txt \
+    && pip install --root-user-action ignore --no-cache-dir pip>=25.3 \
+    && pip install --root-user-action ignore --no-cache-dir -r requirements.txt \
     && apk del .build-deps
 
 COPY bot ./bot
