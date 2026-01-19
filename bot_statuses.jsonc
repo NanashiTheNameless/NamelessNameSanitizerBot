@@ -1,5 +1,9 @@
 // Bot status messages configuration
-// Each status has 'text' (the status message) and 'duration' (seconds to display)
+// Each status has:
+//   - 'text': the status message
+//   - 'duration': seconds to display (minimum 20 seconds to avoid Discord rate limits)
+//   - 'type': optional activity type (playing, streaming, listening, watching, competing)
+//             defaults to "watching" if not specified
 // The bot cycles through these statuses with health-based colors:
 //   - Green (online): Bot is working properly
 //   - Red (dnd): Bot has errors or required credits are missing
@@ -12,75 +16,92 @@
     // REQUIRED - Author credit (DO NOT REMOVE OR EDIT)
     {
       "text": "Bot Made By NamelessNanashi",
-      "duration": 45
+      "duration": 45,
+      "type": "listening"
     },
     // REQUIRED - License notice (DO NOT REMOVE OR EDIT)
     {
       "text": "Licensed under NNCL, see /botinfo for more info",
-      "duration": 45
+      "duration": 45,
+      "type": "watching"
     },
     // Sanitization statuses
     {
       "text": "Sanitizing nicknames",
-      "duration": 30
+      "duration": 30,
+      "type": "playing"
     },
     {
       "text": "Keeping names clean",
-      "duration": 30
+      "duration": 30,
+      "type": "playing"
     },
     {
       "text": "Watching for invalid names",
-      "duration": 30
+      "duration": 30,
+      "type": "watching"
     },
     {
       "text": "Maintaining server standards",
-      "duration": 30
+      "duration": 30,
+      "type": "listening"
     },
     {
       "text": "Scanning for bad names",
-      "duration": 30
+      "duration": 30,
+      "type": "watching"
     },
     // Accessibility-focused statuses
     {
       "text": "Making names readable for all",
-      "duration": 35
+      "duration": 35,
+      "type": "playing"
     },
     {
       "text": "Ensuring screen reader compatibility",
-      "duration": 40
+      "duration": 40,
+      "type": "listening"
     },
     {
       "text": "Supporting assistive technology",
-      "duration": 40
+      "duration": 40,
+      "type": "listening"
     },
     {
       "text": "Helping everyone see names clearly",
-      "duration": 40
+      "duration": 40,
+      "type": "playing"
     },
     {
       "text": "Enforcing accessibility policies",
-      "duration": 35
+      "duration": 35,
+      "type": "listening"
     },
     {
       "text": "Promoting inclusive naming",
-      "duration": 35
+      "duration": 35,
+      "type": "playing"
     },
     {
       "text": "Verifying name readability",
-      "duration": 30
+      "duration": 30,
+      "type": "watching"
     },
     // Technical sanitization statuses
     {
       "text": "Removing invisible characters",
-      "duration": 35
+      "duration": 35,
+      "type": "competing"
     },
     {
       "text": "Protecting against homoglyphs",
-      "duration": 40
+      "duration": 40,
+      "type": "competing"
     },
     {
       "text": "Filtering confusing Unicode",
-      "duration": 35
+      "duration": 35,
+      "type": "competing"
     }
   ]
 }

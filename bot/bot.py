@@ -1176,13 +1176,26 @@ class SanitizerBot(discord.Client):
                 current_status = self._status_messages[self._current_status_index]
                 status_text = current_status.get("text", "404 Flavortext not found")
                 duration = current_status.get("duration", 30)
+                # Clamp duration to minimum 20 seconds to avoid Discord rate limits
+                duration = max(20, duration)
+                activity_type_str = current_status.get("type", "watching").lower()
+                
+                # Map string to ActivityType
+                activity_type_map = {
+                    "playing": discord.ActivityType.playing,
+                    "streaming": discord.ActivityType.streaming,
+                    "listening": discord.ActivityType.listening,
+                    "watching": discord.ActivityType.watching,
+                    "competing": discord.ActivityType.competing,
+                }
+                activity_type = activity_type_map.get(activity_type_str, discord.ActivityType.watching)
                 
                 # Determine status color based on error rate
                 status_color = self._get_bot_status()
                 
                 # Update bot status
                 activity = discord.Activity(
-                    type=discord.ActivityType.watching,
+                    type=activity_type,
                     name=status_text
                 )
                 await self.change_presence(activity=activity, status=status_color)
