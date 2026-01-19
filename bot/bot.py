@@ -8,7 +8,6 @@ command registration, event handlers, and all bot functionality.
 """
 
 import asyncio
-import commentjson
 import logging
 import math
 import os
@@ -16,6 +15,7 @@ import shlex
 from io import BytesIO
 from typing import Optional
 
+import commentjson
 import discord  # type: ignore
 import regex as re  # type: ignore
 from discord import app_commands  # type: ignore
@@ -61,7 +61,7 @@ class SanitizerBot(discord.Client):
         self._cmd_cooldown_last: dict[int, float] = {}
         # Separate owner destructive cooldown timestamp
         self._owner_destructive_last = 0.0
-        
+
         # Status cycling variables
         self._status_messages: list[dict] = []
         self._current_status_index = 0
@@ -118,7 +118,7 @@ class SanitizerBot(discord.Client):
                 os.path.dirname(os.path.dirname(__file__)),  # /app or project root
                 os.getcwd(),  # current working directory
             ]
-            
+
             for base_dir in base_dirs:
                 json_path = os.path.join(base_dir, "bot_statuses.jsonc")
                 if os.path.isfile(json_path):
@@ -126,79 +126,124 @@ class SanitizerBot(discord.Client):
                         with open(json_path, "r", encoding="utf-8") as f:
                             data = commentjson.load(f)
                             statuses = data.get("statuses", [])
-                            
+
                             # Validate that statuses is a non-empty list
                             if not isinstance(statuses, list) or len(statuses) == 0:
-                                raise ValueError("Invalid JSON structure: 'statuses' must be a non-empty array")
-                            
+                                raise ValueError(
+                                    "Invalid JSON structure: 'statuses' must be a non-empty array"
+                                )
+
                             # Parse statuses - support both old string format and new dict format
                             self._status_messages = []
                             for status in statuses:
                                 if isinstance(status, str):
                                     # Simple format: just a string
-                                    self._status_messages.append({"text": status, "duration": 30, "type": "watching"})
+                                    self._status_messages.append(
+                                        {
+                                            "text": status,
+                                            "duration": 30,
+                                            "type": "watching",
+                                        }
+                                    )
                                 elif isinstance(status, dict):
                                     # Advanced format: dict with text, duration, and optional type
                                     text = status.get("text", "")
                                     if not text or not isinstance(text, str):
-                                        raise ValueError("Invalid status entry: 'text' must be a non-empty string")
+                                        raise ValueError(
+                                            "Invalid status entry: 'text' must be a non-empty string"
+                                        )
                                     duration = status.get("duration", 30)
-                                    if not isinstance(duration, (int, float)) or duration <= 0:
-                                        raise ValueError("Invalid status entry: 'duration' must be a positive number")
+                                    if (
+                                        not isinstance(duration, (int, float))
+                                        or duration <= 0
+                                    ):
+                                        raise ValueError(
+                                            "Invalid status entry: 'duration' must be a positive number"
+                                        )
                                     activity_type = status.get("type", "watching")
-                                    self._status_messages.append({
-                                        "text": text,
-                                        "duration": duration,
-                                        "type": activity_type
-                                    })
+                                    self._status_messages.append(
+                                        {
+                                            "text": text,
+                                            "duration": duration,
+                                            "type": activity_type,
+                                        }
+                                    )
                                 else:
-                                    raise ValueError("Invalid status entry: must be a string or object")
-                        
+                                    raise ValueError(
+                                        "Invalid status entry: must be a string or object"
+                                    )
+
                         if self._status_messages:
                             # Check for required statuses
                             status_texts = [s["text"] for s in self._status_messages]
                             required_statuses = [
                                 "Bot Made By NamelessNanashi",
-                                "Licensed under NNCL, see /botinfo"
+                                "Licensed under NNCL, see /botinfo",
                             ]
-                            missing_statuses = [req for req in required_statuses if req not in status_texts]
-                            
+                            missing_statuses = [
+                                req
+                                for req in required_statuses
+                                if req not in status_texts
+                            ]
+
                             if missing_statuses:
                                 # Missing required author/license credits
-                                log.error(f"[STATUS] Missing required statuses: {', '.join(missing_statuses)}")
+                                log.error(
+                                    f"[STATUS] Missing required statuses: {', '.join(missing_statuses)}"
+                                )
                                 self._file_not_found = True
                                 self._status_messages = [
-                                    {"text": "403 Author Credit Removed", "duration": 30, "type": "watching"},
-                                    {"text": "401 License Violation Usage Unauthorized", "duration": 30, "type": "watching"}
+                                    {
+                                        "text": "403 Author Credit Removed",
+                                        "duration": 30,
+                                        "type": "watching",
+                                    },
+                                    {
+                                        "text": "401 License Violation Usage Unauthorized",
+                                        "duration": 30,
+                                        "type": "watching",
+                                    },
                                 ]
                                 return
-                            
-                            log.info(f"[STATUS] Loaded {len(self._status_messages)} status messages")
+
+                            log.info(
+                                f"[STATUS] Loaded {len(self._status_messages)} status messages"
+                            )
                             self._file_not_found = False
                             return
                     except ValueError as e:
                         # Invalid JSON or validation errors - set 400 status
                         log.error(f"[STATUS] Invalid bot_statuses.json: {e}")
                         self._file_not_found = True
-                        self._status_messages = [{"text": "400 Invalid Flavortext", "duration": 30, "type": "watching"}]
+                        self._status_messages = [
+                            {
+                                "text": "400 Invalid Flavortext",
+                                "duration": 30,
+                                "type": "watching",
+                            }
+                        ]
                         return
-            
+
             # File not found - set 404 status
             log.error("[STATUS] bot_statuses.json not found")
             self._file_not_found = True
-            self._status_messages = [{"text": "404 Flavortext not found", "duration": 30, "type": "watching"}]
+            self._status_messages = [
+                {"text": "404 Flavortext not found", "duration": 30, "type": "watching"}
+            ]
         except Exception as e:
             log.error(f"[STATUS] Failed to load status messages: {e}")
             self._file_not_found = True
-            self._status_messages = [{"text": "404 Flavortext not found", "duration": 30, "type": "watching"}]
+            self._status_messages = [
+                {"text": "404 Flavortext not found", "duration": 30, "type": "watching"}
+            ]
 
     def _track_error(self):
         """Track an error occurrence for status color determination."""
         self._error_count += 1
-        
+
     def _get_bot_status(self) -> discord.Status:
         """Determine bot status color based on error rate and file status.
-        
+
         Returns:
             discord.Status.online (green) if healthy
             discord.Status.dnd (red) if experiencing errors or status file not found
@@ -206,13 +251,13 @@ class SanitizerBot(discord.Client):
         # If status file not found, always red
         if self._file_not_found:
             return discord.Status.dnd
-        
+
         # Reset error count every 10 minutes
         current_time = asyncio.get_event_loop().time()
         if current_time - self._last_error_reset > 600:  # 10 minutes
             self._error_count = 0
             self._last_error_reset = current_time
-        
+
         # If more than 2 errors in the last 10 minutes, show red status
         if self._error_count > 2:
             return discord.Status.dnd
@@ -1167,13 +1212,13 @@ class SanitizerBot(discord.Client):
     async def status_cycle(self):
         """Cycle through status messages with dynamic durations."""
         await self.wait_until_ready()
-        
+
         while not self.is_closed():
             try:
                 if not self._status_messages:
                     await asyncio.sleep(30)
                     continue
-                
+
                 # Get current status message
                 current_status = self._status_messages[self._current_status_index]
                 status_text = current_status.get("text", "404 Flavortext not found")
@@ -1181,7 +1226,7 @@ class SanitizerBot(discord.Client):
                 # Clamp duration to minimum 20 seconds to avoid Discord rate limits
                 duration = max(20, duration)
                 activity_type_str = current_status.get("type", "watching").lower()
-                
+
                 # Map string to ActivityType
                 activity_type_map = {
                     "playing": discord.ActivityType.playing,
@@ -1190,24 +1235,25 @@ class SanitizerBot(discord.Client):
                     "watching": discord.ActivityType.watching,
                     "competing": discord.ActivityType.competing,
                 }
-                activity_type = activity_type_map.get(activity_type_str, discord.ActivityType.watching)
-                
+                activity_type = activity_type_map.get(
+                    activity_type_str, discord.ActivityType.watching
+                )
+
                 # Determine status color based on error rate
                 status_color = self._get_bot_status()
-                
+
                 # Update bot status
-                activity = discord.Activity(
-                    type=activity_type,
-                    name=status_text
-                )
+                activity = discord.Activity(type=activity_type, name=status_text)
                 await self.change_presence(activity=activity, status=status_color)
-                
+
                 # Move to next status message
-                self._current_status_index = (self._current_status_index + 1) % len(self._status_messages)
-                
+                self._current_status_index = (self._current_status_index + 1) % len(
+                    self._status_messages
+                )
+
                 # Wait for the duration specified for this status
                 await asyncio.sleep(duration)
-                
+
             except Exception as e:
                 log.error(f"[STATUS] Failed to update status: {e}")
                 self._track_error()
