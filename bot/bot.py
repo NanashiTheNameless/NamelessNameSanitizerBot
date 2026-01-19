@@ -199,7 +199,7 @@ class SanitizerBot(discord.Client):
                                         "type": "watching",
                                     },
                                     {
-                                        "text": "401 License Violation Usage Unauthorized",
+                                        "text": "401 License Violation, Usage Unauthorized",
                                         "duration": 30,
                                         "type": "watching",
                                     },
