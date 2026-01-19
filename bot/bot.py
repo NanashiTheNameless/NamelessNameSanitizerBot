@@ -136,18 +136,20 @@ class SanitizerBot(discord.Client):
                             for status in statuses:
                                 if isinstance(status, str):
                                     # Simple format: just a string
-                                    self._status_messages.append({"text": status, "duration": 30})
+                                    self._status_messages.append({"text": status, "duration": 30, "type": "watching"})
                                 elif isinstance(status, dict):
-                                    # Advanced format: dict with text and duration
+                                    # Advanced format: dict with text, duration, and optional type
                                     text = status.get("text", "")
                                     if not text or not isinstance(text, str):
                                         raise ValueError("Invalid status entry: 'text' must be a non-empty string")
                                     duration = status.get("duration", 30)
                                     if not isinstance(duration, (int, float)) or duration <= 0:
                                         raise ValueError("Invalid status entry: 'duration' must be a positive number")
+                                    activity_type = status.get("type", "watching")
                                     self._status_messages.append({
                                         "text": text,
-                                        "duration": duration
+                                        "duration": duration,
+                                        "type": activity_type
                                     })
                                 else:
                                     raise ValueError("Invalid status entry: must be a string or object")
@@ -157,7 +159,7 @@ class SanitizerBot(discord.Client):
                             status_texts = [s["text"] for s in self._status_messages]
                             required_statuses = [
                                 "Bot Made By NamelessNanashi",
-                                "Licensed under NNCL, see /botinfo for more info"
+                                "Licensed under NNCL, see /botinfo"
                             ]
                             missing_statuses = [req for req in required_statuses if req not in status_texts]
                             
@@ -166,8 +168,8 @@ class SanitizerBot(discord.Client):
                                 log.error(f"[STATUS] Missing required statuses: {', '.join(missing_statuses)}")
                                 self._file_not_found = True
                                 self._status_messages = [
-                                    {"text": "403 Author Credit Removed", "duration": 30},
-                                    {"text": "401 License Violation Usage Unauthorized", "duration": 30}
+                                    {"text": "403 Author Credit Removed", "duration": 30, "type": "watching"},
+                                    {"text": "401 License Violation Usage Unauthorized", "duration": 30, "type": "watching"}
                                 ]
                                 return
                             
@@ -178,17 +180,17 @@ class SanitizerBot(discord.Client):
                         # Invalid JSON or validation errors - set 400 status
                         log.error(f"[STATUS] Invalid bot_statuses.json: {e}")
                         self._file_not_found = True
-                        self._status_messages = [{"text": "400 Invalid Flavortext", "duration": 30}]
+                        self._status_messages = [{"text": "400 Invalid Flavortext", "duration": 30, "type": "watching"}]
                         return
             
             # File not found - set 404 status
             log.error("[STATUS] bot_statuses.json not found")
             self._file_not_found = True
-            self._status_messages = [{"text": "404 Flavortext not found", "duration": 30}]
+            self._status_messages = [{"text": "404 Flavortext not found", "duration": 30, "type": "watching"}]
         except Exception as e:
             log.error(f"[STATUS] Failed to load status messages: {e}")
             self._file_not_found = True
-            self._status_messages = [{"text": "404 Flavortext not found", "duration": 30}]
+            self._status_messages = [{"text": "404 Flavortext not found", "duration": 30, "type": "watching"}]
 
     def _track_error(self):
         """Track an error occurrence for status color determination."""
