@@ -25,6 +25,7 @@ services:
       - botdata:/app/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      - ./bot_statuses.jsonc:/app/bot_statuses.jsonc:ro
       - type: bind
         source: ./LICENSE.md
         target: /app/LICENSE.md
