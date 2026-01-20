@@ -1,6 +1,6 @@
 # Terms of Service
 
-Last updated: 2026-01-17 (YYYY-MM-DD)
+Last updated: 2026-01-19 (YYYY-MM-DD)
 
 By adding or using NamelessNameSanitizerBot ("the Bot") in your Discord server, you agree to these terms.
 
@@ -10,8 +10,8 @@ The bot enforces nickname rules with per-guild settings and optional logging. Th
 
 ## Using the Bot
 
-- Follow Discord's Terms and Community Guidelines.
-- Follow and agree to The Bot's Terms of Service, Privacy Policy, and License.
+- Follow Discord's [Terms of Service](<https://discord.com/terms>) and [Community Guidelines](<https://discord.com/guidelines>).
+- Follow and agree to The Bot's [Terms of Service](<https://nnsb.namelessnanashi.dev/TermsOfService/>), [Privacy Policy](<https://nnsb.namelessnanashi.dev/PrivacyPolicy/>), and [License](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md>).
 - Only add/configure the Bot if you have permission to do so.
 
 ## Acceptable use
@@ -53,7 +53,7 @@ Admins can remove the Bot any time. We may suspend or terminate access if misuse
 
 ## Open-Source
 
-Licensed as described in [LICENSE.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md>). Contributions welcome under the repository's guidelines.
+This bot is **NOT OPEN SOURCE**. It is licensed as described in [LICENSE.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md>). Contributions welcome under the repository's guidelines.
 
 ## Contact
 

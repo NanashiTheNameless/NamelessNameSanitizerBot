@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 2026-01-11 (YYYY-MM-DD)
+Last updated: 2026-01-19 (YYYY-MM-DD)
 
 This page explains what NamelessNameSanitizerBot ("The Bot") does with data.
 By using The Bot, you agree to this policy.
@@ -54,7 +54,7 @@ Data is processed where the operator hosts the Bot and its database. Operators a
 
 ## Contact
 
-Open a GitHub issue or contact the bot owner/operator. You can pull up the relevant information using the `/botinfo` command.
+Open a [GitHub issue](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/issues/new/choose>) or contact the bot owner/operator. You can pull up the relevant information using the `/botinfo` command.
 
 ## Changes
 
