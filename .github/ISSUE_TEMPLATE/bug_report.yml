@@ -1,8 +1,6 @@
 name: Bug report
 description: File a bug report to help us improve
-labels:
-  - bug
-title: "[Bug]: <short summary>"
+title: "[Bug]: "
 body:
   - type: markdown
     attributes:
@@ -32,10 +30,10 @@ body:
       label: Severity
       description: How severe is the impact?
       options:
-        - S0 - Blocking (no workaround)
-        - S1 - Critical (workaround exists)
-        - S2 - Major (degraded, inconvenient)
         - S3 - Minor (cosmetic or low impact)
+        - S2 - Major (degraded, inconvenient)
+        - S1 - Critical (workaround exists)
+        - S0 - Blocking (no workaround)
     validations:
       required: true
   - type: dropdown
