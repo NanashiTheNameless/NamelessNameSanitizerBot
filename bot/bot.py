@@ -26,6 +26,7 @@ from .config import (
     COMMAND_COOLDOWN_SECONDS,
     COOLDOWN_TTL_SEC,
     DATABASE_URL,
+    DEBUG_MODE,
     DM_OWNER_ON_GUILD_EVENTS,
     FALLBACK_LABEL,
     OWNER_DESTRUCTIVE_COOLDOWN_SECONDS,
@@ -825,9 +826,13 @@ class SanitizerBot(discord.Client):
             except Exception as e:
                 log.error("Database initialization failed: %s", e)
                 self._track_error()
-        gids = ", ".join(f"{g.name}({g.id})" for g in self.guilds)
-        log.info("[STARTUP] Logged in as %s (%s)", self.user, self.user.id)
-        log.info("[STARTUP] Connected guilds: %s", gids or "<none>")
+        if DEBUG_MODE:
+            gids = ", ".join(f"{g.name}({g.id})" for g in self.guilds)
+            log.info("[STARTUP] Logged in as %s (%s)", self.user, self.user.id)
+            log.info("[STARTUP] Connected guilds: %s", gids or "<none>")
+        else:
+            log.info("[STARTUP] Logged in as %s (%s)", self.user, self.user.id)
+            log.info("[STARTUP] Connected to %d guild(s)", len(self.guilds))
 
         if APPLICATION_ID:
             invite = f"https://discord.com/oauth2/authorize?client_id={APPLICATION_ID}&scope=bot%20applications.commands&permissions=134217728&integration_type=0"
@@ -905,7 +910,8 @@ class SanitizerBot(discord.Client):
             pass
 
     async def on_guild_join(self, guild: discord.Guild):
-        log.info(f"[EVENT] Bot joined new guild: {guild.name} ({guild.id})")
+        if DEBUG_MODE:
+            log.info(f"[EVENT] Bot joined new guild: {guild.name} ({guild.id})")
         # If blacklisted, DM owner with reason and immediately leave; otherwise send generic join DM
         if self.db:
             try:
@@ -938,11 +944,12 @@ class SanitizerBot(discord.Client):
                         pass
                     try:
                         await guild.leave()
-                        log.info(
-                            "[BLACKLIST] Immediately left blacklisted guild %s (%s)",
-                            guild.name,
-                            guild.id,
-                        )
+                        if DEBUG_MODE:
+                            log.info(
+                                "[BLACKLIST] Immediately left blacklisted guild %s (%s)",
+                                guild.name,
+                                guild.id,
+                            )
                     except Exception as e:
                         log.debug(
                             "Failed to leave blacklisted guild on join %s: %s",
@@ -956,20 +963,25 @@ class SanitizerBot(discord.Client):
         await self._dm_owner(f"Joined guild: {guild.name} ({guild.id})")
 
     async def on_guild_remove(self, guild: discord.Guild):
+        if DEBUG_MODE:
+            log.info(f"[EVENT] Bot left guild: {guild.name} ({guild.id})")
         # When leaving a guild, proactively delete stored data for it
         if self.db:
             try:
                 await self.db.clear_admins(guild.id)
                 await self.db.reset_guild_settings(guild.id)
-                log.info(
-                    "[CLEANUP] Cleared stored data after leaving guild %s (%s)",
-                    guild.name,
-                    guild.id,
-                )
+                if DEBUG_MODE:
+                    log.info(
+                        "[CLEANUP] Cleared stored data after leaving guild %s (%s)",
+                        guild.name,
+                        guild.id,
+                    )
             except Exception as e:
                 log.debug(
                     "Failed to clear stored data for removed guild %s: %s", guild.id, e
                 )
+        # Notify owner that the bot left the guild
+        await self._dm_owner(f"Left guild: {guild.name} ({guild.id})")
 
     async def on_member_join(self, member: discord.Member):
         if member.bot:
@@ -1198,11 +1210,12 @@ class SanitizerBot(discord.Client):
                     await self._sanitize_member(member, source="sweep")
                     processed += 1
             except discord.HTTPException as e:
-                log.warning(
-                    "Member sweep rate limit/HTTP error in %s: %s", guild.name, e
-                )
+                if DEBUG_MODE:
+                    log.warning(
+                        "Member sweep rate limit/HTTP error in %s: %s", guild.name, e
+                    )
                 self._track_error()
-            if processed:
+            if processed and DEBUG_MODE:
                 log.info("Sweep processed %d members in %s", processed, guild.name)
 
     @member_sweep.before_loop

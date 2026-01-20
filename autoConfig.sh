@@ -132,6 +132,7 @@ SWEEP_BATCH=$(prompt_with_default "Max users to check per sweep" "512")
 DM_OWNER_ON_GUILD_EVENTS=$(prompt_with_default "Send DM when bot joins/leaves a server (true/false)" "true")
 COMMAND_COOLDOWN_SECONDS=$(prompt_with_default "Cooldown per user for slash commands (seconds)" "2")
 OWNER_DESTRUCTIVE_COOLDOWN_SECONDS=$(prompt_with_default "Cooldown for dangerous owner commands (seconds)" "5")
+DEBUG_MODE=$(prompt_with_default "Enable detailed output of bot actions for debugging (true/false)" "false")
 NNSB_TELEMETRY_OPTOUT=$(prompt_with_default "Send anonymous non-identifiable usage stats to help improve bot (0=yes, 1=no)" "0")
 LOG_LEVEL=$(prompt_with_default "Log message detail level: DEBUG/INFO/WARNING/ERROR" "INFO")
 
@@ -192,6 +193,10 @@ COMMAND_COOLDOWN_SECONDS=$COMMAND_COOLDOWN_SECONDS
 
 # Cooldown for destructive owner commands (in seconds).
 OWNER_DESTRUCTIVE_COOLDOWN_SECONDS=$OWNER_DESTRUCTIVE_COOLDOWN_SECONDS
+
+# Debug mode - Enable detailed output of bot actions for debugging.
+# Set to true to output more guild info to terminal; false (default) logs only counts for privacy.
+DEBUG_MODE=$DEBUG_MODE
 
 # Telemetry (privacy-respecting census)
 # You can see the data here: https://telemetry.namelessnanashi.dev/
