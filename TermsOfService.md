@@ -57,7 +57,7 @@ This bot is **NOT OPEN SOURCE**. It is licensed as described in [LICENSE.md](<ht
 
 ## Contact
 
-Open a GitHub issue or contact the bot owner/operator. You can pull up the relevant using the `/botinfo` command.
+Open a [GitHub issue](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/issues/new/choose>) or contact the bot owner/operator. You can pull up the relevant information using the `/botinfo` command.
 
 ## Governing law
 
