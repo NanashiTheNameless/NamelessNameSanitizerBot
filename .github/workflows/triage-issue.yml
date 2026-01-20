@@ -206,7 +206,7 @@ jobs:
                 core.warning('Triage comment exceeds safe length, skipping update');
                 return;
               }
-              
+                    
               const existing = await findStatusComment();
               if (existing) {
                 // Only update if content changed
@@ -273,14 +273,14 @@ jobs:
 
             // Remove old severity labels upfront to avoid conflicts (regardless of template validity)
             await removeSeverityLabels();
-            
+
             // Remove old frequency labels upfront
             await removeFrequencyLabels();
 
             // Desired labels from rules
             const desired = new Set();
             if (!templateOK || missingTitle) desired.add('invalid');
-            
+
             // Add 'bug' label for valid issues (independently from severity)
             if (templateOK && !missingTitle) {
               desired.add('bug');
@@ -317,7 +317,7 @@ jobs:
 
             // Determine if we should close based on validity
             const shouldClose = (!templateOK || missingTitle) && mayAutoClose && issue.state?.toLowerCase() !== 'closed' && !isDraft;
-            
+
             // Close invalid as 'not planned' (idempotent). Skip if assigned to maintainer, already closed, or draft.
             if (shouldClose) {
               try {
