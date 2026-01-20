@@ -1,0 +1,387 @@
+name: Issue triage
+
+on:
+  issues:
+    types:
+      - opened
+      - reopened
+      - edited
+
+permissions:
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Triage issue
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body || '';
+            const rawTitle = issue.title || '';
+            const title = rawTitle.trim();
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // ---- config ----
+            const STATUS_MARKER = '<!-- triage:status-block -->';
+            const MANAGED = {
+              'invalid': {
+                color: 'd73a4a',
+                description: 'Issue not following the required template or has no title'
+              },
+              'needs-info': {
+                color: 'ffd700',
+                description: 'More information needed to triage'
+              },
+              'bug': {
+                color: 'd73a4a',
+                description: 'Valid bug report (all required fields present)'
+              },
+              'severity-s0-blocking': {
+                color: '8b0000',
+                description: 'S0 - Blocking (no workaround)'
+              },
+              'severity-s1-critical': {
+                color: 'ff0000',
+                description: 'S1 - Critical (workaround exists)'
+              },
+              'severity-s2-major': {
+                color: 'ff6600',
+                description: 'S2 - Major (degraded, inconvenient)'
+              },
+              'severity-s3-minor': {
+                color: 'ffcc00',
+                description: 'S3 - Minor (cosmetic or low impact)'
+              },
+              'freq-always': {
+                color: 'cc0000',
+                description: 'Always reproducible'
+              },
+              'freq-sometimes': {
+                color: 'ffaa00',
+                description: 'Sometimes reproducible'
+              },
+              'freq-rarely': {
+                color: 'ffff00',
+                description: 'Rarely reproducible'
+              },
+              'security-impact': {
+                color: 'ee0701',
+                description: 'May have security implications (see SECURITY.md)'
+              }
+            };
+
+            const MANAGED_KEYS = Object.keys(MANAGED);
+            const FREQUENCY_LABELS = ['freq-always', 'freq-sometimes', 'freq-rarely'];
+            const SECURITY_LABELS = ['security-impact'];
+
+            // ---- helpers ----
+            async function ensureLabel(name) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (e) {
+                if (e.status === 404) {
+                  const spec = MANAGED[name] || { color: 'ededed', description: '' };
+                  try {
+                    await github.rest.issues.createLabel({
+                      owner,
+                      repo,
+                      name,
+                      color: spec.color,
+                      description: spec.description
+                    });
+                  } catch (createErr) {
+                    if (createErr.status !== 422) throw createErr; // 422 = label already exists race condition
+                  }
+                } else if (e.status !== 403) throw e; // Ignore rate limit errors gracefully
+              }
+            }
+
+            async function labelsNow() {
+              const ls = await github.paginate(
+                github.rest.issues.listLabelsOnIssue,
+                { owner, repo, issue_number: issue.number, per_page: 100 }
+              );
+              return new Set(ls.map(l => l.name));
+            }
+
+            async function removeSeverityLabels() {
+              const severityLabels = ['severity-s0-blocking', 'severity-s1-critical', 'severity-s2-major', 'severity-s3-minor'];
+              await removeLabelsSafe(severityLabels);
+            }
+
+            async function removeFrequencyLabels() {
+              await removeLabelsSafe(FREQUENCY_LABELS);
+            }
+
+            async function addLabelsSafe(arr) {
+              if (!arr || !arr.length) return;
+              for (const l of arr) await ensureLabel(l);
+              try {
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  labels: arr
+                });
+              } catch (e) {
+                if (e.status !== 403 && e.status !== 404) throw e; // Gracefully handle rate limit/permission errors
+              }
+            }
+
+            async function removeLabelsSafe(arr) {
+              for (const l of arr || []) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    name: l
+                  });
+                } catch (e) {
+                  if (e.status !== 403 && e.status !== 404) throw e; // Gracefully handle errors
+                }
+              }
+            }
+
+            function usedTemplateByHeuristics(text) {
+              const t = text.toLowerCase();
+              // Check for actual template field labels, not just any mention
+              // NOTE: This workflow depends on bug_report.yml template structure
+              const requiredFields = [
+                '### summary',
+                '### severity',
+                '### frequency',
+                '### environment',
+                '### steps to reproduce',
+                '### expected behavior',
+                '### actual behavior'
+              ];
+              return requiredFields.every(field => t.includes(field));
+            }
+
+            function extractAnswerAfterLabel(text, label) {
+              const lines = text.split(/\r?\n/);
+              const target = label.toLowerCase();
+              for (let i = 0; i < lines.length; i++) {
+                // Match exact field header format to avoid false positives in body text
+                // Use case-insensitive match
+                const headerRegex = new RegExp(`^###\\s+${target}\\s*$`, 'i');
+                if (lines[i].match(headerRegex)) {
+                  for (let j = i + 1; j < Math.min(i + 15, lines.length); j++) {
+                    const line = lines[j];
+                    // Stop at next template section (### header)
+                    if (line.match(/^###\s/)) break;
+                    
+                    // Skip empty lines and code block markers
+                    if (!line.trim() || line.match(/^```/)) continue;
+                    
+                    const candidate = line
+                      .replace(/^[-*]\s*/, '')
+                      .replace(/^\**(.*)\**$/, '$1')
+                      .trim();
+                    if (candidate) return candidate;
+                  }
+                }
+              }
+              return '';
+            }
+
+            async function findStatusComment() {
+              const comments = await github.paginate(
+                github.rest.issues.listComments,
+                { owner, repo, issue_number: issue.number, per_page: 100 }
+              );
+              return comments.find(c => (c.body || '').includes(STATUS_MARKER));
+            }
+
+            async function upsertStatusComment(blockLines) {
+              const content = blockLines.concat(['', STATUS_MARKER]).join('\n');
+              
+              // Validate comment doesn't exceed GitHub's 65536 character limit
+              if (content.length > 65000) {
+                core.warning('Triage comment exceeds safe length, skipping update');
+                return;
+              }
+              
+              const existing = await findStatusComment();
+              if (existing) {
+                // Only update if content changed
+                if (existing.body !== content) {
+                  try {
+                    await github.rest.issues.updateComment({
+                      owner,
+                      repo,
+                      comment_id: existing.id,
+                      body: content
+                    });
+                  } catch (e) {
+                    if (e.status !== 403) throw e; // Gracefully handle permission/rate limit errors
+                  }
+                }
+              } else {
+                try {
+                  await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    body: content
+                  });
+                } catch (e) {
+                  if (e.status !== 403) throw e; // Gracefully handle permission/rate limit errors
+                }
+              }
+            }
+
+            // ---- evaluate current answers/state ----
+            const templateOK = usedTemplateByHeuristics(body);
+            const actualTitle = title.replace(/^\[bug\]\s*:\s*/i, '').trim();
+            const isPlaceholderTitle = actualTitle.match(/^<short\s+summary>$/i);
+            const missingTitle = actualTitle.length === 0 || actualTitle.match(/^\s*$/) || isPlaceholderTitle;
+            const isDraft = issue.draft === true;
+            const current = await labelsNow();
+
+            // Guard: when assigned to maintainer, skip auto-close for manual triage
+            const isAssignedToMaintainer = (issue.assignees || []).some(
+              a => a?.login === 'NanashiTheNameless'
+            );
+            const mayAutoClose = !isAssignedToMaintainer;
+
+            const severity = (extractAnswerAfterLabel(body, 'Severity').trim()) || '';
+            // Match exact dropdown values from bug_report.yml - flexible line matching
+            const severityMatch = severity.match(/(S[0-3])\s*-/);
+            const detectedSeverity = severityMatch ? severityMatch[1].toUpperCase() : null;
+
+            // Extract Frequency field
+            const frequency = (extractAnswerAfterLabel(body, 'Frequency').trim()) || '';
+            let detectedFrequency = null;
+            if (frequency.toLowerCase().includes('always')) {
+              detectedFrequency = 'freq-always';
+            } else if (frequency.toLowerCase().includes('sometimes') || frequency.toLowerCase().includes('intermittent')) {
+              detectedFrequency = 'freq-sometimes';
+            } else if (frequency.toLowerCase().includes('rarely') || frequency.toLowerCase().includes('rare')) {
+              detectedFrequency = 'freq-rarely';
+            }
+
+            // Extract Security impact checkbox
+            const hasSecurityImpact = body.includes('- [x] This may have security implications') || 
+                                      body.includes('- [X] This may have security implications');
+            const detectedSecurityImpact = hasSecurityImpact ? 'security-impact' : null;
+
+            // Remove old severity labels upfront to avoid conflicts (regardless of template validity)
+            await removeSeverityLabels();
+            
+            // Remove old frequency labels upfront
+            await removeFrequencyLabels();
+
+            // Desired labels from rules
+            const desired = new Set();
+            if (!templateOK || missingTitle) desired.add('invalid');
+            
+            // Add 'bug' label for valid issues (independently from severity)
+            if (templateOK && !missingTitle) {
+              desired.add('bug');
+            }
+
+            // Add severity label
+            if (detectedSeverity) {
+              if (detectedSeverity === 'S0') desired.add('severity-s0-blocking');
+              else if (detectedSeverity === 'S1') desired.add('severity-s1-critical');
+              else if (detectedSeverity === 'S2') desired.add('severity-s2-major');
+              else if (detectedSeverity === 'S3') desired.add('severity-s3-minor');
+            }
+
+            // Add frequency label
+            if (detectedFrequency) {
+              desired.add(detectedFrequency);
+            }
+
+            // Add security impact label
+            if (detectedSecurityImpact) {
+              desired.add(detectedSecurityImpact);
+            }
+
+            // Add needs-info if template is OK but severity is missing
+            if (templateOK && !missingTitle && !detectedSeverity) {
+              desired.add('needs-info');
+            }
+
+            const toRemove = MANAGED_KEYS.filter(l => current.has(l) && !desired.has(l));
+            const toAdd = MANAGED_KEYS.filter(l => desired.has(l) && !current.has(l));
+
+            if (toRemove.length) await removeLabelsSafe(toRemove);
+            if (toAdd.length) await addLabelsSafe(toAdd);
+
+            // Determine if we should close based on validity
+            const shouldClose = (!templateOK || missingTitle) && mayAutoClose && issue.state?.toLowerCase() !== 'closed' && !isDraft;
+            
+            // Close invalid as 'not planned' (idempotent). Skip if assigned to maintainer, already closed, or draft.
+            if (shouldClose) {
+              try {
+                await github.rest.issues.update({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  state: 'closed',
+                  state_reason: 'not_planned'
+                });
+              } catch (e) {
+                if (e.status !== 403) throw e; // Gracefully handle permission errors
+              }
+            }
+
+            // ---- build ONE comment block with dividers between sections ----
+            const sections = [];
+
+            if (shouldClose) {
+              if (missingTitle) {
+                sections.push([
+                  'Hi! It looks like this issue was opened without a title.',
+                  '',
+                  'Please edit the issue and add a short, descriptive title so maintainers can find and triage it.',
+                  '',
+                  '_This issue will stay closed until it has a proper title._'
+                ]);
+              }
+              if (!templateOK) {
+                sections.push([
+                  'Hi! It looks like this issue wasn\'t filed using our **Bug report form**.',
+                  '',
+                  'Please use the template so we get the required details:',
+                  '[Click here to start a new bug report using the required template.](https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/issues/new?template=bug_report.yml)',
+                  '',
+                  '_This issue is being closed automatically. Feel free to re-open with the correct form._'
+                ]);
+              }
+            } else {
+              if (!detectedSeverity) {
+                sections.push([
+                  'Thanks for the report!',
+                  '',
+                  'We noticed your **Severity** field is missing or unclear.',
+                  '',
+                  'Please select one of:',
+                  '- **S3** - Minor (cosmetic or low impact)',
+                  '- **S2** - Major (degraded, inconvenient)',
+                  '- **S1** - Critical (workaround exists)',
+                  '- **S0** - Blocking (no workaround)',
+                  '',
+                  'This helps us prioritize triage and fixes.'
+                ]);
+              }
+              if (sections.length === 0) {
+                sections.push([
+                  '_Automated triage: All required fields present! A developer will review this at their earliest availability._'
+                ]);
+              }
+            }
+
+            // Insert dividers between sections
+            const block = sections.flatMap((sec, idx) =>
+              idx === 0 ? sec : ['', '---', '', ...sec]
+            );
+
+            await upsertStatusComment(block);
