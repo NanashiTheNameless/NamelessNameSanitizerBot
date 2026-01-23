@@ -248,18 +248,14 @@ class SanitizerBot(discord.Client):
         Returns:
             discord.Status.online (green) if healthy
             discord.Status.dnd (red) if experiencing errors or status file not found
+            
+        Note: Once red status is triggered, it persists until bot restart.
         """
         # If status file not found, always red
         if self._file_not_found:
             return discord.Status.dnd
 
-        # Reset error count every 10 minutes
-        current_time = asyncio.get_event_loop().time()
-        if current_time - self._last_error_reset > 600:  # 10 minutes
-            self._error_count = 0
-            self._last_error_reset = current_time
-
-        # If more than 2 errors in the last 10 minutes, show red status
+        # If more than 2 errors, show red status (persists until restart)
         if self._error_count > 2:
             return discord.Status.dnd
         return discord.Status.online
