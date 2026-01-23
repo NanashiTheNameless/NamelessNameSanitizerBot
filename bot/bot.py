@@ -248,7 +248,7 @@ class SanitizerBot(discord.Client):
         Returns:
             discord.Status.online (green) if healthy
             discord.Status.dnd (red) if experiencing errors or status file not found
-            
+
         Note: Once red status is triggered, it persists until bot restart.
         """
         # If status file not found, always red
