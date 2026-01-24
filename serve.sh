@@ -6,15 +6,14 @@ cd "$ROOT"
 if [[ $# -gt 0 ]]; then
 	PORT="$1"
 else
-	PORT="$(python3 - <<'PY'
-import socket
-s = socket.socket()
-s.bind(('', 0))
-port = s.getsockname()[1]
-s.close()
-print(port)
-PY
-)"
+	PORT=8000
+	# Find first available port from 8000 to 8100
+	while (( PORT <= 8100 )); do
+		if python3 -c "import socket; s = socket.socket(); s.bind(('', $PORT)); s.close()" 2>/dev/null; then
+			break
+		fi
+		(( PORT++ ))
+	done
 fi
 
 printf 'Serving %s at http://localhost:%s\n' "$ROOT" "$PORT"
