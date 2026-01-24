@@ -146,7 +146,7 @@ cat >"$ENV_FILE" <<EOF
 # BY USING/HOSTING THIS BOT YOU AGREE TO THE FOLLOWING DOCUMENTS:                     #
 # https://nnsb.namelessnanashi.dev/TermsOfService                                     #
 # https://nnsb.namelessnanashi.dev/PrivacyPolicy                                      #
-# https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md #
+# https://nnsb.namelessnanashi.dev/license/ #
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
 
 # Discord bot token - obtain from the Developer Portal and keep secret.

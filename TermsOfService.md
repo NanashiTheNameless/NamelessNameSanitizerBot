@@ -11,7 +11,7 @@ The bot enforces nickname rules with per-guild settings and optional logging. Th
 ## Using the Bot
 
 - Follow Discord's [Terms of Service](<https://discord.com/terms>) and [Community Guidelines](<https://discord.com/guidelines>).
-- Follow and agree to The Bot's [Terms of Service](<https://nnsb.namelessnanashi.dev/TermsOfService/>), [Privacy Policy](<https://nnsb.namelessnanashi.dev/PrivacyPolicy/>), and [License](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md>).
+- Follow and agree to The Bot's [Terms of Service](<https://nnsb.namelessnanashi.dev/TermsOfService/>), [Privacy Policy](<https://nnsb.namelessnanashi.dev/PrivacyPolicy/>), and [License](<https://nnsb.namelessnanashi.dev/license/>).
 - Only add/configure the Bot if you have permission to do so.
 
 ## Acceptable use
