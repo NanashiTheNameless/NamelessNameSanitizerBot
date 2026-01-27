@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
 
       - name: Install typos
-        uses: crate-ci/typos@65120634e79d8374d1aa2f27e54baa0c364fff5a
+        uses: crate-ci/typos@a1d64977b4aa1709d6328d518aa753f4899352d8
         env:
           INSTALL_DIR: ${{ runner.temp }}
         with:
@@ -39,7 +39,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create Pull Request with fixes
-        uses: NanashiTheNameless/create-pull-request@2cdf90c596dd029c906cbceffe5d3baf78c3e372
+        uses: NanashiTheNameless/create-pull-request@85582ee3491658d0c1157d4d5cd6deee3d91bde4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: chore/typos-auto-fixes
