@@ -27,8 +27,8 @@ from .config import (
     COOLDOWN_TTL_SEC,
     DATABASE_URL,
     DEBUG_MODE,
-    DM_OWNER_ON_GUILD_EVENTS,
     DM_OWNER_ON_ERRORS,
+    DM_OWNER_ON_GUILD_EVENTS,
     FALLBACK_LABEL,
     OWNER_DESTRUCTIVE_COOLDOWN_SECONDS,
     OWNER_ID,
@@ -252,9 +252,9 @@ class SanitizerBot(discord.Client):
             if DM_OWNER_ON_ERRORS:
                 asyncio.create_task(
                     self._dm_owner(
-                        f"**Bot Configuration Error**\n"
-                        f"bot_statuses.jsonc file not found\n"
-                        f"Status: Bot is now in DnD mode (red status)"
+                        "**Bot Configuration Error**\n"
+                        "bot_statuses.jsonc file not found\n"
+                        "Status: Bot is now in DnD mode (red status)"
                     )
                 )
         except Exception as e:
@@ -274,7 +274,7 @@ class SanitizerBot(discord.Client):
 
     def _track_error(self, error_msg: str = "Unknown error"):
         """Track an error occurrence for status color determination.
-        
+
         Args:
             error_msg: Description of the error that occurred
         """
