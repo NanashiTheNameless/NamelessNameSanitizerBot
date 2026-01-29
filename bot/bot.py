@@ -28,6 +28,7 @@ from .config import (
     DATABASE_URL,
     DEBUG_MODE,
     DM_OWNER_ON_GUILD_EVENTS,
+    DM_OWNER_ON_ERRORS,
     FALLBACK_LABEL,
     OWNER_DESTRUCTIVE_COOLDOWN_SECONDS,
     OWNER_ID,
@@ -205,6 +206,15 @@ class SanitizerBot(discord.Client):
                                         "type": "watching",
                                     },
                                 ]
+                                if DM_OWNER_ON_ERRORS:
+                                    asyncio.create_task(
+                                        self._dm_owner(
+                                            f"**Bot Configuration Error**\n"
+                                            f"Status file is missing required credits:\n"
+                                            f"{', '.join(missing_statuses)}\n"
+                                            f"Status: Bot is now in DnD mode (red status)"
+                                        )
+                                    )
                                 return
 
                             log.info(
@@ -223,6 +233,14 @@ class SanitizerBot(discord.Client):
                                 "type": "watching",
                             }
                         ]
+                        if DM_OWNER_ON_ERRORS:
+                            asyncio.create_task(
+                                self._dm_owner(
+                                    f"**Bot Configuration Error**\n"
+                                    f"Invalid bot_statuses.jsonc file: {e}\n"
+                                    f"Status: Bot is now in DnD mode (red status)"
+                                )
+                            )
                         return
 
             # File not found - set 404 status
@@ -231,16 +249,45 @@ class SanitizerBot(discord.Client):
             self._status_messages = [
                 {"text": "404 Flavortext not found", "duration": 30, "type": "watching"}
             ]
+            if DM_OWNER_ON_ERRORS:
+                asyncio.create_task(
+                    self._dm_owner(
+                        f"**Bot Configuration Error**\n"
+                        f"bot_statuses.jsonc file not found\n"
+                        f"Status: Bot is now in DnD mode (red status)"
+                    )
+                )
         except Exception as e:
             log.error(f"[STATUS] Failed to load status messages: {e}")
             self._file_not_found = True
             self._status_messages = [
                 {"text": "404 Flavortext not found", "duration": 30, "type": "watching"}
             ]
+            if DM_OWNER_ON_ERRORS:
+                asyncio.create_task(
+                    self._dm_owner(
+                        f"**Bot Configuration Error**\n"
+                        f"Failed to load status messages: {e}\n"
+                        f"Status: Bot is now in DnD mode (red status)"
+                    )
+                )
 
-    def _track_error(self):
-        """Track an error occurrence for status color determination."""
+    def _track_error(self, error_msg: str = "Unknown error"):
+        """Track an error occurrence for status color determination.
+        
+        Args:
+            error_msg: Description of the error that occurred
+        """
         self._error_count += 1
+        if DM_OWNER_ON_ERRORS and self._error_count > 2:
+            # Create task to DM owner without blocking
+            asyncio.create_task(
+                self._dm_owner(
+                    f"**Bot Error Alert** ({self._error_count} errors)\n"
+                    f"Error: {error_msg}\n"
+                    f"Status: Bot is now in DnD mode (red status)"
+                )
+            )
 
     def _get_bot_status(self) -> discord.Status:
         """Determine bot status color based on error rate and file status.
@@ -821,7 +868,7 @@ class SanitizerBot(discord.Client):
                 await self.db.init()
             except Exception as e:
                 log.error("Database initialization failed: %s", e)
-                self._track_error()
+                self._track_error(f"Database initialization failed: {e}")
         if DEBUG_MODE:
             gids = ", ".join(f"{g.name}({g.id})" for g in self.guilds)
             log.info("[STARTUP] Logged in as %s (%s)", self.user, self.user.id)
@@ -1210,7 +1257,7 @@ class SanitizerBot(discord.Client):
                     log.warning(
                         "Member sweep rate limit/HTTP error in %s: %s", guild.name, e
                     )
-                self._track_error()
+                self._track_error(f"Member sweep HTTP error in {guild.name}: {e}")
             if processed and DEBUG_MODE:
                 log.info("Sweep processed %d members in %s", processed, guild.name)
 
@@ -1265,7 +1312,7 @@ class SanitizerBot(discord.Client):
 
             except Exception as e:
                 log.error(f"[STATUS] Failed to update status: {e}")
-                self._track_error()
+                self._track_error(f"Status cycle update failed: {e}")
                 await asyncio.sleep(30)  # Wait before retrying
 
     async def close(self):
