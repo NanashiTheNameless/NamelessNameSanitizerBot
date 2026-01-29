@@ -272,19 +272,21 @@ class SanitizerBot(discord.Client):
                     )
                 )
 
-    def _track_error(self, error_msg: str = "Unknown error"):
+    def _track_error(self, error_msg: str = "Unknown error", guild_id: int | None = None):
         """Track an error occurrence for status color determination.
         
         Args:
             error_msg: Description of the error that occurred
+            guild_id: Optional guild ID where the error occurred
         """
         self._error_count += 1
         if DM_OWNER_ON_ERRORS and self._error_count > 2:
             # Create task to DM owner without blocking
+            guild_info = f"\nGuild ID: `{guild_id}`" if guild_id else ""
             asyncio.create_task(
                 self._dm_owner(
                     f"**Bot Error Alert** ({self._error_count} errors)\n"
-                    f"Error: {error_msg}\n"
+                    f"Error: {error_msg}{guild_info}\n"
                     f"Status: Bot is now in DnD mode (red status)"
                 )
             )
@@ -1257,7 +1259,7 @@ class SanitizerBot(discord.Client):
                     log.warning(
                         "Member sweep rate limit/HTTP error in %s: %s", guild.name, e
                     )
-                self._track_error(f"Member sweep HTTP error in {guild.name}: {e}")
+                self._track_error(f"Member sweep HTTP error in {guild.name}: {e}", guild.id)
             if processed and DEBUG_MODE:
                 log.info("Sweep processed %d members in %s", processed, guild.name)
 
