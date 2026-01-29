@@ -289,7 +289,6 @@ class Database:
         if key.upper() in {
             "OWNER_ID",
             "DISCORD_TOKEN",
-            "SWEEP_BATCH",
             "APPLICATION_ID",
         }:
             raise ValueError("Attempt to modify a protected variable")

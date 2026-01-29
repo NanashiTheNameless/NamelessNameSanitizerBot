@@ -128,7 +128,6 @@ echo
 echo "Advanced Configuration (if you are unsure use the default):"
 COOLDOWN_TTL_SEC=$(prompt_with_default "How long to remember user cooldowns (seconds)" "864000")
 SWEEP_INTERVAL_SEC=$(prompt_with_default "Check for name changes every N seconds" "60")
-SWEEP_BATCH=$(prompt_with_default "Max users to check per sweep" "512")
 DM_OWNER_ON_GUILD_EVENTS=$(prompt_with_default "Send DM when bot joins/leaves a server (true/false)" "true")
 DM_OWNER_ON_ERRORS=$(prompt_with_default "Send DM when errors trigger DnD status (true/false)" "true")
 COMMAND_COOLDOWN_SECONDS=$(prompt_with_default "Cooldown per user for slash commands (seconds)" "2")
@@ -182,7 +181,6 @@ COOLDOWN_TTL_SEC=$COOLDOWN_TTL_SEC
 
 # Background sweep configuration.
 SWEEP_INTERVAL_SEC=$SWEEP_INTERVAL_SEC
-SWEEP_BATCH=$SWEEP_BATCH
 
 # Whether the bot should DM the owner when it joins or leaves a guild.
 # Set to false to disable owner notifications for these events.

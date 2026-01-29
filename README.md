@@ -54,7 +54,6 @@ Policy defaults (used until changed per-guild (server) via commands)
 Runtime
 
 - SWEEP_INTERVAL_SEC: integer, default 60 - periodic sweep interval seconds
-- SWEEP_BATCH: integer, default 512 - reserved; currently no effect
 - LOG_LEVEL: DEBUG|INFO|WARNING|ERROR - overrides default logging level (INFO)
 - DM_OWNER_ON_GUILD_EVENTS: true|false, default true - if true, the bot will DM the owner on guild (server) join/leave events
 
@@ -210,7 +209,7 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - Messages that may be long are chunked safely below Discord's 2000-character limit. Chunking starts around 1800 characters and only breaks between entries to preserve readability.
 - `/dm-server-settings` messages are chunked only between guilds (servers); each line per guild (server) is a complete pasteable set of pairs.
 - Boolean inputs for commands accept true/false, yes/no, on/off, and 1/0 (case-insensitive).
-- Protected (cannot be set via commands): `OWNER_ID, DISCORD_TOKEN, SWEEP_BATCH, APPLICATION_ID`.
+- Protected (cannot be set via commands): `OWNER_ID, DISCORD_TOKEN, APPLICATION_ID`.
 - You can modify settings while the bot is disabled; changes will apply once you run `/enable-sanitizer` in the guild (server).
 
 ## Troubleshooting
