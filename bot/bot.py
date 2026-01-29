@@ -272,7 +272,9 @@ class SanitizerBot(discord.Client):
                     )
                 )
 
-    def _track_error(self, error_msg: str = "Unknown error", guild_id: int | None = None):
+    def _track_error(
+        self, error_msg: str = "Unknown error", guild_id: int | None = None
+    ):
         """Track an error occurrence for status color determination.
 
         Args:
@@ -1259,7 +1261,9 @@ class SanitizerBot(discord.Client):
                     log.warning(
                         "Member sweep rate limit/HTTP error in %s: %s", guild.name, e
                     )
-                self._track_error(f"Member sweep HTTP error in {guild.name}: {e}", guild.id)
+                self._track_error(
+                    f"Member sweep HTTP error in {guild.name}: {e}", guild.id
+                )
             if processed and DEBUG_MODE:
                 log.info("Sweep processed %d members in %s", processed, guild.name)
 
