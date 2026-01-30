@@ -141,17 +141,28 @@ def _make_payload() -> dict:
     return payload
 
 
-def _post_sync(url: str, data: bytes, timeout: float = 2.0) -> None:
-    req = urllib.request.Request(
-        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
-    )
+def _post_sync(url: str, data: bytes, timeout: float = 2.0) -> bool:
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": f"{_PROJECT_NAME}/telemetry",
+    }
+    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             _ = resp.status
-    except urllib.error.URLError:
-        return
-    except Exception:
-        return
+            return True
+    except urllib.error.URLError as e:
+        try:
+            _log.warning("[telemetry] POST failed (url=%s): %s", url, e)
+        except Exception:
+            pass
+        return False
+    except Exception as e:
+        try:
+            _log.warning("[telemetry] POST failed (url=%s): %s", url, e)
+        except Exception:
+            pass
+        return False
 
 
 async def maybe_send_telemetry_async() -> None:
