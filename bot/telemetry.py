@@ -129,18 +129,6 @@ def _hash_id(raw: str) -> str:
     return h.hexdigest()
 
 
-def _get_version() -> Optional[str]:
-    try:
-        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-        vf = os.path.join(repo_root, "VERSION")
-        if os.path.exists(vf):
-            with open(vf, "r", encoding="utf-8") as fh:
-                return fh.read().strip()
-    except Exception:
-        pass
-    return None
-
-
 def _make_payload() -> dict:
     rid = _ensure_instance_id()
     payload = {
@@ -291,6 +279,16 @@ def maybe_send_telemetry_background() -> None:
                 asyncio.ensure_future(_periodic_ping_loop())
             except Exception:
                 # If scheduling fails, don't prevent the immediate send
+                pass
+        else:
+            # No running loop yet; perform a synchronous send now
+            try:
+                _log.debug("telemetry loop not running; sending synchronously")
+            except Exception:
+                pass
+            try:
+                _post_sync(_get_endpoint(), json.dumps(_make_payload()).encode("utf-8"))
+            except Exception:
                 pass
     except Exception:
         try:
