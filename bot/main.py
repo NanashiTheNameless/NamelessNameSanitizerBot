@@ -31,7 +31,7 @@ log = logging.getLogger("sanitizerbot")
 logging.basicConfig(level=logging.INFO)
 
 try:
-    pass  # type: ignore
+    from .telemetry import maybe_send_telemetry_background  # type: ignore
 except Exception:
     log.warning(
         "[TELEMETRY] Disabled: failed to import telemetry module. Running without census."
