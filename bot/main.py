@@ -96,6 +96,15 @@ for _sig in ("SIGINT", "SIGTERM"):
 if __name__ == "__main__":
     try:
         main()
+        # Initialize telemetry before starting the bot
+        try:
+            log.info("[TELEMETRY] Attempting to start telemetry system")
+            maybe_send_telemetry_background()
+        except Exception as e:
+            log.warning(
+                "[TELEMETRY] Telemetry initialization failed: %s. Continuing without telemetry.",
+                e,
+            )
         bot.run(DISCORD_TOKEN, log_handler=None)
     except KeyboardInterrupt:
         pass

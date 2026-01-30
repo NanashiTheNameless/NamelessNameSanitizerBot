@@ -40,15 +40,6 @@ from .database import Database
 from .helpers import now, owner_destructive_check, resolve_target_guild
 from .sanitizer import filter_allowed_chars, remove_marks_and_controls, sanitize_name
 
-try:
-    from .telemetry import maybe_send_telemetry_background  # type: ignore
-except Exception:
-
-    def maybe_send_telemetry_background():
-        """Dummy function when telemetry is not available."""
-        pass
-
-
 log = logging.getLogger("sanitizerbot")
 
 
@@ -948,13 +939,6 @@ class SanitizerBot(discord.Client):
 
         log.info("[STATUS] Starting member sweep background task.")
         self.member_sweep.start()  # type: ignore
-
-        # Fire-and-forget telemetry (privacy-respecting, opt-out)
-        try:
-            log.info("[TELEMETRY] Attempting to start telemetry system")
-            maybe_send_telemetry_background()
-        except Exception:
-            pass
 
     async def on_guild_join(self, guild: discord.Guild):
         if DEBUG_MODE:
