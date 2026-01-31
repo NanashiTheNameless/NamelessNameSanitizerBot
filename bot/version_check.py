@@ -22,6 +22,7 @@ _DEFAULT_VERSION_FILE = "/app/.image_version"
 _DEFAULT_GIT_SHA_FILE = "/app/.git_sha"
 _DEFAULT_GITHUB_LATEST_SHA_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/commits/main"
 _GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/releases/latest"
+_GITHUB_IMAGE_PUBLISH_WORKFLOW_RUNS_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/actions/workflows/image-publish-ghcr.yml/runs?branch=main&status=completed&per_page=5"
 
 
 def _env_truthy(value: Optional[str]) -> bool:
@@ -108,32 +109,9 @@ def _parse_semver(tag: str) -> Optional[tuple[int, int, int, int]]:
         return None
 
 
-def _pick_latest_tag(tags: list[str]) -> Optional[str]:
-    if not tags:
-        return None
-    latest_env = os.getenv("NNSB_LATEST_TAG")
-    if latest_env:
-        return latest_env.strip() or None
-    semver_tags = []
-    for t in tags:
-        parsed = _parse_semver(t)
-        if parsed:
-            semver_tags.append((parsed, t))
-    if semver_tags:
-        semver_tags.sort(key=lambda item: item[0], reverse=True)
-        return semver_tags[0][1]
-    if "latest" in [t.lower() for t in tags]:
-        return "latest"
-    return tags[0]
-
-
-def _get_latest_git_sha_url() -> str:
-    return _DEFAULT_GITHUB_LATEST_SHA_URL
-
-
-def _fetch_latest_git_sha_sync() -> Optional[str]:
-    """Fetch latest git SHA from GitHub main branch."""
-    url = _get_latest_git_sha_url()
+def _fetch_latest_successful_workflow_sha_sync() -> Optional[str]:
+    """Fetch the latest successful image-publish-ghcr.yml workflow SHA."""
+    url = _GITHUB_IMAGE_PUBLISH_WORKFLOW_RUNS_URL
     headers = {
         "User-Agent": "NamelessNameSanitizerBot/VersionCheck",
         "Accept": "application/vnd.github+json",
@@ -144,9 +122,16 @@ def _fetch_latest_git_sha_sync() -> Optional[str]:
             data = resp.read().decode("utf-8")
             payload = json.loads(data)
             if isinstance(payload, dict):
-                sha = payload.get("sha")
-                if isinstance(sha, str) and sha.strip():
-                    return sha.strip()
+                runs = payload.get("workflow_runs")
+                if isinstance(runs, list):
+                    for run in runs:
+                        if not isinstance(run, dict):
+                            continue
+                        if run.get("conclusion") != "success":
+                            continue
+                        sha = run.get("head_sha")
+                        if isinstance(sha, str) and sha.strip():
+                            return sha.strip()
     except Exception:
         pass
     return None
@@ -183,7 +168,7 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
 
     Uses GitHub API for efficiency (single API calls per check).
     Release tags (e.g., v0.0.4.10) query /releases/latest.
-    Latest/dev builds query /commits/main.
+    Latest/dev builds use the last successful image-publish-ghcr.yml run.
 
     DEVELOPMENT is always considered outdated.
     """
@@ -196,7 +181,9 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
     # DEVELOPMENT is always outdated
     if current_version and current_version.upper() == "DEVELOPMENT":
         try:
-            latest_git = await asyncio.to_thread(_fetch_latest_git_sha_sync)
+            latest_git = await asyncio.to_thread(
+                _fetch_latest_successful_workflow_sha_sync
+            )
             latest_git = latest_git.strip() if latest_git else None
         except Exception:
             latest_git = None
@@ -210,6 +197,8 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
             return False, current_version, None, "failed to fetch latest release"
         if not latest_tag:
             return False, current_version, None, "latest release unknown"
+        if not _is_release_tag(latest_tag):
+            return False, current_version, latest_tag, "latest release incomplete"
         if _same_version(current_version, latest_tag):
             return False, current_version, latest_tag, None
         return True, current_version, latest_tag, None
@@ -217,12 +206,14 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
     # For latest/dev builds, compare git SHA
     if current_git:
         try:
-            latest_git = await asyncio.to_thread(_fetch_latest_git_sha_sync)
+            latest_git = await asyncio.to_thread(
+                _fetch_latest_successful_workflow_sha_sync
+            )
         except Exception as e:
             return False, current_git, None, f"failed to fetch latest git sha: {e}"
         latest_git = latest_git.strip() if latest_git else None
         if not latest_git:
-            return False, current_git, None, "latest git sha unknown"
+            return False, current_git, None, "latest workflow build not available"
         if _same_version(current_git, latest_git):
             return False, current_git, latest_git, None
         # allow short vs full sha
