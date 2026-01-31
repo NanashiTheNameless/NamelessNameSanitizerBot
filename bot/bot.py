@@ -3556,9 +3556,7 @@ class SanitizerBot(discord.Client):
             )
             return
         if not current:
-            await interaction.followup.send(
-                "Current version unknown.", ephemeral=True
-            )
+            await interaction.followup.send("Current version unknown.", ephemeral=True)
             return
         if not is_outdated:
             if self._outdated_message:
