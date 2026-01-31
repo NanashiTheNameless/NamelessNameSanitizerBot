@@ -13,6 +13,8 @@ import asyncio
 import json
 import logging
 import os
+import pathlib
+import urllib.parse
 import urllib.request
 from typing import Optional
 
@@ -20,6 +22,10 @@ log = logging.getLogger(__name__)
 
 _DEFAULT_VERSION_FILE = "/app/.image_version"
 _DEFAULT_GIT_SHA_FILE = "/app/.git_sha"
+_ALLOWED_PATH_ROOTS = (
+    pathlib.Path("/app").resolve(),
+    pathlib.Path(__file__).resolve().parent.parent,
+)
 _DEFAULT_GITHUB_LATEST_SHA_URL = (
     "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/commits/main"
 )
@@ -33,12 +39,36 @@ def _env_truthy(value: Optional[str]) -> bool:
     return s in {"1", "true", "yes", "on", "y", "t"}
 
 
+def _is_allowed_path(candidate: str) -> bool:
+    try:
+        path = pathlib.Path(candidate).expanduser().resolve()
+    except Exception:
+        return False
+    return any(path.is_relative_to(root) for root in _ALLOWED_PATH_ROOTS)
+
+
 def _get_version_file() -> str:
-    return os.getenv("NNSB_VERSION_FILE") or _DEFAULT_VERSION_FILE
+    override = os.getenv("NNSB_VERSION_FILE")
+    if override and override.strip() and _is_allowed_path(override.strip()):
+        return override.strip()
+    if override and override.strip():
+        log.warning(
+            "[VERSION] Ignoring invalid NNSB_VERSION_FILE override: %s",
+            override.strip(),
+        )
+    return _DEFAULT_VERSION_FILE
 
 
 def _get_git_sha_file() -> str:
-    return os.getenv("NNSB_GIT_SHA_FILE") or _DEFAULT_GIT_SHA_FILE
+    override = os.getenv("NNSB_GIT_SHA_FILE")
+    if override and override.strip() and _is_allowed_path(override.strip()):
+        return override.strip()
+    if override and override.strip():
+        log.warning(
+            "[VERSION] Ignoring invalid NNSB_GIT_SHA_FILE override: %s",
+            override.strip(),
+        )
+    return _DEFAULT_GIT_SHA_FILE
 
 
 def _get_current_version() -> Optional[str]:
@@ -134,7 +164,20 @@ def _pick_latest_tag(tags: list[str]) -> Optional[str]:
 def _get_latest_git_sha_url() -> str:
     override = os.getenv("NNSB_LATEST_GIT_SHA_URL")
     if override and override.strip():
-        return override.strip()
+        candidate = override.strip()
+        parsed = urllib.parse.urlparse(candidate)
+        if (
+            parsed.scheme == "https"
+            and parsed.netloc == "api.github.com"
+            and parsed.path.startswith(
+                "/repos/NanashiTheNameless/NamelessNameSanitizerBot/commits/"
+            )
+        ):
+            return candidate
+        log.warning(
+            "[VERSION] Ignoring invalid NNSB_LATEST_GIT_SHA_URL override: %s",
+            candidate,
+        )
     return _DEFAULT_GITHUB_LATEST_SHA_URL
 
 
