@@ -64,7 +64,13 @@ class SanitizerCommandTree(discord.app_commands.CommandTree):
         await super()._call(interaction)
         try:
             # self.client is the bot instance
-            if self.client and hasattr(self.client, "_maybe_send_outdated_warning"):
+            # Skip outdated warning for check-version command since it handles its own warnings
+            if (
+                self.client
+                and hasattr(self.client, "_maybe_send_outdated_warning")
+                and interaction.command
+                and interaction.command.name != "check-version"
+            ):
                 await self.client._maybe_send_outdated_warning(interaction)
         except Exception as e:
             log.debug("[COMMAND_TREE] Error appending outdated warning: %s", e)
