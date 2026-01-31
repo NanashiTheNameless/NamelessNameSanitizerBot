@@ -20,12 +20,8 @@ log = logging.getLogger(__name__)
 
 _DEFAULT_VERSION_FILE = "/app/.image_version"
 _DEFAULT_GIT_SHA_FILE = "/app/.git_sha"
-_DEFAULT_GITHUB_LATEST_SHA_URL = (
-    "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/commits/main"
-)
-_GITHUB_LATEST_RELEASE_URL = (
-    "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/releases/latest"
-)
+_DEFAULT_GITHUB_LATEST_SHA_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/commits/main"
+_GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/releases/latest"
 
 
 def _env_truthy(value: Optional[str]) -> bool:
@@ -184,11 +180,11 @@ def _is_release_tag(tag: str) -> bool:
 
 async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional[str]]:
     """Return (is_outdated, current, latest, error_message).
-    
+
     Uses GitHub API for efficiency (single API calls per check).
     Release tags (e.g., v0.0.4.10) query /releases/latest.
     Latest/dev builds query /commits/main.
-    
+
     DEVELOPMENT is always considered outdated.
     """
     if _env_truthy(os.getenv("NNSB_VERSION_CHECK", "1")) is False:
@@ -236,7 +232,7 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
 
     if not current_version:
         return False, None, None, "current version unknown"
-    
+
     # Fallback: try latest release
     try:
         latest_tag = await asyncio.to_thread(_fetch_latest_release_sync)

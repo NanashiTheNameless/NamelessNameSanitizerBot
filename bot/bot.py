@@ -56,9 +56,7 @@ try:
     from .version_check import check_outdated  # type: ignore
 except Exception as e:
     check_outdated = None
-    log.warning(
-        "[VERSION] Disabled: failed to import version check module (%s).", e
-    )
+    log.warning("[VERSION] Disabled: failed to import version check module (%s).", e)
 
 
 class SanitizerCommandTree(discord.app_commands.CommandTree):
@@ -2996,18 +2994,31 @@ class SanitizerBot(discord.Client):
             if await self._run_version_check():
                 break
             if attempt < max_startup_retries - 1:
-                log.info("[VERSION] Startup check failed, retrying in 5 minutes (attempt %d/%d)", attempt + 1, max_startup_retries)
+                log.info(
+                    "[VERSION] Startup check failed, retrying in 5 minutes (attempt %d/%d)",
+                    attempt + 1,
+                    max_startup_retries,
+                )
                 await asyncio.sleep(300)  # 5 minutes
         else:
-            log.warning("[VERSION] Startup check failed after %d attempts, will retry at next scheduled check", max_startup_retries)
+            log.warning(
+                "[VERSION] Startup check failed after %d attempts, will retry at next scheduled check",
+                max_startup_retries,
+            )
 
         # Then schedule periodic checks at 00:00, 06:00, 12:00, 18:00 UTC
         while True:
             try:
                 next_check_time = self._get_next_check_time()
-                sleep_seconds = (next_check_time - datetime.now(timezone.utc)).total_seconds()
+                sleep_seconds = (
+                    next_check_time - datetime.now(timezone.utc)
+                ).total_seconds()
                 if sleep_seconds > 0:
-                    log.debug("[VERSION] Next check at %s UTC (in %.0f seconds)", next_check_time.strftime("%H:%M:%S"), sleep_seconds)
+                    log.debug(
+                        "[VERSION] Next check at %s UTC (in %.0f seconds)",
+                        next_check_time.strftime("%H:%M:%S"),
+                        sleep_seconds,
+                    )
                     await asyncio.sleep(sleep_seconds)
                 await self._run_version_check()
             except Exception as e:
