@@ -51,7 +51,7 @@ jobs:
         with:
           context: .
           push: true
-          provenance: mode=max
+          provenance: mode=min
           platforms: linux/amd64,linux/arm64
           build-args: |
             NNSB_IMAGE_VERSION=${{ github.ref_type == 'tag' && steps.meta.outputs.version || 'latest' }}
