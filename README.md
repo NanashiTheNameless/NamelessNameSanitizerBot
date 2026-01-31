@@ -160,8 +160,8 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - /set-emoji-sanitization [value:bool] - Toggle whether emoji are stripped (true) or preserved (false).
 - /set-fallback-mode [mode:str] - Set/view fallback mode (`default|randomized|static`). Controls how empty/illegal results are replaced.
 - /set-keep-spaces [value:bool] - Toggle preserving original spacing (true) vs normalizing whitespace (false).
-- /set-min-length [value:int] - Set/view minimum allowed nickname length (clamped ≤ 8).
-- /set-max-length [value:int] - Set/view maximum allowed nickname length (clamped ≤ 32).
+- /set-min-length [value:int] - Set/view minimum allowed nickname length (clamped <= 8).
+- /set-max-length [value:int] - Set/view maximum allowed nickname length (clamped <= 32).
 - /set-check-count [value:int] - Set/view number of leading grapheme clusters to sanitize (0 = full name).
 - /set-cooldown-seconds [value:int] - Set/view per-user edit cooldown interval.
 - /set-enforce-bots [value:bool] - Toggle sanitization for other bots (never targets itself).

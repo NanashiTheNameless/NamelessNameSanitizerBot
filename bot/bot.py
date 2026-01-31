@@ -1159,7 +1159,7 @@ class SanitizerBot(discord.Client):
                         ch = None
                 if isinstance(ch, (discord.TextChannel, discord.Thread)):
                     try:
-                        await ch.send(f"Nickname updated: {member.mention} - `{name_now}` → `{candidate}` (via {source})")  # type: ignore
+                        await ch.send(f"Nickname updated: {member.mention} - `{name_now}` -> `{candidate}` (via {source})")  # type: ignore
                     except Exception:
                         pass
             return True
@@ -1474,7 +1474,7 @@ class SanitizerBot(discord.Client):
 
         did_change = await self._sanitize_member(member, source="command")
         if did_change:
-            msg = f"Nickname updated: `{current_name}` → `{candidate}`."
+            msg = f"Nickname updated: `{current_name}` -> `{candidate}`."
         else:
             # Provide explicit reasons why it could not change
             reasons = await self._diagnose_sanitize_blockers(
@@ -3205,9 +3205,9 @@ class SanitizerBot(discord.Client):
         for gid, name, reason in entries:
             label = f"{name} ({gid})" if (name and name.strip()) else str(gid)
             if reason and reason.strip():
-                lines.append(f"• {label} - {reason}")
+                lines.append(f"- {label} - {reason}")
             else:
-                lines.append(f"• {label}")
+                lines.append(f"- {label}")
         header = "Blacklisted servers:\n"
         text = header + ("\n".join(lines) if lines else "")
         try:
