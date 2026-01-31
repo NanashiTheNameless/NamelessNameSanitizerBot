@@ -786,7 +786,7 @@ class SanitizerBot(discord.Client):
             await self.cmd_unblacklist_server(interaction, server_id, confirm)
 
         @self.tree.command(
-            name="set-blacklist-reason",
+            name="blacklist-set-reason",
             description="Bot Owner Only: Update the reason for a blacklisted guild (server)",
         )
         @app_commands.default_permissions()
@@ -801,6 +801,23 @@ class SanitizerBot(discord.Client):
             reason: Optional[str] = None,
         ):
             await self.cmd_set_blacklist_reason(interaction, server_id, reason)
+
+        @self.tree.command(
+            name="blacklist-set-name",
+            description="Bot Owner Only: Update the display name for a blacklisted guild (server)",
+        )
+        @app_commands.default_permissions()
+        @app_commands.describe(
+            server_id="Guild (server) ID whose blacklist name to set",
+            name="New display name (empty to clear)",
+        )
+        @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
+        async def _set_blacklist_name(
+            interaction: discord.Interaction,
+            server_id: str,
+            name: Optional[str] = None,
+        ):
+            await self.cmd_set_blacklist_name(interaction, server_id, name)
 
         @self.tree.command(
             name="leave-server",
@@ -3113,6 +3130,48 @@ class SanitizerBot(discord.Client):
             f"Updated blacklist reason for {gid} to: {reason}"
             if (reason and reason.strip())
             else f"Cleared blacklist reason for {gid}."
+        )
+        await interaction.response.send_message(text, ephemeral=True)
+
+    async def cmd_set_blacklist_name(
+        self,
+        interaction: discord.Interaction,
+        server_id: str,
+        name: Optional[str] = None,
+    ):
+        if not await owner_destructive_check(self, interaction):
+            return
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        if not self.db:
+            await interaction.response.send_message(
+                "Database not configured.", ephemeral=True
+            )
+            return
+        try:
+            gid = int(server_id)
+        except Exception:
+            await interaction.response.send_message(
+                f"'{server_id}' is not a valid server ID.",
+                ephemeral=True,
+            )
+            return
+        # Upsert: preserve reason, update name
+        try:
+            await self.db.add_blacklisted_guild(gid, reason=None, name=name)
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to set blacklist name: {e}",
+                ephemeral=True,
+            )
+            return
+        text = (
+            f"Updated blacklist name for {gid} to: {name}"
+            if (name and name.strip())
+            else f"Cleared blacklist name for {gid}."
         )
         await interaction.response.send_message(text, ephemeral=True)
 

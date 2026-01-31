@@ -180,7 +180,8 @@ Policies are stored per guild (server) in Postgres; defaults are derived from `.
 - /global-reset-settings [confirm:bool] - Reset sanitizer settings to defaults across every guild (server). Requires confirm=true.
 - /blacklist-server [server_id:str] [reason:str] [confirm:bool] - Blacklist a guild (server); bot auto-leaves and purges its data on join/startup.
 - /unblacklist-server [server_id:str] [confirm:bool] - Remove a guild (server) from blacklist.
-- /set-blacklist-reason [server_id:str] [reason:str] - Set or clear a reason for a blacklisted guild (server).
+- /blacklist-set-reason [server_id:str] [reason:str] - Set or clear a reason for a blacklisted guild (server).
+- /blacklist-set-name [server_id:str] [name:str] - Set or clear a display name for a blacklisted guild (server).
  -/dm-blacklisted-servers [attach_file:bool] - DM the bot owner a list of blacklisted guild (server) IDs & reasons. Optional `attach_file` (defaults to false). When true, the bot sends the report as a file and does not include inline text.
  -/dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to false). When `attach_file=true`, the bot uploads three separate files - `admin-report.txt`, `server-settings-report.txt`, and `blacklist-report.txt` - and does not include inline text. When `attach_file=false`, reports are sent as messages with safe chunking.
 - /leave-server [server_id:str] [confirm:bool] - Leave a guild (server) and delete its stored configuration/admin data.
