@@ -150,16 +150,20 @@ def _post_sync(url: str, data: bytes, timeout: float = 2.0) -> bool:
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             _ = resp.status
+            try:
+                _log.info("[TELEMETRY] POST ok (url=%s)", url)
+            except Exception:
+                pass
             return True
     except urllib.error.URLError as e:
         try:
-            _log.warning("[telemetry] POST failed (url=%s): %s", url, e)
+            _log.warning("[TELEMETRY] POST failed (url=%s): %s", url, e)
         except Exception:
             pass
         return False
     except Exception as e:
         try:
-            _log.warning("[telemetry] POST failed (url=%s): %s", url, e)
+            _log.warning("[TELEMETRY] POST failed (url=%s): %s", url, e)
         except Exception:
             pass
         return False
@@ -173,7 +177,7 @@ async def maybe_send_telemetry_async() -> None:
             if not _HAS_LOGGED_SKIP:
                 _HAS_LOGGED_SKIP = True
                 _log.info(
-                    "[telemetry] skipped (endpoint_configured=%s, opted_out=%s)",
+                    "[TELEMETRY] skipped (endpoint_configured=%s, opted_out=%s)",
                     bool(endpoint),
                     _env_opt_out(),
                 )
@@ -193,7 +197,7 @@ async def maybe_send_telemetry_async() -> None:
         try:
             if not _HAS_LOGGED_NO_PROJECT:
                 _HAS_LOGGED_NO_PROJECT = True
-                _log.info("[telemetry] skipped (missing PROJECT_NAME)")
+                _log.info("[TELEMETRY] skipped (missing PROJECT_NAME)")
             else:
                 _log.debug("telemetry skipped (missing PROJECT_NAME)")
         except Exception:
@@ -264,7 +268,7 @@ def maybe_send_telemetry_background() -> None:
         path = _get_state_file()
         _ = _ensure_instance_id()
         try:
-            _log.info("[telemetry] initialized state file at %s", path)
+            _log.info("[TELEMETRY] initialized state file at %s", path)
         except Exception:
             pass
     except Exception:
@@ -278,7 +282,7 @@ def maybe_send_telemetry_background() -> None:
                 if not _HAS_LOGGED_SCHEDULE:
                     _HAS_LOGGED_SCHEDULE = True
                     _log.info(
-                        "[telemetry] scheduling immediate send and 2h periodic loop (UTC aligned)"
+                        "[TELEMETRY] scheduling immediate send and 2h periodic loop (UTC aligned)"
                     )
                 else:
                     _log.debug("telemetry scheduling immediate send + periodic loop")

@@ -30,13 +30,6 @@ from .config import DISCORD_TOKEN, validate_discord_token
 log = logging.getLogger("sanitizerbot")
 logging.basicConfig(level=logging.INFO)
 
-try:
-    from .telemetry import maybe_send_telemetry_background  # type: ignore
-except Exception:
-    log.warning(
-        "[TELEMETRY] Disabled: failed to import telemetry module. Running without census."
-    )
-
 _LOG_LEVEL_NAME = os.getenv("LOG_LEVEL", "INFO").strip().upper()
 _LOG_LEVEL = getattr(logging, _LOG_LEVEL_NAME, logging.INFO)
 logging.getLogger().setLevel(_LOG_LEVEL)
@@ -96,15 +89,6 @@ for _sig in ("SIGINT", "SIGTERM"):
 if __name__ == "__main__":
     try:
         main()
-        # Initialize telemetry before starting the bot
-        try:
-            log.info("[TELEMETRY] Attempting to start telemetry system")
-            maybe_send_telemetry_background()
-        except Exception as e:
-            log.warning(
-                "[TELEMETRY] Telemetry initialization failed: %s. Continuing without telemetry.",
-                e,
-            )
         bot.run(DISCORD_TOKEN, log_handler=None)
     except KeyboardInterrupt:
         pass

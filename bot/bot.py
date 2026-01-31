@@ -40,6 +40,15 @@ from .database import Database
 from .helpers import now, owner_destructive_check, resolve_target_guild
 from .sanitizer import filter_allowed_chars, remove_marks_and_controls, sanitize_name
 
+try:
+    from .telemetry import maybe_send_telemetry_background  # type: ignore
+except Exception as e:
+    maybe_send_telemetry_background = None
+    log.warning(
+        "[TELEMETRY] Disabled: failed to import telemetry module (%s). Running without census.",
+        e,
+    )
+
 log = logging.getLogger("sanitizerbot")
 
 
@@ -843,7 +852,6 @@ class SanitizerBot(discord.Client):
             await self.cmd_global_delete_user_data(interaction, confirm)
 
     async def setup_hook(self) -> None:
-
         self._register_all_commands()
         # Global command cooldown check (owner and bot admins bypass)
         try:
@@ -855,6 +863,15 @@ class SanitizerBot(discord.Client):
             log.info("[STATUS] Slash commands synced globally on startup.")
         except Exception as e:
             log.warning("Failed to sync app commands on startup: %s", e)
+        if maybe_send_telemetry_background:
+            try:
+                log.info("[TELEMETRY] Attempting to start telemetry system")
+                maybe_send_telemetry_background()
+            except Exception as e:
+                log.warning(
+                    "[TELEMETRY] Telemetry initialization failed: %s. Continuing without telemetry.",
+                    e,
+                )
 
     async def on_ready(self):
         if self.db:
