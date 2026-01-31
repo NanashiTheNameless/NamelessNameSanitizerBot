@@ -186,6 +186,7 @@ Status checks run at startup and the status updates during the regular status me
 - /add-bot-admin [user:@User] [server_id:str] - Grant bot admin privileges for a guild (server) (current if omitted; server_id required in DMs).
 - /remove-bot-admin [user:@User] [server_id:str] - Revoke bot admin privileges for a guild (server) (current if omitted; server_id required in DMs).
 - /list-bot-admins [server_id:str] - List bot admins (current guild (server) if omitted; server_id required in DMs).
+- /check-version - Check the running version immediately and update out-of-date warnings.
 - /global-bot-disable [confirm:bool] - Disable enforcement across all guilds (servers) immediately. Requires confirm=true.
 - /global-reset-settings [confirm:bool] - Reset sanitizer settings to defaults across every guild (server). Requires confirm=true.
 - /blacklist-server [server_id:str] [reason:str] [confirm:bool] - Blacklist a guild (server); bot auto-leaves and purges its data on join/startup.

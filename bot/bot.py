@@ -672,6 +672,16 @@ class SanitizerBot(discord.Client):
             await self.cmd_list_bot_admins(interaction, server_id)
 
         @self.tree.command(
+            name="check-version",
+            description="Bot Owner Only: Check version now and update out-of-date warnings",
+        )
+        @app_commands.default_permissions()
+        async def _check_version(
+            interaction: discord.Interaction,
+        ):
+            await self.cmd_check_version(interaction)
+
+        @self.tree.command(
             name="dm-admin-report",
             description="Bot Owner Only: DM a report of all guilds (servers) and their bot admins",
         )
@@ -3051,7 +3061,12 @@ class SanitizerBot(discord.Client):
         if err:
             log.debug("[VERSION] Check skipped: %s", err)
             return True
-        if not is_outdated or not current or not latest:
+        if not is_outdated:
+            if self._outdated_message:
+                self._outdated_message = None
+                log.info("[VERSION] Cleared outdated message (up to date)")
+            return True
+        if not current or not latest:
             return True
 
         short_current = current[:12]
@@ -3514,6 +3529,68 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(
                 f"Failed to fetch admins: {e}", ephemeral=True
             )
+
+    async def cmd_check_version(self, interaction: discord.Interaction) -> None:
+        if not OWNER_ID or interaction.user.id != OWNER_ID:
+            await interaction.response.send_message(
+                "Only the bot owner can perform this action.", ephemeral=True
+            )
+            return
+        if check_outdated is None:
+            await interaction.response.send_message(
+                "Version check is unavailable.", ephemeral=True
+            )
+            return
+        if not interaction.response.is_done():
+            await interaction.response.defer(ephemeral=True, thinking=True)
+        try:
+            is_outdated, current, latest, err = await check_outdated()
+        except Exception as e:
+            await interaction.followup.send(
+                f"Version check failed: {e}", ephemeral=True
+            )
+            return
+        if err:
+            await interaction.followup.send(
+                f"Version check skipped: {err}", ephemeral=True
+            )
+            return
+        if not current:
+            await interaction.followup.send(
+                "Current version unknown.", ephemeral=True
+            )
+            return
+        if not is_outdated:
+            if self._outdated_message:
+                self._outdated_message = None
+                log.info("[VERSION] Cleared outdated message (up to date)")
+            try:
+                await self.change_presence(status=self._get_bot_status())
+            except Exception:
+                pass
+            msg = f"Up to date. Current: {current[:12]}."
+            if latest:
+                msg = f"Up to date. Current: {current[:12]} Latest: {latest[:12]}."
+            await interaction.followup.send(msg, ephemeral=True)
+            return
+        if not latest:
+            await interaction.followup.send(
+                "Update available, but latest version is unknown.",
+                ephemeral=True,
+            )
+            return
+        msg = (
+            "Update available: this instance is out of date. "
+            f"Current: {current[:12]} Latest: {latest[:12]}."
+        )
+        self._outdated_message = msg
+        log.warning("[VERSION] %s", msg)
+        log.info("[VERSION] Outdated message set for command warnings")
+        try:
+            await self.change_presence(status=self._get_bot_status())
+        except Exception:
+            pass
+        await interaction.followup.send(msg, ephemeral=True)
 
     async def cmd_dm_admin_report(
         self, interaction: discord.Interaction, attach_file: Optional[bool] = False
