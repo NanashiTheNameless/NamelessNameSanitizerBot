@@ -3018,7 +3018,6 @@ class SanitizerBot(discord.Client):
         """Get the next scheduled check time (00:00, 06:00, 12:00, or 18:00 UTC)."""
         now = datetime.now(timezone.utc)
         check_hours = [0, 6, 12, 18]
-        next_hour = None
 
         for hour in check_hours:
             check_time = now.replace(hour=hour, minute=0, second=0, microsecond=0)

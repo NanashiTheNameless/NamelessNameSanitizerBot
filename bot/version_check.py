@@ -86,12 +86,12 @@ def _same_version(current: str, latest: str) -> bool:
     Strips leading 'v' and whitespace before comparing.
     """
     c = current.strip().lower()
-    l = latest.strip().lower()
+    latest_normalized = latest.strip().lower()
     if c.startswith("v"):
         c = c[1:]
-    if l.startswith("v"):
-        l = l[1:]
-    return c == l if c and l else False
+    if latest_normalized.startswith("v"):
+        latest_normalized = latest_normalized[1:]
+    return c == latest_normalized if c and latest_normalized else False
 
 
 def _parse_semver(tag: str) -> Optional[tuple[int, int, int, int]]:
