@@ -40,6 +40,8 @@ from .database import Database
 from .helpers import now, owner_destructive_check, resolve_target_guild
 from .sanitizer import filter_allowed_chars, remove_marks_and_controls, sanitize_name
 
+log = logging.getLogger("sanitizerbot")
+
 try:
     from .telemetry import maybe_send_telemetry_background  # type: ignore
 except Exception as e:
@@ -48,8 +50,6 @@ except Exception as e:
         "[TELEMETRY] Disabled: failed to import telemetry module (%s). Running without census.",
         e,
     )
-
-log = logging.getLogger("sanitizerbot")
 
 
 class SanitizerBot(discord.Client):
