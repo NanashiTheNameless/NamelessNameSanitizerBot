@@ -139,6 +139,16 @@ By default, other bots are not targeted. If you set `enforce_bots` to true for a
 
 Policies are stored per guild (server) in Postgres; defaults are derived from `.env` until you run commands to set them for a guild (server). The bot is disabled by default per guild (server); a bot admin must enable it in each guild (server).
 
+## Bot status indicators
+
+The bot displays its health via its Discord status color:
+
+- **Green (online)** – Bot is healthy and up-to-date
+- **Yellow (idle)** – Bot is out of date; an update is available. The bot will also log a warning and append the update notice to configured logging channels on startup
+- **Red (do not disturb)** – Bot is experiencing errors (more than 2) or a critical issue (status file not found); will persist until restart
+
+Status checks run at startup and the status updates during the regular status message rotation cycle.
+
 ## Command reference
 
 ### Public

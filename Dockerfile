@@ -2,6 +2,14 @@
 
 FROM python:alpine
 
+ARG NNSB_IMAGE_VERSION=dev
+ARG NNSB_IMAGE_DIGEST=
+ARG NNSB_GIT_SHA=unknown
+LABEL org.opencontainers.image.revision=$NNSB_IMAGE_VERSION
+ENV NNSB_IMAGE_VERSION=$NNSB_IMAGE_VERSION
+ENV NNSB_IMAGE_DIGEST=$NNSB_IMAGE_DIGEST
+ENV NNSB_GIT_SHA=$NNSB_GIT_SHA
+
 WORKDIR /app
 
 COPY requirements.txt .
@@ -18,7 +26,10 @@ RUN apk add --no-cache tzdata ca-certificates \
 COPY bot ./bot
 
 # Create application data directory (volume-mounted in docker-compose).
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data \
+    && echo "$NNSB_IMAGE_VERSION" > /app/.image_version \
+    && if [ -n "$NNSB_IMAGE_DIGEST" ]; then echo "$NNSB_IMAGE_DIGEST" > /app/.image_digest; fi \
+    && echo "$NNSB_GIT_SHA" > /app/.git_sha
 
 # Run the bot as a module in unbuffered mode for real-time logs.
 CMD ["python", "-u", "-m", "bot.main"]

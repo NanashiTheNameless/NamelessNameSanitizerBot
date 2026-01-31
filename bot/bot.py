@@ -12,10 +12,11 @@ import logging
 import math
 import os
 import shlex
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from typing import Optional
 
-import commentjson
+import commentjson  # type: ignore
 import discord  # type: ignore
 import regex as re  # type: ignore
 from discord import app_commands  # type: ignore
@@ -51,6 +52,25 @@ except Exception as e:
         e,
     )
 
+try:
+    from .version_check import check_outdated  # type: ignore
+except Exception as e:
+    check_outdated = None
+    log.warning(
+        "[VERSION] Disabled: failed to import version check module (%s).", e
+    )
+
+
+class SanitizerCommandTree(discord.app_commands.CommandTree):
+    async def _call(self, interaction: discord.Interaction) -> None:
+        await super()._call(interaction)
+        try:
+            # self.client is the bot instance
+            if self.client and hasattr(self.client, "_maybe_send_outdated_warning"):
+                await self.client._maybe_send_outdated_warning(interaction)
+        except Exception as e:
+            log.debug("[COMMAND_TREE] Error appending outdated warning: %s", e)
+
 
 class SanitizerBot(discord.Client):
     def __init__(self, intents: discord.Intents):
@@ -59,10 +79,14 @@ class SanitizerBot(discord.Client):
             kwargs["application_id"] = APPLICATION_ID
         super().__init__(**kwargs)
         self.db = Database(DATABASE_URL) if DATABASE_URL else None
-        self.tree = discord.app_commands.CommandTree(self)
+        self.tree = SanitizerCommandTree(self)
         self._cmd_cooldown_last: dict[int, float] = {}
         # Separate owner destructive cooldown timestamp
         self._owner_destructive_last = 0.0
+
+        # Version check / outdated warning state
+        self._outdated_message: Optional[str] = None
+        self._outdated_warning_sent_interactions: set[int] = set()
 
         # Status cycling variables
         self._status_messages: list[dict] = []
@@ -294,10 +318,11 @@ class SanitizerBot(discord.Client):
             )
 
     def _get_bot_status(self) -> discord.Status:
-        """Determine bot status color based on error rate and file status.
+        """Determine bot status color based on error rate, file status, and version.
 
         Returns:
             discord.Status.online (green) if healthy
+            discord.Status.idle (yellow) if out of date (no errors)
             discord.Status.dnd (red) if experiencing errors or status file not found
 
         Note: Once red status is triggered, it persists until bot restart.
@@ -309,6 +334,11 @@ class SanitizerBot(discord.Client):
         # If more than 2 errors, show red status (persists until restart)
         if self._error_count > 2:
             return discord.Status.dnd
+
+        # If outdated, show yellow/idle status
+        if self._outdated_message:
+            return discord.Status.idle
+
         return discord.Status.online
 
     async def _dm_owner(self, content: str) -> bool:
@@ -876,6 +906,10 @@ class SanitizerBot(discord.Client):
         except Exception:
             pass
         try:
+            asyncio.create_task(self._version_check_task())
+        except Exception:
+            pass
+        try:
             await self.tree.sync()
             log.info("[STATUS] Slash commands synced globally on startup.")
         except Exception as e:
@@ -1159,7 +1193,11 @@ class SanitizerBot(discord.Client):
                         ch = None
                 if isinstance(ch, (discord.TextChannel, discord.Thread)):
                     try:
-                        await ch.send(f"Nickname updated: {member.mention} - `{name_now}` -> `{candidate}` (via {source})")  # type: ignore
+                        log_msg = f"Nickname updated: {member.mention} - `{name_now}` -> `{candidate}` (via {source})"
+                        # Append outdated warning if available
+                        if self._outdated_message:
+                            log_msg += f"\n\n{self._outdated_message}"
+                        await ch.send(log_msg)  # type: ignore
                     except Exception:
                         pass
             return True
@@ -2910,6 +2948,133 @@ class SanitizerBot(discord.Client):
                 except Exception:
                     pass
         return sent
+
+    async def _append_to_recent_log_messages(self, content: str) -> int:
+        """Send content as a new message to configured logging channels.
+
+        Sends a new message instead of trying to edit existing messages.
+        Returns the number of messages that were sent.
+        """
+        if not self.db:
+            return 0
+        sent = 0
+        for guild in list(self.guilds):
+            # Fetch the logging channel configured for this guild
+            try:
+                settings = await self.db.get_settings(guild.id)
+                ch_id = settings.logging_channel_id
+            except Exception:
+                ch_id = None
+            if not ch_id:
+                continue
+            ch = guild.get_channel(ch_id)
+            if ch is None:
+                try:
+                    ch = await guild.fetch_channel(ch_id)
+                except Exception:
+                    ch = None
+            if isinstance(ch, (discord.TextChannel, discord.Thread)):
+                try:
+                    await ch.send(content)
+                    sent += 1
+                except Exception:
+                    pass
+        return sent
+
+    async def _version_check_task(self) -> None:
+        """Check for updates on startup and periodically at 00:00, 06:00, 12:00, 18:00 UTC."""
+        if check_outdated is None:
+            return
+        try:
+            await self.wait_until_ready()
+        except Exception:
+            return
+
+        # Run check on startup with retries (but don't set yellow/red status during retries)
+        max_startup_retries = 3
+        for attempt in range(max_startup_retries):
+            if await self._run_version_check():
+                break
+            if attempt < max_startup_retries - 1:
+                log.info("[VERSION] Startup check failed, retrying in 5 minutes (attempt %d/%d)", attempt + 1, max_startup_retries)
+                await asyncio.sleep(300)  # 5 minutes
+        else:
+            log.warning("[VERSION] Startup check failed after %d attempts, will retry at next scheduled check", max_startup_retries)
+
+        # Then schedule periodic checks at 00:00, 06:00, 12:00, 18:00 UTC
+        while True:
+            try:
+                next_check_time = self._get_next_check_time()
+                sleep_seconds = (next_check_time - datetime.now(timezone.utc)).total_seconds()
+                if sleep_seconds > 0:
+                    log.debug("[VERSION] Next check at %s UTC (in %.0f seconds)", next_check_time.strftime("%H:%M:%S"), sleep_seconds)
+                    await asyncio.sleep(sleep_seconds)
+                await self._run_version_check()
+            except Exception as e:
+                log.debug("[VERSION] Periodic check task error: %s", e)
+                # Continue to next scheduled check time instead of sleeping
+
+    def _get_next_check_time(self) -> datetime:
+        """Get the next scheduled check time (00:00, 06:00, 12:00, or 18:00 UTC)."""
+        now = datetime.now(timezone.utc)
+        check_hours = [0, 6, 12, 18]
+        next_hour = None
+
+        for hour in check_hours:
+            check_time = now.replace(hour=hour, minute=0, second=0, microsecond=0)
+            if check_time > now:
+                return check_time
+
+        # If no hour found today, next check is tomorrow at 00:00
+        tomorrow = now + timedelta(days=1)
+        return tomorrow.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    async def _run_version_check(self) -> bool:
+        """Run a single version check. Returns True if check completed (successful or skipped), False on network error."""
+        if check_outdated is None:
+            return True
+        try:
+            is_outdated, current, latest, err = await check_outdated()
+        except Exception as e:
+            log.debug("[VERSION] Check failed (network error): %s", e)
+            return False
+        if err:
+            log.debug("[VERSION] Check skipped: %s", err)
+            return True
+        if not is_outdated or not current or not latest:
+            return True
+
+        short_current = current[:12]
+        short_latest = latest[:12]
+        msg = (
+            "Update available: this instance is out of date. "
+            f"Current: {short_current} Latest: {short_latest}."
+        )
+        self._outdated_message = msg
+        log.warning("[VERSION] %s", msg)
+        log.info("[VERSION] Outdated message set for command warnings")
+        return True
+
+    async def _maybe_send_outdated_warning(
+        self, interaction: discord.Interaction
+    ) -> None:
+        msg = self._outdated_message
+        if not msg:
+            return
+        # Check if we've already sent a warning for this interaction
+        interaction_id = interaction.id
+        if interaction_id in self._outdated_warning_sent_interactions:
+            return
+        self._outdated_warning_sent_interactions.add(interaction_id)
+        try:
+            if not interaction.response.is_done():
+                log.debug("[VERSION] Sending outdated warning as response")
+                await interaction.response.send_message(msg, ephemeral=True)
+            else:
+                log.debug("[VERSION] Sending outdated warning as followup")
+                await interaction.followup.send(msg, ephemeral=True)
+        except Exception as e:
+            log.debug("[VERSION] Failed to send outdated warning: %s", e)
 
     async def cmd_add_admin(
         self,
