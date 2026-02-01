@@ -158,6 +158,39 @@ def _fetch_latest_release_sync() -> Optional[str]:
     return None
 
 
+def _verify_release_build_success_sync(tag: str) -> bool:
+    """Verify that a release tag has a successful workflow build.
+    
+    Checks if the tag has a corresponding successful image-publish-ghcr.yml workflow run.
+    """
+    url = f"https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/actions/workflows/image-publish-ghcr.yml/runs?event=push&per_page=10"
+    headers = {
+        "User-Agent": "NamelessNameSanitizerBot/VersionCheck",
+        "Accept": "application/vnd.github+json",
+    }
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = resp.read().decode("utf-8")
+            payload = json.loads(data)
+            if isinstance(payload, dict):
+                runs = payload.get("workflow_runs")
+                if isinstance(runs, list):
+                    for run in runs:
+                        if not isinstance(run, dict):
+                            continue
+                        # Check if this run is for the tag
+                        head_branch = run.get("head_branch")
+                        if head_branch != tag:
+                            continue
+                        # Check if the run was successful
+                        if run.get("conclusion") == "success":
+                            return True
+    except Exception:
+        pass
+    return False
+
+
 def _is_release_tag(tag: str) -> bool:
     parsed = _parse_semver(tag)
     return parsed is not None
@@ -219,9 +252,18 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
             return False, current_version, None, "latest release unknown"
         if not _is_release_tag(latest_tag):
             return False, current_version, latest_tag, "latest release incomplete"
-        if _same_version(current_version, latest_tag):
-            return False, current_version, latest_tag, None
-        return True, current_version, latest_tag, None
+        # Verify the latest release has a successful build before marking as outdated
+        if not _same_version(current_version, latest_tag):
+            try:
+                build_success = await asyncio.to_thread(
+                    _verify_release_build_success_sync, latest_tag
+                )
+            except Exception:
+                return False, current_version, latest_tag, "failed to verify latest release build status"
+            if not build_success:
+                return False, current_version, latest_tag, "latest release build not completed successfully"
+            return True, current_version, latest_tag, None
+        return False, current_version, latest_tag, None
 
     # For latest/dev builds, compare git SHA
     if current_git:
