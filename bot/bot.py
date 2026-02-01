@@ -1345,6 +1345,14 @@ class SanitizerBot(discord.Client):
         """Cycle through status messages with dynamic durations."""
         await self.wait_until_ready()
 
+        activity_type_map = {
+            "playing": discord.ActivityType.playing,
+            "streaming": discord.ActivityType.streaming,
+            "listening": discord.ActivityType.listening,
+            "watching": discord.ActivityType.watching,
+            "competing": discord.ActivityType.competing,
+        }
+
         while not self.is_closed():
             try:
                 if not self._status_messages:
@@ -1358,15 +1366,6 @@ class SanitizerBot(discord.Client):
                 # Clamp duration to minimum 20 seconds to avoid Discord rate limits
                 duration = max(20, duration)
                 activity_type_str = current_status.get("type", "watching").lower()
-
-                # Map string to ActivityType
-                activity_type_map = {
-                    "playing": discord.ActivityType.playing,
-                    "streaming": discord.ActivityType.streaming,
-                    "listening": discord.ActivityType.listening,
-                    "watching": discord.ActivityType.watching,
-                    "competing": discord.ActivityType.competing,
-                }
                 activity_type = activity_type_map.get(
                     activity_type_str, discord.ActivityType.watching
                 )
@@ -1378,13 +1377,13 @@ class SanitizerBot(discord.Client):
                 activity = discord.Activity(type=activity_type, name=status_text)
                 await self.change_presence(activity=activity, status=status_color)
 
-                # Move to next status message
+                # Wait for the duration specified for this status
+                await asyncio.sleep(duration)
+
+                # Move to next status message (wraps cleanly at end of list)
                 self._current_status_index = (self._current_status_index + 1) % len(
                     self._status_messages
                 )
-
-                # Wait for the duration specified for this status
-                await asyncio.sleep(duration)
 
             except Exception as e:
                 log.error(f"[STATUS] Failed to update status: {e}")
