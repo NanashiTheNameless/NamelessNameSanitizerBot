@@ -98,6 +98,13 @@ class SanitizerBot(discord.Client):
         self._error_count = 0
         self._last_error_reset = 0.0
         self._file_not_found = False
+
+        # Validate owner is configured
+        if not OWNER_ID:
+            raise ValueError(
+                "OWNER_ID environment variable is not set. "
+                "Bot owner must be configured. Set OWNER_ID to your Discord user ID."
+            )
         self._load_status_messages()
 
         self._policy_keys = [

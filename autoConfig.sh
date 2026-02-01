@@ -43,12 +43,39 @@ prompt_with_default() {
 	echo "$input_value"
 }
 
-# Function to prompt for secrets (visible input)
-prompt_secret() {
+# Function to prompt without default value
+prompt_basic() {
 	local prompt_text="$1"
 	local input_value
 	read -r -p "$prompt_text: " input_value
 	echo "$input_value"
+}
+
+# Function to validate Discord user ID format
+validate_owner_id() {
+	local owner_id="$1"
+
+	if [[ -z "$owner_id" ]]; then
+		echo "Error: OWNER_ID is missing." >&2
+		return 1
+	fi
+
+	if [[ "$owner_id" =~ [[:space:]] ]]; then
+		echo "Error: OWNER_ID contains whitespace." >&2
+		return 1
+	fi
+
+	if ! [[ "$owner_id" =~ ^[0-9]+$ ]]; then
+		echo "Error: OWNER_ID must be numeric (a Discord user ID)." >&2
+		return 1
+	fi
+
+	if [[ ${#owner_id} -lt 17 ]] || [[ ${#owner_id} -gt 20 ]]; then
+		echo "Error: OWNER_ID appears invalid (should be 17-20 digits)." >&2
+		return 1
+	fi
+
+	return 0
 }
 
 # Function to validate Discord token format
@@ -91,14 +118,20 @@ validate_discord_token() {
 # Collect user inputs
 echo "Discord Configuration:"
 while :; do
-	DISCORD_TOKEN=$(prompt_secret "Discord bot token (keep this secret)")
+	DISCORD_TOKEN=$(prompt_basic "Discord bot token (keep this secret)")
 	if validate_discord_token "$DISCORD_TOKEN"; then
 		break
 	fi
 	echo "Validation failed. Please enter the Discord bot token again."
 done
-OWNER_ID=$(prompt_with_default "Your Discord user ID (you will be the bot owner)" "221701506561212416")
-APPLICATION_ID=$(prompt_with_default "Application ID from Discord Developer Portal (for invite links)" "0")
+while :; do
+	OWNER_ID=$(prompt_basic "Your Discord user ID (you will be the bot owner)")
+	if validate_owner_id "$OWNER_ID"; then
+		break
+	fi
+	echo "Validation failed. Please enter a valid Discord user ID again."
+done
+APPLICATION_ID=$(prompt_with_default "Application ID from Discord Developer Portal (for invite links and the API)" "0")
 
 echo
 echo "Database Configuration:"
