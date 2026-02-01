@@ -180,13 +180,13 @@ Status checks run at startup and the status updates during the regular status me
 - /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=true.
 - /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)'s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=true.
 - /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] - View/update policy settings; supports multi-update with quoted values; server_id allows remote guild (server) management (owner or that guild (server)'s bot admin); required in DMs.
+- /check-version - Check the running version immediately and update out-of-date warnings. Bot admins have a 2-minute global cooldown; bot owner is unrestricted.
 
 ### Bot Owner Only (invisible to all users at Discord API level)
 
 - /add-bot-admin [user:@User] [server_id:str] - Grant bot admin privileges for a guild (server) (current if omitted; server_id required in DMs).
 - /remove-bot-admin [user:@User] [server_id:str] - Revoke bot admin privileges for a guild (server) (current if omitted; server_id required in DMs).
 - /list-bot-admins [server_id:str] - List bot admins (current guild (server) if omitted; server_id required in DMs).
-- /check-version - Check the running version immediately and update out-of-date warnings.
 - /global-bot-disable [confirm:bool] - Disable enforcement across all guilds (servers) immediately. Requires confirm=true.
 - /global-reset-settings [confirm:bool] - Reset sanitizer settings to defaults across every guild (server). Requires confirm=true.
 - /blacklist-server [server_id:str] [reason:str] [confirm:bool] - Blacklist a guild (server); bot auto-leaves and purges its data on join/startup.

@@ -91,6 +91,7 @@ class SanitizerBot(discord.Client):
         # Version check / outdated warning state
         self._outdated_message: Optional[str] = None
         self._outdated_warning_sent_interactions: set[int] = set()
+        self._last_check_version_time: float = 0.0  # For bot-admin cooldown
 
         # Status cycling variables
         self._status_messages: list[dict] = []
@@ -3543,11 +3544,43 @@ class SanitizerBot(discord.Client):
             )
 
     async def cmd_check_version(self, interaction: discord.Interaction) -> None:
-        if not OWNER_ID or interaction.user.id != OWNER_ID:
-            await interaction.response.send_message(
-                "Only the bot owner can perform this action.", ephemeral=True
-            )
-            return
+        is_owner = OWNER_ID and interaction.user.id == OWNER_ID
+        is_admin = False
+        
+        if not is_owner:
+            # Allow bot admins if in a guild
+            if interaction.guild and self.db:
+                try:
+                    is_admin = await self.db.is_admin(interaction.guild.id, interaction.user.id)
+                    if not is_admin:
+                        await interaction.response.send_message(
+                            "Only the bot owner or bot admins can perform this action.", ephemeral=True
+                        )
+                        return
+                except Exception:
+                    await interaction.response.send_message(
+                        "Only the bot owner can perform this action.", ephemeral=True
+                    )
+                    return
+            else:
+                await interaction.response.send_message(
+                    "Only the bot owner can perform this action.", ephemeral=True
+                )
+                return
+        
+        # Apply 2 minute cooldown for bot-admins only (not for owner)
+        if is_admin and not is_owner:
+            current_time = now()
+            cooldown_seconds = 120
+            time_remaining = cooldown_seconds - (current_time - self._last_check_version_time)
+            if time_remaining > 0:
+                await interaction.response.send_message(
+                    f"Bot admins can only use /check-version once every 2 minutes. Try again in {int(time_remaining) + 1} seconds.",
+                    ephemeral=True
+                )
+                return
+            self._last_check_version_time = current_time
+        
         if check_outdated is None:
             await interaction.response.send_message(
                 "Version check is unavailable.", ephemeral=True
