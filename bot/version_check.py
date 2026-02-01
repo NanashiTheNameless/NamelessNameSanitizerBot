@@ -160,10 +160,10 @@ def _fetch_latest_release_sync() -> Optional[str]:
 
 def _verify_release_build_success_sync(tag: str) -> bool:
     """Verify that a release tag has a successful workflow build.
-    
+
     Checks if the tag has a corresponding successful image-publish-ghcr.yml workflow run.
     """
-    url = f"https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/actions/workflows/image-publish-ghcr.yml/runs?event=push&per_page=10"
+    url = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/actions/workflows/image-publish-ghcr.yml/runs?event=push&per_page=10"
     headers = {
         "User-Agent": "NamelessNameSanitizerBot/VersionCheck",
         "Accept": "application/vnd.github+json",
@@ -259,9 +259,19 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
                     _verify_release_build_success_sync, latest_tag
                 )
             except Exception:
-                return False, current_version, latest_tag, "failed to verify latest release build status"
+                return (
+                    False,
+                    current_version,
+                    latest_tag,
+                    "failed to verify latest release build status",
+                )
             if not build_success:
-                return False, current_version, latest_tag, "latest release build not completed successfully"
+                return (
+                    False,
+                    current_version,
+                    latest_tag,
+                    "latest release build not completed successfully",
+                )
             return True, current_version, latest_tag, None
         return False, current_version, latest_tag, None
 
