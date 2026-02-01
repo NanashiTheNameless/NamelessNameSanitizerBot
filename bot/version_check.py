@@ -189,6 +189,26 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
             latest_git = None
         return True, current_version, latest_git or "unknown", None
 
+    # If current_version is "latest" or we have a git SHA, use SHA-based comparison
+    # This takes priority over release tag checking
+    if current_version and current_version.lower() == "latest":
+        if current_git and current_git.upper() != "DEVELOPMENT":
+            try:
+                latest_git = await asyncio.to_thread(
+                    _fetch_latest_successful_workflow_sha_sync
+                )
+            except Exception as e:
+                return False, current_git, None, f"failed to fetch latest git sha: {e}"
+            latest_git = latest_git.strip() if latest_git else None
+            if not latest_git:
+                return False, current_git, None, "latest workflow build not available"
+            if _same_version(current_git, latest_git):
+                return False, current_git, latest_git, None
+            # allow short vs full sha
+            if current_git.startswith(latest_git) or latest_git.startswith(current_git):
+                return False, current_git, latest_git, None
+            return True, current_git, latest_git, None
+
     # If we have a release tag (e.g., v1.2.3), only check against latest release
     if current_version and _is_release_tag(current_version):
         try:
