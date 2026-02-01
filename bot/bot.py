@@ -3574,10 +3574,11 @@ class SanitizerBot(discord.Client):
             if self._outdated_message:
                 self._outdated_message = None
                 log.info("[VERSION] Cleared outdated message (up to date)")
-            try:
-                await self.change_presence(status=self._get_bot_status())
-            except Exception:
-                pass
+                try:
+                    # Only update presence when transitioning from outdated to up-to-date
+                    await self.change_presence(status=self._get_bot_status())
+                except Exception:
+                    pass
             msg = f"Up to date. Current: {current[:12]}."
             if latest:
                 msg = f"Up to date. Current: {current[:12]} Latest: {latest[:12]}."
@@ -3593,13 +3594,19 @@ class SanitizerBot(discord.Client):
             "Update available: this instance is out of date. "
             f"Current: {current[:12]} Latest: {latest[:12]}."
         )
-        self._outdated_message = msg
-        log.warning("[VERSION] %s", msg)
-        log.info("[VERSION] Outdated message set for command warnings")
-        try:
-            await self.change_presence(status=self._get_bot_status())
-        except Exception:
-            pass
+        # Only update presence if this is a NEW outdated status (transitioning to outdated)
+        if not self._outdated_message:
+            self._outdated_message = msg
+            log.warning("[VERSION] %s", msg)
+            log.info("[VERSION] Outdated message set for command warnings")
+            try:
+                # Only update presence when transitioning to outdated (showing orange)
+                await self.change_presence(status=self._get_bot_status())
+            except Exception:
+                pass
+        else:
+            # Already outdated, just update the message without changing presence
+            self._outdated_message = msg
         await interaction.followup.send(msg, ephemeral=True)
 
     async def cmd_dm_admin_report(
