@@ -3546,15 +3546,18 @@ class SanitizerBot(discord.Client):
     async def cmd_check_version(self, interaction: discord.Interaction) -> None:
         is_owner = OWNER_ID and interaction.user.id == OWNER_ID
         is_admin = False
-        
+
         if not is_owner:
             # Allow bot admins if in a guild
             if interaction.guild and self.db:
                 try:
-                    is_admin = await self.db.is_admin(interaction.guild.id, interaction.user.id)
+                    is_admin = await self.db.is_admin(
+                        interaction.guild.id, interaction.user.id
+                    )
                     if not is_admin:
                         await interaction.response.send_message(
-                            "Only the bot owner or bot admins can perform this action.", ephemeral=True
+                            "Only the bot owner or bot admins can perform this action.",
+                            ephemeral=True,
                         )
                         return
                 except Exception:
@@ -3567,20 +3570,22 @@ class SanitizerBot(discord.Client):
                     "Only the bot owner can perform this action.", ephemeral=True
                 )
                 return
-        
+
         # Apply 2 minute cooldown for bot-admins only (not for owner)
         if is_admin and not is_owner:
             current_time = now()
             cooldown_seconds = 120
-            time_remaining = cooldown_seconds - (current_time - self._last_check_version_time)
+            time_remaining = cooldown_seconds - (
+                current_time - self._last_check_version_time
+            )
             if time_remaining > 0:
                 await interaction.response.send_message(
                     f"Bot admins can only use /check-version once every 2 minutes. Try again in {int(time_remaining) + 1} seconds.",
-                    ephemeral=True
+                    ephemeral=True,
                 )
                 return
             self._last_check_version_time = current_time
-        
+
         if check_outdated is None:
             await interaction.response.send_message(
                 "Version check is unavailable.", ephemeral=True
