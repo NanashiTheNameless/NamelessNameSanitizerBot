@@ -64,12 +64,12 @@ class SanitizerCommandTree(discord.app_commands.CommandTree):
         await super()._call(interaction)
         try:
             # self.client is the bot instance
-            # Skip outdated warning for check-version command since it handles its own warnings
+            # Skip outdated warning for check-update command since it handles its own warnings
             if (
                 self.client
                 and hasattr(self.client, "_maybe_send_outdated_warning")
                 and interaction.command
-                and interaction.command.name != "check-version"
+                and interaction.command.name != "check-update"
             ):
                 await self.client._maybe_send_outdated_warning(interaction)
         except Exception as e:
@@ -91,7 +91,7 @@ class SanitizerBot(discord.Client):
         # Version check / outdated warning state
         self._outdated_message: Optional[str] = None
         self._outdated_warning_sent_interactions: set[int] = set()
-        self._last_check_version_time: float = 0.0  # For bot-admin cooldown
+        self._last_check_update_time: float = 0.0  # For bot-admin cooldown
 
         # Status cycling variables
         self._status_messages: list[dict] = []
@@ -686,14 +686,14 @@ class SanitizerBot(discord.Client):
             await self.cmd_list_bot_admins(interaction, server_id)
 
         @self.tree.command(
-            name="check-version",
+            name="check-update",
             description="Bot Owner Only: Check version now and update out-of-date warnings",
         )
         @app_commands.default_permissions()
-        async def _check_version(
+        async def _check_update(
             interaction: discord.Interaction,
         ):
-            await self.cmd_check_version(interaction)
+            await self.cmd_check_update(interaction)
 
         @self.tree.command(
             name="dm-admin-report",
@@ -3543,7 +3543,7 @@ class SanitizerBot(discord.Client):
                 f"Failed to fetch admins: {e}", ephemeral=True
             )
 
-    async def cmd_check_version(self, interaction: discord.Interaction) -> None:
+    async def cmd_check_update(self, interaction: discord.Interaction) -> None:
         is_owner = OWNER_ID and interaction.user.id == OWNER_ID
         is_admin = False
 
@@ -3576,15 +3576,15 @@ class SanitizerBot(discord.Client):
             current_time = now()
             cooldown_seconds = 120
             time_remaining = cooldown_seconds - (
-                current_time - self._last_check_version_time
+                current_time - self._last_check_update_time
             )
             if time_remaining > 0:
                 await interaction.response.send_message(
-                    f"Bot admins can only use /check-version once every 2 minutes. Try again in {int(time_remaining) + 1} seconds.",
+                    f"Bot admins can only use /check-update once every 2 minutes. Try again in {int(time_remaining) + 1} seconds.",
                     ephemeral=True,
                 )
                 return
-            self._last_check_version_time = current_time
+            self._last_check_update_time = current_time
 
         if check_outdated is None:
             await interaction.response.send_message(

@@ -180,7 +180,7 @@ Status checks run at startup and the status updates during the regular status me
 - /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=true.
 - /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)'s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=true.
 - /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] - View/update policy settings; supports multi-update with quoted values; server_id allows remote guild (server) management (owner or that guild (server)'s bot admin); required in DMs.
-- /check-version - Check the running version immediately and update out-of-date warnings. Bot admins have a 2-minute global cooldown; bot owner is unrestricted.
+- /check-update - Check the running version immediately and update out-of-date warnings. Bot admins have a 2-minute global cooldown; bot owner is unrestricted.
 
 ### Bot Owner Only (invisible to all users at Discord API level)
 
