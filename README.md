@@ -266,7 +266,7 @@ See [SECURITY.md](<./SECURITY.md>) in this repo and the policies on the project 
 
 ### Telemetry (opt-out)
 
-This project includes a tiny, privacy‑respecting census to estimate how many people self‑host it. It is enabled by default and can be disabled at any time. The census only sends minimal, non‑identifying data and never includes user content, guild (server) info, or secrets.
+This project includes a tiny, privacy‑respecting census to assess adoption by counting how many instances are actively running. It is enabled by default and can be disabled at any time. The census only sends minimal, non‑identifying data and never includes user content, guild (server) info, or secrets.
 
 What is sent
 

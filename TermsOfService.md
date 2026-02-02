@@ -1,6 +1,6 @@
 # Terms of Service
 
-Last updated: 2026-01-19 (YYYY-MM-DD)
+Last updated: 2026-02-02 (YYYY-MM-DD)
 
 By adding or using NamelessNameSanitizerBot ("the Bot") in your Discord server, you agree to these terms.
 
@@ -26,7 +26,7 @@ Do not use the Bot to break laws, harass people, evade Discord policies, attack/
 
 ### Anonymous self-hosting telemetry (opt-out)
 
-To estimate self-hosted adoption, the Bot sends a tiny census event once on startup and every 2 hours (UTC). Please see the Privacy Policy for more info.
+To assess adoption by counting how many instances are actively running, the Bot sends a tiny census event once on startup and every 2 hours (UTC). Please see the Privacy Policy for more info.
 
 ## Changes & availability
 

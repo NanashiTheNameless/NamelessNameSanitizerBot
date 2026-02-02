@@ -34,7 +34,7 @@ The Bot does not process or store message content and The Bot does not require t
 
 ## Self-hosting Telemetry (opt-out)
 
-- Purpose: privacy-preserving census of self-hosted usage.
+- Purpose: assess adoption by counting how many instances are actively running through a privacy-preserving census.
 - When: once on startup and then every 2 hours (UTC), in the background.
 - Data sent: SHA-256 hash of a randomly generated instance ID (not a guild/user ID), Current UTC date (YYYY-MM-DD), Static Project name, and a static count value of 1.
 - Public stats: <https://telemetry.namelessnanashi.dev/>
