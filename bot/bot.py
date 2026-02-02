@@ -423,7 +423,7 @@ class SanitizerBot(discord.Client):
         async def _enable(
             interaction: discord.Interaction, server_id: Optional[str] = None
         ):
-            await self.cmd_start(interaction, server_id)
+            await self.cmd_enable_sanitizer(interaction, server_id)
 
         @self.tree.command(
             name="disable-sanitizer",
@@ -437,7 +437,7 @@ class SanitizerBot(discord.Client):
         async def _disable(
             interaction: discord.Interaction, server_id: Optional[str] = None
         ):
-            await self.cmd_stop(interaction, server_id)
+            await self.cmd_disable_sanitizer(interaction, server_id)
 
         @self.tree.command(
             name="set-policy",
@@ -490,10 +490,10 @@ class SanitizerBot(discord.Client):
             description="Bot Admin Only: Enable/disable removing emoji in nicknames or view current value",
         )
         @app_commands.default_permissions(manage_nicknames=True)
-        async def _set_emoji(
+        async def _set_emoji_sanitization(
             interaction: discord.Interaction, value: Optional[bool] = None
         ):
-            await self.cmd_set_sanitize_emoji(interaction, value)
+            await self.cmd_set_emoji_sanitization(interaction, value)
 
         @self.tree.command(
             name="set-fallback-mode",
@@ -514,7 +514,7 @@ class SanitizerBot(discord.Client):
         async def _set_keep_spaces(
             interaction: discord.Interaction, value: Optional[bool] = None
         ):
-            await self.cmd_set_preserve_spaces(interaction, value)
+            await self.cmd_set_keep_spaces(interaction, value)
 
         @self.tree.command(
             name="set-min-length",
@@ -522,7 +522,7 @@ class SanitizerBot(discord.Client):
         )
         @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(value=self._ac_min_length_value)
-        async def _set_min_nick_length(
+        async def _set_min_length(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
             await self.cmd_set_min_nick_length(interaction, value)
@@ -533,7 +533,7 @@ class SanitizerBot(discord.Client):
         )
         @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(value=self._ac_max_length_value)
-        async def _set_max_nick_length(
+        async def _set_max_length(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
             await self.cmd_set_max_nick_length(interaction, value)
@@ -547,7 +547,7 @@ class SanitizerBot(discord.Client):
         async def _set_check_count(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
-            await self.cmd_set_check_length(interaction, value)
+            await self.cmd_set_check_count(interaction, value)
 
         @self.tree.command(
             name="set-cooldown-seconds",
@@ -555,7 +555,7 @@ class SanitizerBot(discord.Client):
         )
         @app_commands.default_permissions(manage_nicknames=True)
         @app_commands.autocomplete(value=self._ac_int_value)
-        async def _set_cooldown(
+        async def _set_cooldown_seconds(
             interaction: discord.Interaction, value: Optional[int] = None
         ):
             await self.cmd_set_cooldown_seconds(interaction, value)
@@ -755,7 +755,7 @@ class SanitizerBot(discord.Client):
             confirm="Type true to confirm removal of all bot admins",
         )
         @app_commands.autocomplete(server_id=self._ac_guild_id)
-        async def _nuke_admins(
+        async def _nuke_bot_admins(
             interaction: discord.Interaction,
             server_id: Optional[str] = None,
             confirm: Optional[bool] = False,
@@ -770,7 +770,7 @@ class SanitizerBot(discord.Client):
         @app_commands.describe(
             confirm="Type true to confirm removal of all bot admins globally"
         )
-        async def _global_nuke_admins(
+        async def _global_nuke_bot_admins(
             interaction: discord.Interaction, confirm: Optional[bool] = False
         ):
             await self.cmd_global_nuke_bot_admins(interaction, confirm)
@@ -786,7 +786,7 @@ class SanitizerBot(discord.Client):
         async def _dm_blacklisted_servers(
             interaction: discord.Interaction, attach_file: Optional[bool] = False
         ):
-            await self.cmd_list_blacklisted_servers(interaction, attach_file)
+            await self.cmd_dm_blacklisted_servers(interaction, attach_file)
 
         @self.tree.command(
             name="dm-all-reports",
@@ -1412,7 +1412,7 @@ class SanitizerBot(discord.Client):
             return False
         return await self.db.is_admin(guild_id, user_id)
 
-    async def cmd_start(
+    async def cmd_enable_sanitizer(
         self, interaction: discord.Interaction, server_id: Optional[str] = None
     ):
         target_gid = await resolve_target_guild(interaction, server_id)
@@ -1440,7 +1440,7 @@ class SanitizerBot(discord.Client):
             f"Sanitizer enabled for server {g.name} ({g.id}).", ephemeral=True
         )
 
-    async def cmd_stop(
+    async def cmd_disable_sanitizer(
         self, interaction: discord.Interaction, server_id: Optional[str] = None
     ):
         target_gid = await resolve_target_guild(interaction, server_id)
@@ -2254,7 +2254,7 @@ class SanitizerBot(discord.Client):
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_set_check_length(
+    async def cmd_set_check_count(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
         if value is None:
@@ -2299,7 +2299,7 @@ class SanitizerBot(discord.Client):
             return
         await self.cmd_set_setting(interaction, "max_nick_length", str(value))
 
-    async def cmd_set_preserve_spaces(
+    async def cmd_set_keep_spaces(
         self, interaction: discord.Interaction, value: Optional[bool] = None
     ):
         if value is None:
@@ -2331,7 +2331,7 @@ class SanitizerBot(discord.Client):
             return
         await self.cmd_set_setting(interaction, "cooldown_seconds", str(value))
 
-    async def cmd_set_sanitize_emoji(
+    async def cmd_set_emoji_sanitization(
         self, interaction: discord.Interaction, value: Optional[bool] = None
     ):
         if value is None:
@@ -3378,7 +3378,7 @@ class SanitizerBot(discord.Client):
         )
         await interaction.response.send_message(text, ephemeral=True)
 
-    async def cmd_list_blacklisted_servers(
+    async def cmd_dm_blacklisted_servers(
         self, interaction: discord.Interaction, attach_file: Optional[bool] = False
     ):
         if not OWNER_ID or interaction.user.id != OWNER_ID:
