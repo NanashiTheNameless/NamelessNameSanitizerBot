@@ -30,18 +30,6 @@ def getenv_bool(key, default):
     return val in ("1", "true", "yes", "on")
 
 
-def getenv_int_alias(keys, default):
-    """Return int from the first present env key in keys (ordered), else default."""
-    for k in keys:
-        v = os.getenv(k)
-        if v is not None and v != "":
-            try:
-                return int(v)
-            except Exception:
-                break
-    return default
-
-
 def parse_bool_str(val: str) -> bool:
     """Parse a case-insensitive boolean string; accepts 1/0, true/false, yes/no, on/off.
     Unrecognized values default to False.

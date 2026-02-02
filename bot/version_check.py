@@ -20,7 +20,6 @@ log = logging.getLogger(__name__)
 
 _DEFAULT_VERSION_FILE = "/app/.image_version"
 _DEFAULT_GIT_SHA_FILE = "/app/.git_sha"
-_DEFAULT_GITHUB_LATEST_SHA_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/commits/main"
 _GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/releases/latest"
 _GITHUB_IMAGE_PUBLISH_WORKFLOW_RUNS_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/actions/workflows/image-publish-ghcr.yml/runs?branch=main&status=completed&per_page=5"
 

@@ -25,7 +25,6 @@ _DEFAULT_ENDPOINT = "https://telemetry.namelessnanashi.dev/census"
 _PROJECT_NAME = "NamelessNameSanitizerBot"
 _OPTOUT_ENV_VAR = "NNSB_TELEMETRY_OPTOUT"
 _HAS_SCHEDULED_SEND = False
-_PERIOD_HOURS = 2  # send every 2 hours (on the hour, UTC)
 _HAS_LOGGED_SCHEDULE = False
 _HAS_LOGGED_SKIP = False
 _HAS_LOGGED_NO_PROJECT = False
