@@ -30,7 +30,7 @@
     ctx.globalAlpha = 1;
   }
 
-  // Generate starfield on viewport resize with random star count
+  // Generate starfield on viewport resize with dynamic star count
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
