@@ -175,29 +175,6 @@ class Database:
                     "DELETE FROM user_cooldowns WHERE timestamp < %s",
                     (cutoff,),
                 )
-            for stmt in (
-                f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT {'TRUE' if SANITIZE_EMOJI else 'FALSE'}",
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE",
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT",
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT",
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT",
-                f"ALTER TABLE guild_settings ALTER COLUMN check_length SET DEFAULT {CHECK_LENGTH}",
-                f"ALTER TABLE guild_settings ALTER COLUMN min_nick_length SET DEFAULT {MIN_NICK_LENGTH}",
-                f"ALTER TABLE guild_settings ALTER COLUMN max_nick_length SET DEFAULT {MAX_NICK_LENGTH}",
-                f"ALTER TABLE guild_settings ALTER COLUMN preserve_spaces SET DEFAULT {'TRUE' if PRESERVE_SPACES else 'FALSE'}",
-                f"ALTER TABLE guild_settings ALTER COLUMN cooldown_seconds SET DEFAULT {COOLDOWN_SECONDS}",
-                f"ALTER TABLE guild_settings ALTER COLUMN sanitize_emoji SET DEFAULT {'TRUE' if SANITIZE_EMOJI else 'FALSE'}",
-                f"ALTER TABLE guild_settings ALTER COLUMN enforce_bots SET DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}",
-                """
-                CREATE TABLE IF NOT EXISTS guild_admins (
-                    guild_id BIGINT NOT NULL,
-                    user_id BIGINT NOT NULL,
-                    PRIMARY KEY (guild_id, user_id)
-                );
-                """,
-            ):
-                async with conn.cursor() as cur:
-                    await cur.execute(stmt)
 
     async def delete_user_data_global(self, user_id: int) -> tuple[int, int]:
         """Delete stored data for a user across all guilds.
