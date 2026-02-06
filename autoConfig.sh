@@ -5,14 +5,7 @@
 
 set -e
 
-ENV_EXAMPLE=".env.example"
 ENV_FILE=".env"
-
-# Check if .env.example exists
-if [ ! -f "$ENV_EXAMPLE" ]; then
-	echo "Error: $ENV_EXAMPLE not found in the current directory"
-	exit 1
-fi
 
 # Warn if .env already exists
 if [ -f "$ENV_FILE" ]; then
