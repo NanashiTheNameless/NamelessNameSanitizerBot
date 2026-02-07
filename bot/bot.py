@@ -146,7 +146,7 @@ class SanitizerBot(discord.Client):
         self._load_status_messages()
 
         self._policy_keys = [
-            discord.app_commands.Choice(name="enabled (true/false)", value="enabled"),
+            discord.app_commands.Choice(name="enabled (True/False)", value="enabled"),
             discord.app_commands.Choice(
                 name="check_length (integer)", value="check_length"
             ),
@@ -160,13 +160,13 @@ class SanitizerBot(discord.Client):
                 name="cooldown_seconds (integer)", value="cooldown_seconds"
             ),
             discord.app_commands.Choice(
-                name="preserve_spaces (true/false)", value="preserve_spaces"
+                name="preserve_spaces (True/False)", value="preserve_spaces"
             ),
             discord.app_commands.Choice(
-                name="sanitize_emoji (true/false)", value="sanitize_emoji"
+                name="sanitize_emoji (True/False)", value="sanitize_emoji"
             ),
             discord.app_commands.Choice(
-                name="enforce_bots (true/false)", value="enforce_bots"
+                name="enforce_bots (True/False)", value="enforce_bots"
             ),
             discord.app_commands.Choice(
                 name="logging_channel_id (channel id or none)",
@@ -964,7 +964,7 @@ class SanitizerBot(discord.Client):
             elif key == "bypass_role_id":
                 display = f"<@&{v}>" if v else "None"
             elif isinstance(v, bool):
-                display = "true" if v else "false"
+                display = "True" if v else "False"
             elif isinstance(v, str) or v is None:
                 display = f"'{v}'" if isinstance(v, str) else "None"
             else:
@@ -1075,7 +1075,7 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(text, ephemeral=True)
             return
         await self.cmd_set_setting(
-            interaction, "preserve_spaces", "true" if value else "false"
+            interaction, "preserve_spaces", "True" if value else "False"
         )
 
     async def cmd_set_cooldown_seconds(
@@ -1107,7 +1107,7 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(text, ephemeral=True)
             return
         await self.cmd_set_setting(
-            interaction, "sanitize_emoji", "true" if value else "false"
+            interaction, "sanitize_emoji", "True" if value else "False"
         )
 
     async def cmd_set_fallback_mode(
@@ -1252,7 +1252,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+                "Confirmation required: pass confirm=True to proceed.", ephemeral=True
             )
             return
         settings = await self.db.get_settings(interaction.guild.id)
@@ -1286,7 +1286,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+                "Confirmation required: pass confirm=True to proceed.", ephemeral=True
             )
             return
         settings = await self.db.get_settings(interaction.guild.id)
@@ -1417,7 +1417,7 @@ class SanitizerBot(discord.Client):
         # Require confirmation
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.",
+                "Confirmation required: pass confirm=True to proceed.",
                 ephemeral=True,
             )
             return
@@ -1462,7 +1462,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+                "Confirmation required: pass confirm=True to proceed.", ephemeral=True
             )
             return
         if not await owner_destructive_check(self, interaction):
@@ -1553,7 +1553,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+                "Confirmation required: pass confirm=True to proceed.", ephemeral=True
             )
             return
         if not await owner_destructive_check(self, interaction):
@@ -1591,7 +1591,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+                "Confirmation required: pass confirm=True to proceed.", ephemeral=True
             )
             return
         if not await owner_destructive_check(self, interaction):
@@ -1636,7 +1636,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+                "Confirmation required: pass confirm=True to proceed.", ephemeral=True
             )
             return
         if not await owner_destructive_check(self, interaction):
@@ -1666,7 +1666,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.", ephemeral=True
+                "Confirmation required: pass confirm=True to proceed.", ephemeral=True
             )
             return
         if not await owner_destructive_check(self, interaction):
@@ -1943,7 +1943,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.",
+                "Confirmation required: pass confirm=True to proceed.",
                 ephemeral=True,
             )
             return
@@ -1996,7 +1996,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.",
+                "Confirmation required: pass confirm=True to proceed.",
                 ephemeral=True,
             )
             return
@@ -2262,7 +2262,7 @@ class SanitizerBot(discord.Client):
             return
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: pass confirm=true to proceed.",
+                "Confirmation required: pass confirm=True to proceed.",
                 ephemeral=True,
             )
             return

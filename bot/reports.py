@@ -213,7 +213,7 @@ async def dm_server_settings(
         label = f"{g.name} ({g.id})"
 
         def b(v: bool) -> str:
-            return "true" if v else "false"
+            return "True" if v else "False"
 
         def q(v: str | int | bool | None) -> str:
             return f'"{str(v)}"'
@@ -328,7 +328,7 @@ async def dm_all_reports(
         label = f"{g.name} ({g.id})"
 
         def b(v: bool) -> str:
-            return "true" if v else "false"
+            return "True" if v else "False"
 
         def q(v: str | int | bool | None) -> str:
             return f'"{str(v)}"'
@@ -338,7 +338,7 @@ async def dm_all_reports(
             f"check_length={q(s.check_length)}",
             f"enforce_bots={q(b(s.enforce_bots))}",
             f"sanitize_emoji={q(b(s.sanitize_emoji))}",
-            f"preserve_spaces={q(s.preserve_spaces)}",
+            f"preserve_spaces={q(b(s.preserve_spaces))}",
             f"min_nick_length={q(s.min_nick_length)}",
             f"max_nick_length={q(s.max_nick_length)}",
             f"cooldown_seconds={q(s.cooldown_seconds)}",

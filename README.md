@@ -42,10 +42,10 @@ Policy defaults (used until changed per-guild (server) via commands)
 - CHECK_LENGTH: integer, default 0 - number of leading grapheme clusters to sanitize
 - MIN_NICK_LENGTH: integer, default 3 - minimum allowed nickname length
 - MAX_NICK_LENGTH: integer, default 32 - maximum allowed nickname length
-- PRESERVE_SPACES: true|false, default true - keep or normalize spaces
+- PRESERVE_SPACES: True|False, default True - keep or normalize spaces
 - COOLDOWN_SECONDS: integer, default 30 - cooldown between edits per user
-- SANITIZE_EMOJI: true|false, default true - if true, emoji are removed
-- ENFORCE_BOTS: true|false, default false - default toggle for enforcing nickname rules on other bot accounts. The bot never sanitizes its own account.
+- SANITIZE_EMOJI: True|False, default True - if True, emoji are removed
+- ENFORCE_BOTS: True|False, default False - default toggle for enforcing nickname rules on other bot accounts. The bot never sanitizes its own account.
 - FALLBACK_MODE: default|randomized|static, default default - how fallback names are chosen when a sanitized result is empty/illegal
 - FALLBACK_LABEL: string, default "Illegal Name" - global default fallback label; used in fallback_mode=static and as the final fallback in default mode
 - COOLDOWN_TTL_SEC: integer, default max(86400, COOLDOWN_SECONDS*10) - retention for per-user cooldown entries; older entries are purged automatically.
@@ -55,7 +55,7 @@ Runtime
 
 - SWEEP_INTERVAL_SEC: integer, default 60 - periodic sweep interval seconds
 - LOG_LEVEL: DEBUG|INFO|WARNING|ERROR - overrides default logging level (INFO)
-- DM_OWNER_ON_GUILD_EVENTS: true|false, default true - if true, the bot will DM the owner on guild (server) join/leave events
+- DM_OWNER_ON_GUILD_EVENTS: True|False, default True - if True, the bot will DM the owner on guild (server) join/leave events
 
 ### Invite URL
 
@@ -135,7 +135,7 @@ The bot sanitizes the leading part of nicknames using Unicode-aware rules:
 - Respects grapheme clusters so combined glyphs aren't split
 - Applies length and spacing policies
 
-By default, other bots are not targeted. If you set `enforce_bots` to true for a guild (server), the bot will include bot accounts in sanitization actions. It will never attempt to change its own nickname.
+By default, other bots are not targeted. If you set `enforce_bots` to True for a guild (server), the bot will include bot accounts in sanitization actions. It will never attempt to change its own nickname.
 
 Policies are stored per guild (server) in Postgres; defaults are derived from `.env` until you run commands to set them for a guild (server). The bot is disabled by default per guild (server); a bot admin must enable it in each guild (server).
 
@@ -167,18 +167,18 @@ Status checks run at startup and the status updates during the regular status me
 - /disable-sanitizer - Disable enforcement (manual commands still allowed where appropriate).
 - /set-logging-channel [channel:#channel] - Set/view the channel that receives nickname update logs.
 - /set-bypass-role [role:@Role] - Set/view a role whose members are never sanitized.
-- /set-emoji-sanitization [value:bool] - Toggle whether emoji are stripped (true) or preserved (false).
+- /set-emoji-sanitization [value:bool] - Toggle whether emoji are stripped (True) or preserved (False).
 - /set-fallback-mode [mode:str] - Set/view fallback mode (`default|randomized|static`). Controls how empty/illegal results are replaced.
-- /set-keep-spaces [value:bool] - Toggle preserving original spacing (true) vs normalizing whitespace (false).
+- /set-keep-spaces [value:bool] - Toggle preserving original spacing (True) vs normalizing whitespace (False).
 - /set-min-length [value:int] - Set/view minimum allowed nickname length (clamped <= 8).
 - /set-max-length [value:int] - Set/view maximum allowed nickname length (clamped <= 32).
 - /set-check-count [value:int] - Set/view number of leading grapheme clusters to sanitize (0 = full name).
 - /set-cooldown-seconds [value:int] - Set/view per-user edit cooldown interval.
 - /set-enforce-bots [value:bool] - Toggle sanitization for other bots (never targets itself).
 - /set-fallback-label [value:str] - Set/view custom fallback label (1-20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` mode; used in `static` mode and as final fallback in `default` mode.
-- /clear-logging-channel [confirm:bool] - Remove logging channel (reverts to none). Requires confirm=true.
-- /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=true.
-- /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)'s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=true.
+- /clear-logging-channel [confirm:bool] - Remove logging channel (reverts to none). Requires confirm=True.
+- /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=True.
+- /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)'s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=True.
 - /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] - View/update policy settings; supports multi-update with quoted values; server_id allows remote guild (server) management (owner or that guild (server)'s bot admin); required in DMs.
 - /check-update - Check the running version immediately and update out-of-date warnings. Bot admins have a 2-minute global cooldown; bot owner is unrestricted.
 
@@ -187,40 +187,40 @@ Status checks run at startup and the status updates during the regular status me
 - /add-bot-admin [user:@User] [server_id:str] - Grant bot admin privileges for a guild (server) (current if omitted; server_id required in DMs).
 - /remove-bot-admin [user:@User] [server_id:str] - Revoke bot admin privileges for a guild (server) (current if omitted; server_id required in DMs).
 - /list-bot-admins [server_id:str] - List bot admins (current guild (server) if omitted; server_id required in DMs).
-- /global-bot-disable [confirm:bool] - Disable enforcement across all guilds (servers) immediately. Requires confirm=true.
-- /global-reset-settings [confirm:bool] - Reset sanitizer settings to defaults across every guild (server). Requires confirm=true.
+- /global-bot-disable [confirm:bool] - Disable enforcement across all guilds (servers) immediately. Requires confirm=True.
+- /global-reset-settings [confirm:bool] - Reset sanitizer settings to defaults across every guild (server). Requires confirm=True.
 - /blacklist-server [server_id:str] [reason:str] [confirm:bool] - Blacklist a guild (server); bot auto-leaves and purges its data on join/startup.
 - /unblacklist-server [server_id:str] [confirm:bool] - Remove a guild (server) from blacklist.
 - /blacklist-set-reason [server_id:str] [reason:str] - Set or clear a reason for a blacklisted guild (server).
 - /blacklist-set-name [server_id:str] [name:str] - Set or clear a display name for a blacklisted guild (server).
- -/dm-blacklisted-servers [attach_file:bool] - DM the bot owner a list of blacklisted guild (server) IDs & reasons. Optional `attach_file` (defaults to false). When true, the bot sends the report as a file and does not include inline text.
- -/dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to false). When `attach_file=true`, the bot uploads three separate files - `admin-report.txt`, `server-settings-report.txt`, and `blacklist-report.txt` - and does not include inline text. When `attach_file=false`, reports are sent as messages with safe chunking.
+ -/dm-blacklisted-servers [attach_file:bool] - DM the bot owner a list of blacklisted guild (server) IDs & reasons. Optional `attach_file` (defaults to False). When True, the bot sends the report as a file and does not include inline text.
+ -/dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to False). When `attach_file=True`, the bot uploads three separate files - `admin-report.txt`, `server-settings-report.txt`, and `blacklist-report.txt` - and does not include inline text. When `attach_file=False`, reports are sent as messages with safe chunking.
 - /leave-server [server_id:str] [confirm:bool] - Leave a guild (server) and delete its stored configuration/admin data.
 - /dm-admin-report - DM a multi-message report of guilds (servers) and bot admins.
 - /dm-server-settings - DM a multi-message list of all guild (server) settings (paste-friendly key=value pairs).
 - /delete-user-data [user:@User] - Purge a user's stored data globally (cooldowns/admin entries).
-- /nuke-bot-admins [server_id:str] [confirm:bool] - Remove all bot admins for a guild (server) (current guild (server) if omitted in-guild; server_id required in DMs). Requires confirm=true.
-- /global-nuke-bot-admins [confirm:bool] - Remove all bot admins in all guilds (servers). Requires confirm=true.
-- /global-delete-user-data [confirm:bool] - Purge ALL user data in ALL guilds (servers) and announce in logging channels. Requires confirm=true.
+- /nuke-bot-admins [server_id:str] [confirm:bool] - Remove all bot admins for a guild (server) (current guild (server) if omitted in-guild; server_id required in DMs). Requires confirm=True.
+- /global-nuke-bot-admins [confirm:bool] - Remove all bot admins in all guilds (servers). Requires confirm=True.
+- /global-delete-user-data [confirm:bool] - Purge ALL user data in ALL guilds (servers) and announce in logging channels. Requires confirm=True.
 
 ### Notes
 
 - All command output is ephemeral.
-- Some destructive/owner commands require a confirmation boolean (confirm=true).
+- Some destructive/owner commands require a confirmation boolean (confirm=True).
 - All destructive owner commands respect a separate cooldown window governed by OWNER_DESTRUCTIVE_COOLDOWN_SECONDS.
 - Owner-only guild (server) ID autocomplete is enforced. For /unblacklist-server, autocomplete lists only guilds (servers) that are currently blacklisted (owner-only).
 - /set-policy without a value shows the current value.
 - /set-policy pairs accepts keys: `enabled, check_length, min_nick_length, max_nick_length, cooldown_seconds, preserve_spaces, sanitize_emoji, enforce_bots, logging_channel_id, bypass_role_id, fallback_mode, fallback_label`.
 - Remote management: Add `server_id` to /set-policy or /reset-settings (and owner-only admin commands) to operate on another guild (server). In DMs the `server_id` argument is required.
-- Safety: Destructive operations (reset-settings, blacklist/unblacklist, leave-server) require `confirm=true`.
+- Safety: Destructive operations (reset-settings, blacklist/unblacklist, leave-server) require `confirm=True`.
 - Admin user parameter now accepts a generic user mention (@User) rather than a guild (server) Member object for cross-guild (server) management.
 - Owner commands are now invocable from DMs while still enforcing OWNER_ID checks.
 - In DMs, commands that act on a guild (server) require a server_id argument.
-- /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="true" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="true" cooldown_seconds="30" sanitize_emoji="true" enforce_bots="false" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
+- /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="True" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="True" cooldown_seconds="30" sanitize_emoji="True" enforce_bots="False" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
 - Use the literal string `none` (quoted or unquoted) to clear `logging_channel_id`, `bypass_role_id`, or `fallback_label`.
 - Messages that may be long are chunked safely below Discord's 2000-character limit. Chunking starts around 1800 characters and only breaks between entries to preserve readability.
 - `/dm-server-settings` messages are chunked only between guilds (servers); each line per guild (server) is a complete pasteable set of pairs.
-- Boolean inputs for commands accept true/false, yes/no, on/off, and 1/0 (case-insensitive).
+- Boolean inputs for commands accept True/False, yes/no, on/off, and 1/0 (case-insensitive).
 - Protected (cannot be set via commands): `OWNER_ID, DISCORD_TOKEN, APPLICATION_ID`.
 - You can modify settings while the bot is disabled; changes will apply once you run `/enable-sanitizer` in the guild (server).
 
