@@ -100,12 +100,12 @@ def register_admin_commands(self):
     )
     @app_commands.default_permissions(manage_nicknames=True)
     @app_commands.describe(
-        role="Role mentions or IDs separated by spaces or commas (leave empty to view)"
+        roles="Role mentions or IDs separated by spaces or commas (leave empty to view)"
     )
     async def _set_bypass_role(
-        interaction: discord.Interaction, role: Optional[str] = None
+        interaction: discord.Interaction, roles: Optional[str] = None
     ):
-        await self.cmd_set_bypass_role(interaction, role)
+        await self.cmd_set_bypass_role(interaction, roles)
 
     @self.tree.command(
         name="set-check-count",

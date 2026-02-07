@@ -408,7 +408,7 @@ class SanitizerBot(discord.Client):
         ):
             mentions = ", ".join(f"<@&{rid}>" for rid in bypass_ids)
             reasons.append(
-                f"Target has the bypass role(s) {mentions}, so changes are skipped."
+                f"Target has at least one of the following bypass role(s) {mentions}, so changes are skipped."
             )
 
         # Cooldown

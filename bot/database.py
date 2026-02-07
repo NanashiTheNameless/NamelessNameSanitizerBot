@@ -173,14 +173,6 @@ class Database:
             ):
                 async with conn.cursor() as cur:
                     await cur.execute(stmt)
-            # Migrate bypass_role_id from BIGINT to TEXT if needed
-            try:
-                async with conn.cursor() as cur:
-                    await cur.execute(
-                        "ALTER TABLE guild_settings ALTER COLUMN bypass_role_id TYPE TEXT USING bypass_role_id::text"
-                    )
-            except Exception:
-                pass
 
     async def get_cooldown(self, user_id: int) -> Optional[float]:
         assert self.pool is not None

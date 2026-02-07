@@ -166,7 +166,7 @@ Status checks run at startup and the status updates during the regular status me
 - /enable-sanitizer - Enable nickname enforcement for this guild (server). Required before automatic sanitize events occur.
 - /disable-sanitizer - Disable enforcement (manual commands still allowed where appropriate).
 - /set-logging-channel [channel:#channel] - Set/view the channel that receives nickname update logs.
-- /set-bypass-roles [role:role_ids_or_mentions] - Set/view role(s) whose members are never sanitized (comma/space delimited).
+- /set-bypass-roles [roles:role_ids_or_mentions] - Set/view role(s) whose members are never sanitized (comma/space delimited).
 - /set-emoji-sanitization [value:bool] - Toggle whether emoji are stripped (True) or preserved (False).
 - /set-fallback-mode [mode:str] - Set/view fallback mode (`default|randomized|static`). Controls how empty/illegal results are replaced.
 - /set-keep-spaces [value:bool] - Toggle preserving original spacing (True) vs normalizing whitespace (False).
