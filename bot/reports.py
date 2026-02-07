@@ -229,17 +229,6 @@ async def dm_server_settings(
                     pass
         bypass_val = ",".join(str(i) for i in bypass_ids) if bypass_ids else "none"
 
-        bypass_ids: list[int] = []
-        if getattr(s, "bypass_role_id", None):
-            raw = str(s.bypass_role_id)
-            tokens = [t for t in raw.replace(",", " ").split() if t]
-            for tok in tokens:
-                try:
-                    bypass_ids.append(int(tok))
-                except Exception:
-                    pass
-        bypass_val = ",".join(str(i) for i in bypass_ids) if bypass_ids else "none"
-
         tokens: list[str] = [
             f"enabled={q(b(s.enabled))}",
             f"check_length={q(s.check_length)}",
