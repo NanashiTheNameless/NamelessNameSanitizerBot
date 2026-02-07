@@ -17,6 +17,8 @@ from .config import GuildSettings
 _rm_marks = re.compile(r"[\p{Cf}\p{Cc}\p{Mn}\p{Me}]")
 _allow_ascii = re.compile(r"[^\x20-\x7E]")
 _allow_ascii_or_emoji = re.compile(r"[^\x20-\x7E\p{Emoji}\u200D\uFE0F]")
+_has_letters_numbers = re.compile(r"[\p{L}\p{N}]")
+_has_emoji = re.compile(r"\p{Emoji}")
 
 
 def remove_marks_and_controls(s: str) -> str:
@@ -31,6 +33,18 @@ def filter_allowed_chars(s: str, sanitize_emoji: bool) -> str:
     return _allow_ascii_or_emoji.sub("", s)
 
 
+def has_meaningful_chars(s: str, sanitize_emoji: bool) -> bool:
+    """Ensure the sanitized result isn't just punctuation/whitespace.
+
+    When emoji sanitization is disabled, emoji-only names are allowed.
+    """
+    if _has_letters_numbers.search(s):
+        return True
+    if not sanitize_emoji and _has_emoji.search(s):
+        return True
+    return False
+
+
 def normalize_spaces(s: str) -> str:
     s = re.sub(r"\s+", " ", s)
     return s.strip()
@@ -41,7 +55,7 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
     _full = filter_allowed_chars(_full, settings.sanitize_emoji)
     if not settings.preserve_spaces:
         _full = normalize_spaces(_full)
-    if not _full.strip():
+    if not _full.strip() or not has_meaningful_chars(_full, settings.sanitize_emoji):
         mode = getattr(settings, "fallback_mode", "default")
         if mode == "randomized":
             candidate = f"User{random.randrange(10000):04d}"
