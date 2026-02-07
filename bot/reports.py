@@ -355,6 +355,17 @@ async def dm_all_reports(
         def q(v: str | int | bool | None) -> str:
             return f'"{str(v)}"'
 
+        bypass_ids: list[int] = []
+        if getattr(s, "bypass_role_id", None):
+            raw = str(s.bypass_role_id)
+            tokens_bypass = [t for t in raw.replace(",", " ").split() if t]
+            for tok in tokens_bypass:
+                try:
+                    bypass_ids.append(int(tok))
+                except Exception:
+                    pass
+        bypass_val = ",".join(str(i) for i in bypass_ids) if bypass_ids else "none"
+
         tokens: list[str] = [
             f"enabled={q(b(s.enabled))}",
             f"check_length={q(s.check_length)}",

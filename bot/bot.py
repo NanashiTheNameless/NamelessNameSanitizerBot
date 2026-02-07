@@ -310,9 +310,7 @@ class SanitizerBot(discord.Client):
             return False
 
         bypass_ids = self._get_bypass_role_list(settings)
-        if bypass_ids and any(
-            r.id in bypass_ids for r in getattr(member, "roles", [])
-        ):
+        if bypass_ids and any(r.id in bypass_ids for r in getattr(member, "roles", [])):
             return False
 
         if self.db:
@@ -403,9 +401,7 @@ class SanitizerBot(discord.Client):
 
         # Bypass role
         bypass_ids = self._get_bypass_role_list(settings)
-        if bypass_ids and any(
-            r.id in bypass_ids for r in getattr(member, "roles", [])
-        ):
+        if bypass_ids and any(r.id in bypass_ids for r in getattr(member, "roles", [])):
             mentions = ", ".join(f"<@&{rid}>" for rid in bypass_ids)
             reasons.append(
                 f"Target has at least one of the following bypass role(s) {mentions}, so changes are skipped."
@@ -1262,7 +1258,9 @@ class SanitizerBot(discord.Client):
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
         if role is None:
             cur_ids = self._get_bypass_role_list(settings)
-            mention = ", ".join(f"<@&{rid}>" for rid in cur_ids) if cur_ids else "not set"
+            mention = (
+                ", ".join(f"<@&{rid}>" for rid in cur_ids) if cur_ids else "not set"
+            )
             text = f"Current bypass role(s): {mention}"
             if warn_disabled:
                 text = f"{text}\n{warn_disabled}"
