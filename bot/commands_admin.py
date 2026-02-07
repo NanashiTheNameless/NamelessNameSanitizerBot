@@ -20,11 +20,11 @@ def register_admin_commands(self):
         await self.cmd_check_update(interaction)
 
     @self.tree.command(
-        name="clear-bypass-role",
-        description="Bot Admin Only: Clear the bypass role",
+        name="clear-bypass-roles",
+        description="Bot Admin Only: Clear bypass role(s)",
     )
     @app_commands.default_permissions(manage_nicknames=True)
-    @app_commands.describe(confirm="Type true to confirm clearing the bypass role")
+    @app_commands.describe(confirm="Type true to confirm clearing bypass role(s)")
     async def _clear_bypass_role(
         interaction: discord.Interaction, confirm: Optional[bool] = False
     ):
@@ -95,12 +95,15 @@ def register_admin_commands(self):
         await self.cmd_reset_settings(interaction, server_id, confirm)
 
     @self.tree.command(
-        name="set-bypass-role",
-        description="Bot Admin Only: Set or view a role that bypasses nickname sanitization",
+        name="set-bypass-roles",
+        description="Bot Admin Only: Set or view role(s) that bypass nickname sanitization",
     )
     @app_commands.default_permissions(manage_nicknames=True)
+    @app_commands.describe(
+        role="Role mentions or IDs separated by spaces or commas (leave empty to view)"
+    )
     async def _set_bypass_role(
-        interaction: discord.Interaction, role: Optional[discord.Role] = None
+        interaction: discord.Interaction, role: Optional[str] = None
     ):
         await self.cmd_set_bypass_role(interaction, role)
 

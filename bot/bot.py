@@ -173,7 +173,8 @@ class SanitizerBot(discord.Client):
                 value="logging_channel_id",
             ),
             discord.app_commands.Choice(
-                name="bypass_role_id (role id or none)", value="bypass_role_id"
+                name="bypass_role_id (role id list comma/space delimited, or none)",
+                value="bypass_role_id",
             ),
             discord.app_commands.Choice(
                 name="fallback_mode (default|randomized|static)",
@@ -209,6 +210,30 @@ class SanitizerBot(discord.Client):
         except Exception:
             pass
         return False
+
+    def _parse_bypass_role_list(self, raw: str) -> list[int]:
+        tokens = [t for t in re.split(r"[\s,]+", (raw or "").strip()) if t]
+        if not tokens:
+            return []
+        ids: list[int] = []
+        for tok in tokens:
+            try:
+                match = re.search(r"\d+", tok)
+                if not match:
+                    raise ValueError("No role id found")
+                ids.append(int(match.group(0)))
+            except Exception as e:
+                raise ValueError(f"Invalid role id: {tok}") from e
+        return ids
+
+    def _get_bypass_role_list(self, settings: GuildSettings) -> list[int]:
+        raw = getattr(settings, "bypass_role_id", None)
+        if raw is None:
+            return []
+        try:
+            return self._parse_bypass_role_list(str(raw))
+        except Exception:
+            return []
 
     def _register_all_commands(self):
         register_all_commands(self)
@@ -284,8 +309,9 @@ class SanitizerBot(discord.Client):
         if not settings.enabled:
             return False
 
-        if settings.bypass_role_id and any(
-            r.id == settings.bypass_role_id for r in getattr(member, "roles", [])
+        bypass_ids = self._get_bypass_role_list(settings)
+        if bypass_ids and any(
+            r.id in bypass_ids for r in getattr(member, "roles", [])
         ):
             return False
 
@@ -376,11 +402,13 @@ class SanitizerBot(discord.Client):
                 reasons.append("Bots are excluded because enforce_bots is disabled.")
 
         # Bypass role
-        if settings.bypass_role_id and any(
-            r.id == settings.bypass_role_id for r in getattr(member, "roles", [])
+        bypass_ids = self._get_bypass_role_list(settings)
+        if bypass_ids and any(
+            r.id in bypass_ids for r in getattr(member, "roles", [])
         ):
+            mentions = ", ".join(f"<@&{rid}>" for rid in bypass_ids)
             reasons.append(
-                f"Target has the bypass role <@&{settings.bypass_role_id}>, so changes are skipped."
+                f"Target has the bypass role(s) {mentions}, so changes are skipped."
             )
 
         # Cooldown
@@ -813,12 +841,17 @@ class SanitizerBot(discord.Client):
                         v = parse_bool_str(v_raw)
                         if k == "enabled" and bool(v) is True:
                             will_enable = True
-                    elif k in {"logging_channel_id", "bypass_role_id"}:
+                    elif k == "logging_channel_id":
                         v = (
                             int(v_raw)
                             if v_raw.lower() not in {"none", "null", "unset"}
                             else None
                         )
+                    elif k == "bypass_role_id":
+                        if v_raw.lower() in {"none", "null", "unset"}:
+                            v = None
+                        else:
+                            v = self._parse_bypass_role_list(v_raw)
                     elif k == "fallback_label":
                         lab = v_raw.strip()
                         if lab.lower() in {"none", "null", "unset"}:
@@ -893,13 +926,17 @@ class SanitizerBot(discord.Client):
             elif key == "logging_channel_id":
                 cur = s.logging_channel_id
             elif key == "bypass_role_id":
-                cur = s.bypass_role_id
+                cur = self._get_bypass_role_list(s)
             else:
                 await interaction.response.send_message(
                     "Unsupported setting.", ephemeral=True
                 )
                 return
-            text = f"Current {key}: {cur}"
+            if key == "bypass_role_id":
+                cur_display = ",".join(str(rid) for rid in cur) if cur else "None"
+                text = f"Current {key}: {cur_display}"
+            else:
+                text = f"Current {key}: {cur}"
             if warn_disabled:
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
@@ -932,12 +969,17 @@ class SanitizerBot(discord.Client):
                         "fallback_mode must be one of: default, randomized, static"
                     )
                 v = mv
-            elif key in {"logging_channel_id", "bypass_role_id"}:
+            elif key == "logging_channel_id":
                 v = (
                     int(value)
                     if value.strip().lower() not in {"none", "null", "unset"}
                     else None
                 )
+            elif key == "bypass_role_id":
+                if value.strip().lower() in {"none", "null", "unset"}:
+                    v = None
+                else:
+                    v = value
             elif key == "fallback_label":
                 lab = value.strip()
                 if lab.lower() in {"none", "null", "unset"}:
@@ -962,7 +1004,8 @@ class SanitizerBot(discord.Client):
             if key == "logging_channel_id":
                 display = f"<#{v}>" if v else "None"
             elif key == "bypass_role_id":
-                display = f"<@&{v}>" if v else "None"
+                ids = self._parse_bypass_role_list(str(v)) if v else []
+                display = ", ".join(f"<@&{rid}>" for rid in ids) if ids else "None"
             elif isinstance(v, bool):
                 display = "True" if v else "False"
             elif isinstance(v, str) or v is None:
@@ -1195,7 +1238,7 @@ class SanitizerBot(discord.Client):
         await interaction.response.send_message(text, ephemeral=True)
 
     async def cmd_set_bypass_role(
-        self, interaction: discord.Interaction, role: Optional[discord.Role] = None
+        self, interaction: discord.Interaction, role: Optional[str] = None
     ):
         if self._config_error:
             await interaction.response.send_message(
@@ -1218,15 +1261,30 @@ class SanitizerBot(discord.Client):
         if not settings.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
         if role is None:
-            cur = settings.bypass_role_id
-            mention = f"<@&{cur}>" if cur else "not set"
-            text = f"Current bypass role: {mention}"
+            cur_ids = self._get_bypass_role_list(settings)
+            mention = ", ".join(f"<@&{rid}>" for rid in cur_ids) if cur_ids else "not set"
+            text = f"Current bypass role(s): {mention}"
             if warn_disabled:
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
             return
-        await self.db.set_setting(interaction.guild.id, "bypass_role_id", role.id)
-        text = f"Bypass role set to {role.mention}."
+        try:
+            role_ids = self._parse_bypass_role_list(role)
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Invalid role list: {e}", ephemeral=True
+            )
+            return
+        if not role_ids:
+            await interaction.response.send_message(
+                "No role IDs found. Provide role IDs or mentions separated by spaces or commas.",
+                ephemeral=True,
+            )
+            return
+        normalized = ",".join(str(rid) for rid in role_ids)
+        await self.db.set_setting(interaction.guild.id, "bypass_role_id", normalized)
+        mentions = ", ".join(f"<@&{rid}>" for rid in role_ids)
+        text = f"Bypass role(s) set to {mentions}."
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
@@ -1294,7 +1352,7 @@ class SanitizerBot(discord.Client):
         if not settings.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
         await self.db.set_setting(interaction.guild.id, "bypass_role_id", None)
-        text = "Bypass role cleared (set to default)."
+        text = "Bypass role(s) cleared (set to default)."
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)

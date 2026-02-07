@@ -15,7 +15,7 @@ If you want a production-friendly, self-hosting optimized setup (pre-tuned Docke
 - Admin model with owner controls; per-guild (server) bot admins stored in DB
 - Opt-in per-guild (server): enable/disable the bot with a simple command
 - Optional logging channel for every nickname change
-- Optional bypass role so trusted members aren't modified
+- Optional bypass role list so trusted members aren't modified
 - Docker and compose-friendly deployment with Postgres
 - Optional enforcement for bot accounts (disabled by default)
 
@@ -162,11 +162,11 @@ Status checks run at startup and the status updates during the regular status me
 
 ### Bot admin (requires Manage Nicknames permission; internal database authorization also required)
 
-- /sweep-now - Sweep members and sanitize nicknames according to current policy (bot admin only). Honors bypass role and enabled state.
+- /sweep-now - Sweep members and sanitize nicknames according to current policy (bot admin only). Honors bypass role list and enabled state.
 - /enable-sanitizer - Enable nickname enforcement for this guild (server). Required before automatic sanitize events occur.
 - /disable-sanitizer - Disable enforcement (manual commands still allowed where appropriate).
 - /set-logging-channel [channel:#channel] - Set/view the channel that receives nickname update logs.
-- /set-bypass-role [role:@Role] - Set/view a role whose members are never sanitized.
+- /set-bypass-roles [role:role_ids_or_mentions] - Set/view role(s) whose members are never sanitized (comma/space delimited).
 - /set-emoji-sanitization [value:bool] - Toggle whether emoji are stripped (True) or preserved (False).
 - /set-fallback-mode [mode:str] - Set/view fallback mode (`default|randomized|static`). Controls how empty/illegal results are replaced.
 - /set-keep-spaces [value:bool] - Toggle preserving original spacing (True) vs normalizing whitespace (False).
@@ -177,7 +177,7 @@ Status checks run at startup and the status updates during the regular status me
 - /set-enforce-bots [value:bool] - Toggle sanitization for other bots (never targets itself).
 - /set-fallback-label [value:str] - Set/view custom fallback label (1-20 chars: letters, numbers, spaces, dashes). Ignored in `randomized` mode; used in `static` mode and as final fallback in `default` mode.
 - /clear-logging-channel [confirm:bool] - Remove logging channel (reverts to none). Requires confirm=True.
-- /clear-bypass-role [confirm:bool] - Remove bypass role (all members subject to policy again). Requires confirm=True.
+- /clear-bypass-roles [confirm:bool] - Remove bypass role(s) (all members subject to policy again). Requires confirm=True.
 - /reset-settings [server_id:str] [confirm:bool] - Reset a guild (server)'s sanitizer settings to global defaults (.env derived). server_id optional in-guild (server); required in DMs for remote resets. Requires confirm=True.
 - /set-policy [key:key] [value:value] [pairs:k=v ...] [server_id:str] - View/update policy settings; supports multi-update with quoted values; server_id allows remote guild (server) management (owner or that guild (server)'s bot admin); required in DMs.
 - /check-update - Check the running version immediately and update out-of-date warnings. Bot admins have a 2-minute global cooldown; bot owner is unrestricted.
@@ -216,7 +216,8 @@ Status checks run at startup and the status updates during the regular status me
 - Admin user parameter now accepts a generic user mention (@User) rather than a guild (server) Member object for cross-guild (server) management.
 - Owner commands are now invocable from DMs while still enforcing OWNER_ID checks.
 - In DMs, commands that act on a guild (server) require a server_id argument.
-- /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="True" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="True" cooldown_seconds="30" sanitize_emoji="True" enforce_bots="False" logging_channel_id="none" bypass_role_id="none" fallback_label="Illegal Name" fallback_mode="default"`.
+- /set-policy values may be quoted. Quoted pairs are supported, so you can paste lines from `/dm-server-settings` directly. Example: `enabled="True" check_length="0" min_nick_length="3" max_nick_length="32" preserve_spaces="True" cooldown_seconds="30" sanitize_emoji="True" enforce_bots="False" logging_channel_id="none" bypass_role_id="123,456" fallback_label="Illegal Name" fallback_mode="default"`.
+- `bypass_role_id` accepts a single role ID or a comma/space-delimited list of role IDs or mentions.
 - Use the literal string `none` (quoted or unquoted) to clear `logging_channel_id`, `bypass_role_id`, or `fallback_label`.
 - Messages that may be long are chunked safely below Discord's 2000-character limit. Chunking starts around 1800 characters and only breaks between entries to preserve readability.
 - `/dm-server-settings` messages are chunked only between guilds (servers); each line per guild (server) is a complete pasteable set of pairs.
@@ -235,7 +236,7 @@ Status checks run at startup and the status updates during the regular status me
   - Check the bot's "Manage Nicknames" permission and role hierarchy
   - The bot's role should be above the roles of users you want it to modify
   - Confirm SWEEP_INTERVAL_SEC and that the member isn't on cooldown
-  - Ensure the user doesn't have the bypass role and logging indicates attempts
+  - Ensure the user doesn't have any bypass role(s) and logging indicates attempts
 
 - If you're the owner and destructive commands appear rate-limited unexpectedly, check OWNER_DESTRUCTIVE_COOLDOWN_SECONDS.
 

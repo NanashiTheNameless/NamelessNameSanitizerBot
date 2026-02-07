@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 2026-01-29 (YYYY-MM-DD)
+Last updated: 2026-02-07 (YYYY-MM-DD)
 
 This page explains what NamelessNameSanitizerBot ("The Bot") does with data.
 By using The Bot, you agree to this policy.
@@ -16,7 +16,7 @@ By using The Bot, you agree to this policy.
 ## What The Bot processes
 
 - Discord metadata to decide if and how to sanitize nicknames.
-- Per-guild settings (policy values, admin lists, feature toggles, optional logging channel ID, optional bypass role ID, and fallback label).
+- Per-guild settings (policy values, admin lists, feature toggles, optional logging channel ID, optional bypass role ID list, and fallback label).
 - Minimal operational data such as cooldown timestamps (per user) and guild blacklist entries (guild ID, optional name, optional reason).
 
 The Bot does not process or store message content and The Bot does not require the Message Content intent.
@@ -41,7 +41,7 @@ The Bot does not process or store message content and The Bot does not require t
 
 ## Your controls
 
-- Bot Admins: Enable/disable the bot, change settings, configure logging channel and bypass role.
+- Bot Admins: Enable/disable the bot, change settings, configure logging channel and bypass role(s).
 - Users: Run `/delete-my-data` to remove your data in a server.
 - Bot Owner: Delete user data across all servers (`/delete-user-data`, `/global-delete-user-data`).
 

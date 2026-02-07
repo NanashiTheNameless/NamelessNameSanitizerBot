@@ -31,6 +31,34 @@ def now():
     return time.time()
 
 
+def _normalize_bypass_role_value(value) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, (list, tuple, set)):
+        ids: list[str] = []
+        for item in value:
+            try:
+                ids.append(str(int(item)))
+            except Exception as e:
+                raise ValueError(f"Invalid role id: {item}") from e
+        return ",".join(ids) if ids else None
+    if isinstance(value, str):
+        v = value.strip()
+        if not v or v.lower() in {"none", "null", "unset"}:
+            return None
+        tokens = [t for t in v.replace(",", " ").split() if t]
+        ids: list[str] = []
+        for tok in tokens:
+            try:
+                ids.append(str(int(tok)))
+            except Exception as e:
+                raise ValueError(f"Invalid role id: {tok}") from e
+        return ",".join(ids) if ids else None
+    raise ValueError("Invalid bypass role value")
+
+
 class Database:
     def __init__(self, dsn: str):
         self.dsn = dsn
@@ -59,7 +87,7 @@ class Database:
                     sanitize_emoji BOOLEAN NOT NULL DEFAULT {'TRUE' if SANITIZE_EMOJI else 'FALSE'},
                     enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     logging_channel_id BIGINT,
-                    bypass_role_id BIGINT,
+                    bypass_role_id TEXT,
                     fallback_label TEXT,
                     enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'},
                     fallback_mode TEXT NOT NULL DEFAULT '{FALLBACK_MODE}'
@@ -138,13 +166,21 @@ class Database:
             for stmt in (
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT FALSE",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS logging_channel_id BIGINT",
-                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id BIGINT",
+                "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS bypass_role_id TEXT",
                 "ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_label TEXT",
                 f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'}",
                 f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS fallback_mode TEXT NOT NULL DEFAULT '{FALLBACK_MODE}'",
             ):
                 async with conn.cursor() as cur:
                     await cur.execute(stmt)
+            # Migrate bypass_role_id from BIGINT to TEXT if needed
+            try:
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        "ALTER TABLE guild_settings ALTER COLUMN bypass_role_id TYPE TEXT USING bypass_role_id::text"
+                    )
+            except Exception:
+                pass
 
     async def get_cooldown(self, user_id: int) -> Optional[float]:
         assert self.pool is not None
@@ -313,6 +349,14 @@ class Database:
                     "INSERT INTO guild_settings (guild_id) VALUES (%s) ON CONFLICT (guild_id) DO NOTHING",
                     (guild_id,),
                 )
+            if col == "bypass_role_id":
+                normalized = _normalize_bypass_role_value(value)
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        "UPDATE guild_settings SET bypass_role_id = %s WHERE guild_id=%s",
+                        (normalized, guild_id),
+                    )
+                return
 
             try:
                 async with conn.cursor() as cur:

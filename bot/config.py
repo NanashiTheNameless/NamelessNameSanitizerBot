@@ -79,7 +79,7 @@ class GuildSettings:
     sanitize_emoji: bool = SANITIZE_EMOJI
     enabled: bool = False
     logging_channel_id: Optional[int] = None
-    bypass_role_id: Optional[int] = None
+    bypass_role_id: Optional[str] = None
     fallback_label: Optional[str] = FALLBACK_LABEL
     enforce_bots: bool = ENFORCE_BOTS
     fallback_mode: str = FALLBACK_MODE

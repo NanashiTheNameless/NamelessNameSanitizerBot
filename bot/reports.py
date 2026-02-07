@@ -218,6 +218,28 @@ async def dm_server_settings(
         def q(v: str | int | bool | None) -> str:
             return f'"{str(v)}"'
 
+        bypass_ids: list[int] = []
+        if getattr(s, "bypass_role_id", None):
+            raw = str(s.bypass_role_id)
+            tokens = [t for t in raw.replace(",", " ").split() if t]
+            for tok in tokens:
+                try:
+                    bypass_ids.append(int(tok))
+                except Exception:
+                    pass
+        bypass_val = ",".join(str(i) for i in bypass_ids) if bypass_ids else "none"
+
+        bypass_ids: list[int] = []
+        if getattr(s, "bypass_role_id", None):
+            raw = str(s.bypass_role_id)
+            tokens = [t for t in raw.replace(",", " ").split() if t]
+            for tok in tokens:
+                try:
+                    bypass_ids.append(int(tok))
+                except Exception:
+                    pass
+        bypass_val = ",".join(str(i) for i in bypass_ids) if bypass_ids else "none"
+
         tokens: list[str] = [
             f"enabled={q(b(s.enabled))}",
             f"check_length={q(s.check_length)}",
@@ -227,7 +249,7 @@ async def dm_server_settings(
             f"min_nick_length={q(s.min_nick_length)}",
             f"max_nick_length={q(s.max_nick_length)}",
             f"cooldown_seconds={q(s.cooldown_seconds)}",
-            f"bypass_role_id={q(s.bypass_role_id if s.bypass_role_id else 'none')}",
+            f"bypass_role_id={q(bypass_val)}",
             f"logging_channel_id={q(s.logging_channel_id if s.logging_channel_id else 'none')}",
             f"fallback_mode={q(s.fallback_mode)}",
         ]
@@ -342,7 +364,7 @@ async def dm_all_reports(
             f"min_nick_length={q(s.min_nick_length)}",
             f"max_nick_length={q(s.max_nick_length)}",
             f"cooldown_seconds={q(s.cooldown_seconds)}",
-            f"bypass_role_id={q(s.bypass_role_id if s.bypass_role_id else 'none')}",
+            f"bypass_role_id={q(bypass_val)}",
             f"logging_channel_id={q(s.logging_channel_id if s.logging_channel_id else 'none')}",
             f"fallback_mode={q(s.fallback_mode)}",
         ]
