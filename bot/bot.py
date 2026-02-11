@@ -350,7 +350,7 @@ class SanitizerBot(discord.Client):
 
         try:
             await member.edit(
-                nick=candidate, reason=f"Sanitized by policy from {source}"
+                nick=candidate, reason=f"Name Sanitized by NNSB due to {source}"
             )
             if self.db:
                 await self.db.set_cooldown(member.id, now())
