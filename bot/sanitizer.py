@@ -15,15 +15,24 @@ from .config import GuildSettings
 
 # Regular expressions for sanitization
 _rm_marks = re.compile(r"[\p{Cf}\p{Cc}\p{Mn}\p{Me}]")
+# When preserving emoji, exclude ZWJ (U+200D) and variation selector (U+FE0F)
+_rm_marks_preserve_emoji = re.compile(r"(?![\u200D\uFE0F])[\p{Cf}\p{Cc}\p{Mn}\p{Me}]")
 _allow_ascii = re.compile(r"[^\x20-\x7E]")
 _allow_ascii_or_emoji = re.compile(r"[^\x20-\x7E\p{Emoji}\u200D\uFE0F]")
 _has_letters_numbers = re.compile(r"[\p{L}\p{N}]")
 _has_emoji = re.compile(r"\p{Emoji}")
 
 
-def remove_marks_and_controls(s: str) -> str:
-    """Remove control, format, and combining marks (Cf, Cc, Mn, Me)."""
-    return _rm_marks.sub("", s)
+def remove_marks_and_controls(s: str, sanitize_emoji: bool = True) -> str:
+    """Remove control, format, and combining marks (Cf, Cc, Mn, Me).
+    
+    When sanitize_emoji=False, preserve ZWJ (U+200D) and variation selectors (U+FE0F)
+    as they are essential for emoji sequences.
+    """
+    if sanitize_emoji:
+        return _rm_marks.sub("", s)
+    else:
+        return _rm_marks_preserve_emoji.sub("", s)
 
 
 def filter_allowed_chars(s: str, sanitize_emoji: bool) -> str:
@@ -50,11 +59,50 @@ def normalize_spaces(s: str) -> str:
     return s.strip()
 
 
+def clean_orphaned_modifiers(s: str) -> str:
+    """Remove ZWJ and variation selectors that aren't part of emoji sequences.
+    
+    Processes each grapheme cluster and removes ZWJ/variation selectors from
+    clusters that don't contain emoji.
+    """
+    clusters = re.findall(r"\X", s)
+    result = []
+    for cluster in clusters:
+        if '\u200D' in cluster or '\uFE0F' in cluster:
+            # This cluster has emoji modifiers
+            if not _has_emoji.search(cluster):
+                # No emoji in this cluster, remove the orphaned modifiers
+                cluster = cluster.replace('\u200D', '').replace('\uFE0F', '')
+        result.append(cluster)
+    return ''.join(result)
+
+
+def count_non_emoji_clusters(s: str) -> int:
+    """Count grapheme clusters excluding spaces, emoji, ZWJ, and variation selectors."""
+    clusters = re.findall(r"\X", s)
+    count = 0
+    for cluster in clusters:
+        if cluster == " ":
+            continue
+        # Skip emoji clusters
+        if _has_emoji.search(cluster):
+            continue
+        # Skip clusters that are only ZWJ and/or variation selectors
+        stripped = cluster.replace('\u200D', '').replace('\uFE0F', '')
+        if not stripped:
+            continue
+        count += 1
+    return count
+
+
 def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
-    _full = remove_marks_and_controls(name)
+    _full = remove_marks_and_controls(name, settings.sanitize_emoji)
     _full = filter_allowed_chars(_full, settings.sanitize_emoji)
     if not settings.preserve_spaces:
         _full = normalize_spaces(_full)
+    # Remove orphaned ZWJ/variation selectors when emoji are allowed
+    if not settings.sanitize_emoji:
+        _full = clean_orphaned_modifiers(_full)
     if not _full.strip() or not has_meaningful_chars(_full, settings.sanitize_emoji):
         mode = getattr(settings, "fallback_mode", "default")
         if mode == "randomized":
@@ -78,10 +126,13 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
         head = _full
         tail = ""
 
-    head = remove_marks_and_controls(head)
+    head = remove_marks_and_controls(head, settings.sanitize_emoji)
     head = filter_allowed_chars(head, settings.sanitize_emoji)
     if not settings.preserve_spaces:
         head = normalize_spaces(head)
+    # Remove orphaned ZWJ/variation selectors when emoji are allowed
+    if not settings.sanitize_emoji:
+        head = clean_orphaned_modifiers(head)
 
     candidate = f"{head}{tail}"
 
@@ -90,10 +141,13 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
 
     # Final full-string filtering only when enforcing the entire name
     if settings.check_length <= 0:
-        candidate = remove_marks_and_controls(candidate)
+        candidate = remove_marks_and_controls(candidate, settings.sanitize_emoji)
         candidate = filter_allowed_chars(candidate, settings.sanitize_emoji)
         if not settings.preserve_spaces:
             candidate = normalize_spaces(candidate)
+        # Remove orphaned ZWJ/variation selectors when emoji are allowed
+        if not settings.sanitize_emoji:
+            candidate = clean_orphaned_modifiers(candidate)
 
     # If entire result is empty after filtering, use the configured fallback label
     used_fallback = False
@@ -117,11 +171,8 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
 
     min_len = getattr(settings, "min_nick_length", 0)
     if min_len > 0:
-        # Count grapheme clusters excluding spaces for minimum length validation
-        non_space_clusters = [
-            c for c in re.findall(r"\X", stripped_candidate) if c != " "
-        ]
-        cluster_count = len(non_space_clusters)
+        # Count grapheme clusters excluding spaces and emoji for minimum length validation
+        cluster_count = count_non_emoji_clusters(stripped_candidate)
         if cluster_count < min_len:
             used_fallback = True
             mode = getattr(settings, "fallback_mode", "default")
