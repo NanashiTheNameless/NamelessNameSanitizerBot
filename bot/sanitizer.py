@@ -25,7 +25,7 @@ _has_emoji = re.compile(r"\p{Emoji}")
 
 def remove_marks_and_controls(s: str, sanitize_emoji: bool = True) -> str:
     """Remove control, format, and combining marks (Cf, Cc, Mn, Me).
-    
+
     When sanitize_emoji=False, preserve ZWJ (U+200D) and variation selectors (U+FE0F)
     as they are essential for emoji sequences.
     """
@@ -61,20 +61,20 @@ def normalize_spaces(s: str) -> str:
 
 def clean_orphaned_modifiers(s: str) -> str:
     """Remove ZWJ and variation selectors that aren't part of emoji sequences.
-    
+
     Processes each grapheme cluster and removes ZWJ/variation selectors from
     clusters that don't contain emoji.
     """
     clusters = re.findall(r"\X", s)
     result = []
     for cluster in clusters:
-        if '\u200D' in cluster or '\uFE0F' in cluster:
+        if "\u200d" in cluster or "\ufe0f" in cluster:
             # This cluster has emoji modifiers
             if not _has_emoji.search(cluster):
                 # No emoji in this cluster, remove the orphaned modifiers
-                cluster = cluster.replace('\u200D', '').replace('\uFE0F', '')
+                cluster = cluster.replace("\u200d", "").replace("\ufe0f", "")
         result.append(cluster)
-    return ''.join(result)
+    return "".join(result)
 
 
 def count_non_emoji_clusters(s: str) -> int:
@@ -88,7 +88,7 @@ def count_non_emoji_clusters(s: str) -> int:
         if _has_emoji.search(cluster):
             continue
         # Skip clusters that are only ZWJ and/or variation selectors
-        stripped = cluster.replace('\u200D', '').replace('\uFE0F', '')
+        stripped = cluster.replace("\u200d", "").replace("\ufe0f", "")
         if not stripped:
             continue
         count += 1
