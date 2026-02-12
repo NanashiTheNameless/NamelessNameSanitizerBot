@@ -114,11 +114,13 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
     # Strip candidate before min length validation to match what Discord will store
     # Discord normalizes nicknames by trimming whitespace
     stripped_candidate = candidate.strip()
-    
+
     min_len = getattr(settings, "min_nick_length", 0)
     if min_len > 0:
         # Count grapheme clusters excluding spaces for minimum length validation
-        non_space_clusters = [c for c in re.findall(r"\X", stripped_candidate) if c != " "]
+        non_space_clusters = [
+            c for c in re.findall(r"\X", stripped_candidate) if c != " "
+        ]
         cluster_count = len(non_space_clusters)
         if cluster_count < min_len:
             used_fallback = True
