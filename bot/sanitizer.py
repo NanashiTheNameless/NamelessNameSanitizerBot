@@ -111,9 +111,7 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
             candidate = f"User{random.randrange(10000):04d}"
         elif mode == "static":
             candidate = settings.fallback_label or "Illegal Name"
-            candidate = remove_marks_and_controls(
-                candidate, settings.sanitize_emoji
-            )
+            candidate = remove_marks_and_controls(candidate, settings.sanitize_emoji)
             candidate = filter_allowed_chars(candidate, settings.sanitize_emoji)
             if not settings.preserve_spaces:
                 candidate = normalize_spaces(candidate)
@@ -168,9 +166,7 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
             candidate = f"User{random.randrange(10000):04d}"
         elif mode == "static":
             candidate = settings.fallback_label or "Illegal Name"
-            candidate = remove_marks_and_controls(
-                candidate, settings.sanitize_emoji
-            )
+            candidate = remove_marks_and_controls(candidate, settings.sanitize_emoji)
             candidate = filter_allowed_chars(candidate, settings.sanitize_emoji)
             if not settings.preserve_spaces:
                 candidate = normalize_spaces(candidate)
