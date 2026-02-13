@@ -324,15 +324,26 @@ class SanitizerBot(discord.Client):
         # If we had to fallback and server mode is 'default', attempt sanitizing the account username instead
         if used_fallback and getattr(settings, "fallback_mode", "default") == "default":
             base_username = getattr(member, "name", None)
-            if base_username and base_username != name_now:
+            if base_username:
                 alt_candidate, alt_used_fallback = sanitize_name(
                     base_username, settings
                 )
                 if not alt_used_fallback:
                     candidate = alt_candidate
                 else:
-                    # Username also invalid; fall back to custom label
-                    candidate = settings.fallback_label or "Illegal Name"
+                    fallback_label = settings.fallback_label or "Illegal Name"
+                    fallback_candidate, fallback_used = sanitize_name(
+                        fallback_label, settings
+                    )
+                    candidate = (
+                        fallback_candidate if not fallback_used else "Illegal Name"
+                    )
+            else:
+                fallback_label = settings.fallback_label or "Illegal Name"
+                fallback_candidate, fallback_used = sanitize_name(
+                    fallback_label, settings
+                )
+                candidate = fallback_candidate if not fallback_used else "Illegal Name"
 
         if candidate == name_now:
             return False
@@ -576,14 +587,26 @@ class SanitizerBot(discord.Client):
         # If fallback occurred and server mode is 'default', attempt user's account username
         if used_fallback and getattr(settings, "fallback_mode", "default") == "default":
             base_username = getattr(member, "name", None)
-            if base_username and base_username != current_name:
+            if base_username:
                 alt_candidate, alt_used_fallback = sanitize_name(
                     base_username, settings
                 )
                 if not alt_used_fallback:
                     candidate = alt_candidate
                 else:
-                    candidate = settings.fallback_label or "Illegal Name"
+                    fallback_label = settings.fallback_label or "Illegal Name"
+                    fallback_candidate, fallback_used = sanitize_name(
+                        fallback_label, settings
+                    )
+                    candidate = (
+                        fallback_candidate if not fallback_used else "Illegal Name"
+                    )
+            else:
+                fallback_label = settings.fallback_label or "Illegal Name"
+                fallback_candidate, fallback_used = sanitize_name(
+                    fallback_label, settings
+                )
+                candidate = fallback_candidate if not fallback_used else "Illegal Name"
 
         if candidate == current_name:
             full_settings = GuildSettings(**{**settings.__dict__})

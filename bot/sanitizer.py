@@ -21,6 +21,8 @@ _allow_ascii = re.compile(r"[^\x20-\x7E]")
 _allow_ascii_or_emoji = re.compile(r"[^\x20-\x7E\p{Emoji}\u200D\uFE0F]")
 _has_letters_numbers = re.compile(r"[\p{L}\p{N}]")
 _has_emoji = re.compile(r"\p{Emoji}")
+# Extended_Pictographic avoids counting ASCII digits as emoji in length checks.
+_has_emoji_cluster = re.compile(r"\p{Extended_Pictographic}")
 
 
 def remove_marks_and_controls(s: str, sanitize_emoji: bool = True) -> str:
@@ -85,7 +87,7 @@ def count_non_emoji_clusters(s: str) -> int:
         if cluster == " ":
             continue
         # Skip emoji clusters
-        if _has_emoji.search(cluster):
+        if _has_emoji_cluster.search(cluster):
             continue
         # Skip clusters that are only ZWJ and/or variation selectors
         stripped = cluster.replace("\u200d", "").replace("\ufe0f", "")
@@ -109,6 +111,14 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
             candidate = f"User{random.randrange(10000):04d}"
         elif mode == "static":
             candidate = settings.fallback_label or "Illegal Name"
+            candidate = remove_marks_and_controls(
+                candidate, settings.sanitize_emoji
+            )
+            candidate = filter_allowed_chars(candidate, settings.sanitize_emoji)
+            if not settings.preserve_spaces:
+                candidate = normalize_spaces(candidate)
+            if not candidate.strip():
+                candidate = "Illegal Name"
         else:
             # default mode returns empty to trigger username attempt
             candidate = ""
@@ -158,6 +168,14 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
             candidate = f"User{random.randrange(10000):04d}"
         elif mode == "static":
             candidate = settings.fallback_label or "Illegal Name"
+            candidate = remove_marks_and_controls(
+                candidate, settings.sanitize_emoji
+            )
+            candidate = filter_allowed_chars(candidate, settings.sanitize_emoji)
+            if not settings.preserve_spaces:
+                candidate = normalize_spaces(candidate)
+            if not candidate.strip():
+                candidate = "Illegal Name"
         else:
             # default mode returns empty to trigger username attempt
             candidate = ""
@@ -180,6 +198,14 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
                 candidate = f"User{random.randrange(10000):04d}"
             elif mode == "static":
                 candidate = settings.fallback_label or "Illegal Name"
+                candidate = remove_marks_and_controls(
+                    candidate, settings.sanitize_emoji
+                )
+                candidate = filter_allowed_chars(candidate, settings.sanitize_emoji)
+                if not settings.preserve_spaces:
+                    candidate = normalize_spaces(candidate)
+                if not candidate.strip():
+                    candidate = "Illegal Name"
             else:
                 # default mode returns empty to trigger username attempt
                 candidate = ""
