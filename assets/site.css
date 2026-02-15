@@ -158,4 +158,64 @@
  h1, h2, h3, h4, h5, h6 {
      scroll-margin-top: var(--nav-h);
 }
+ dialog {
+     position: fixed;
+     inset: var(--nav-h) 0 0 0;
+     margin: auto;
+     height: fit-content;
+     background: rgba(13, 18, 28, 0.95);
+     backdrop-filter: blur(8px);
+     border: 1px solid rgba(255,255,255,0.08);
+     border-radius: 16px;
+     padding: 0;
+     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+     max-width: 1000px;
+}
+ dialog::backdrop {
+     background: rgba(0, 0, 0, 0.5);
+}
+ .modal-content {
+     padding: 28px;
+     display: flex;
+     flex-direction: column;
+     gap: 16px;
+}
+ .modal-content h2 {
+     margin: 0;
+     font-size: clamp(20px, 2vw, 24px);
+     color: #e6edf3;
+}
+ .modal-content p {
+     margin: 0;
+     font-size: clamp(14px, 1.4vw, 16px);
+}
+ .modal-content code {
+     background: rgba(255,255,255,0.08);
+     border: 1px solid rgba(255,255,255,0.14);
+     border-radius: 8px;
+     padding: 12px;
+     display: block;
+     word-break: break-word;
+     font-family: monospace;
+     font-size: 13px;
+     color: #79c0ff;
+ }
+ .modal-content input[type="text"] {
+     padding: 10px 12px;
+     border: 1px solid rgba(255,255,255,0.14);
+     border-radius: 8px;
+     background: rgba(255,255,255,0.05);
+     color: #e6edf3;
+     font-size: 14px;
+ }
+ .modal-content input[type="text"]:focus {
+     outline: none;
+     border-color: rgba(138, 180, 255, 0.5);
+     box-shadow: 0 0 8px rgba(138, 180, 255, 0.2);
+ }
+ .modal-actions {
+     display: flex;
+     gap: 12px;
+     justify-content: center;
+ }
  

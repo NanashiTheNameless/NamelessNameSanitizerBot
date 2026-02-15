@@ -57,6 +57,18 @@
           <button id="install" class="btn" type="button" disabled>Agree and Install</button>
           <a class="btn secondary" href="https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/" target="_blank" rel="noopener">View Source Code</a>
         </div>
+        <dialog id="confirm-modal" aria-labelledby="confirm-title">
+          <div class="modal-content">
+            <h2 id="confirm-title">Confirm Installation</h2>
+            <p id="confirm-instructions">To proceed, please type the following phrase <strong>(case sensitive)</strong>:</p>
+            <code aria-label="Confirmation phrase to type">I Agree To The Terms And Understand I Must Contact NamelessNanashi To Enable This Bot In My Server.</code>
+            <input id="confirmation" type="text" placeholder="Type the phrase above" aria-label="Confirmation phrase input" aria-describedby="confirm-instructions" />
+            <div class="modal-actions">
+              <button id="confirm-proceed" class="btn" type="button" disabled>Proceed</button>
+              <button id="confirm-cancel" class="btn secondary" type="button">Cancel</button>
+            </div>
+          </div>
+        </dialog>
         <div class="fineprint">No data is stored beyond what is described in the linked policies.</div>
       </div>
     </div>
@@ -64,12 +76,46 @@
       // Enable the install button only when the checkbox is checked
       const agree = document.getElementById('agree');
       const install = document.getElementById('install');
-      function update() { install.disabled = !agree.checked; }
-      agree.addEventListener('change', update);
+      const modal = document.getElementById('confirm-modal');
+      const confirmation = document.getElementById('confirmation');
+      const confirmProceed = document.getElementById('confirm-proceed');
+      const confirmCancel = document.getElementById('confirm-cancel');
+      const requiredPhrase = 'I Agree To The Terms And Understand I Must Contact NamelessNanashi To Enable This Bot In My Server.';
+      
+      function updateInstallButton() {
+        install.disabled = !agree.checked;
+      }
+      
+      function updateConfirmButton() {
+        confirmProceed.disabled = confirmation.value !== requiredPhrase;
+      }
+      
+      agree.addEventListener('change', updateInstallButton);
+      
       install.addEventListener('click', () => {
-        if (!install.disabled) { window.location.href = 'https://discord.com/oauth2/authorize?client_id=1432611459476619305&scope=bot%20applications.commands&permissions=134217728&integration_type=0'; }
+        if (!install.disabled) {
+          confirmation.value = '';
+          modal.showModal();
+          confirmation.focus();
+        }
       });
-      update();
+      
+      confirmation.addEventListener('input', updateConfirmButton);
+      
+      confirmProceed.addEventListener('click', () => {
+        if (!confirmProceed.disabled) {
+          window.location.href = 'https://discord.com/oauth2/authorize?client_id=1432611459476619305&scope=bot%20applications.commands&permissions=134217728&integration_type=0';
+        }
+      });
+      
+      confirmCancel.addEventListener('click', () => {
+        confirmation.value = '';
+        updateConfirmButton();
+        modal.close();
+      });
+      
+      updateInstallButton();
+      updateConfirmButton();
     </script>
     <script src="/assets/stars.js" defer></script>
   </body>
