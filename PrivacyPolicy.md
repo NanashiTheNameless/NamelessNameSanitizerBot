@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 2026-02-07 (YYYY-MM-DD)
+Last updated: 2026-03-17 (YYYY-MM-DD)
 
 This page explains what NamelessNameSanitizerBot ("The Bot") does with data.
 By using The Bot, you agree to this policy.
@@ -9,7 +9,7 @@ By using The Bot, you agree to this policy.
 
 - The Bot does not read or store message content.
 - The Bot only uses basic Discord metadata needed to work (e.g., guild ID, user ID, roles, current nickname) and per-guild settings.
-- Optional features may send Direct Messages to the bot owner containing: guild join/leave notifications (guild name and ID) and bot error alerts (error descriptions, error counts, and affected guild names and IDs when applicable).
+- Optional features may send Direct Messages to the bot owner containing: guild join/leave notifications (guild name and ID), bot error alerts (error descriptions, error counts, and affected guild names and IDs when applicable), and administrative reports (server settings, blacklist entries, server admins).
 - Optional logging channel feature may post nickname-change notices in a configured server channel (old nickname, new nickname, user mention, timestamp).
 - Anonymous, opt-out self-host telemetry counts how many instances of The Bot are being run at any given time. It never includes any PII, message content, User IDs, or Guild IDs.
 
