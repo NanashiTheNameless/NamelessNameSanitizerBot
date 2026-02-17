@@ -1,6 +1,6 @@
 # Terms of Service
 
-Last updated: 2026-03-17 (YYYY-MM-DD)
+Last updated: 2026-03-16 (YYYY-MM-DD)
 
 By adding or using NamelessNameSanitizerBot ("the Bot") in your Discord server, you agree to these terms.
 
