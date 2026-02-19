@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 2026-03-18 (YYYY-MM-DD)
+Last updated: 2026-02-18 (YYYY-MM-DD)
 
 This page explains what NamelessNameSanitizerBot ("The Bot") does with data.
 By using The Bot, you agree to this policy.
