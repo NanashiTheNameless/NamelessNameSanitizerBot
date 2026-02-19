@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 2026-03-16 (YYYY-MM-DD)
+Last updated: 2026-03-18 (YYYY-MM-DD)
 
 This page explains what NamelessNameSanitizerBot ("The Bot") does with data.
 By using The Bot, you agree to this policy.
@@ -9,7 +9,7 @@ By using The Bot, you agree to this policy.
 
 - The Bot does not read or store message content.
 - The Bot only uses basic Discord metadata needed to work (e.g., guild ID, user ID, roles, current nickname) and per-guild settings.
-- Optional features may send Direct Messages to the bot owner containing: guild join/leave notifications (guild name and ID), bot error alerts (error descriptions, error counts, and affected guild names and IDs when applicable), and administrative reports (server settings, blacklist entries, server admins).
+- Optional features may send Direct Messages to The Bot owner containing: guild join/leave notifications (guild name and ID), bot error alerts (error descriptions, error counts, and affected guild names and IDs when applicable), and administrative reports (server settings, blacklist entries, server admins).
 - Optional logging channel feature may post nickname-change notices in a configured server channel (old nickname, new nickname, user mention, timestamp).
 - Anonymous, opt-out self-host telemetry counts how many instances of The Bot are being run at any given time. It never includes any PII, message content, User IDs, or Guild IDs.
 
@@ -25,7 +25,7 @@ The Bot does not process or store message content and The Bot does not require t
 
 - Per-guild settings/admin lists are stored in a database and kept until you change or delete them.
 - Cooldown entries are auto-purged after a delay.
-- If a guild is blacklisted, the bot leaves and deletes stored settings/admins for that guild; blacklist entries remain until removed.
+- If a guild is blacklisted, The Bot leaves and deletes stored settings/admins for that guild; blacklist entries remain until removed.
 
 ## Sharing
 
@@ -41,7 +41,7 @@ The Bot does not process or store message content and The Bot does not require t
 
 ## Your controls
 
-- Bot Admins: Enable/disable the bot, change settings, configure logging channel and bypass role(s).
+- Bot Admins: Enable/disable The Bot, change settings, configure logging channel and bypass role(s).
 - Users: Run `/delete-my-data` to remove your data in a server.
 - Bot Owner: Delete user data across all servers (`/delete-user-data`, `/global-delete-user-data`).
 
@@ -51,11 +51,11 @@ The Bot does not process or store message content and The Bot does not require t
 
 ## Where processing happens
 
-Data is processed where the operator hosts the Bot and its database. Operators are responsible for any legal compliance in their region.
+Data is processed where the operator hosts The Bot and its database. Operators are responsible for any legal compliance in their region.
 
 ## Contact
 
-Open a [GitHub issue](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/issues/new/choose>) or contact the bot owner/operator. You can pull up the relevant information using the `/botinfo` command.
+Open a [GitHub issue](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/issues/new/choose>) or contact The Bot owner/operator. You can pull up the relevant information using the `/botinfo` command.
 
 ## Changes
 
