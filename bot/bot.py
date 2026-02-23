@@ -191,7 +191,10 @@ class SanitizerBot(discord.Client):
         load_status_messages(self)
 
     def _track_error(
-        self, error_msg: str = "Unknown error", guild_id: int | None = None, critical: bool = True
+        self,
+        error_msg: str = "Unknown error",
+        guild_id: int | None = None,
+        critical: bool = True,
     ):
         track_error(self, error_msg, guild_id, critical)
 
