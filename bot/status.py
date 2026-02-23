@@ -170,7 +170,12 @@ def load_status_messages(self):
             )
 
 
-def track_error(self, error_msg: str = "Unknown error", guild_id: int | None = None, critical: bool = True):
+def track_error(
+    self,
+    error_msg: str = "Unknown error",
+    guild_id: int | None = None,
+    critical: bool = True,
+):
     """Track an error occurrence for status color determination.
 
     Args:
@@ -184,17 +189,17 @@ def track_error(self, error_msg: str = "Unknown error", guild_id: int | None = N
     if current_time - self._last_error_reset >= 3600:  # 3600 seconds = 1 hour
         self._error_count = 0
         self._last_error_reset = current_time
-    
+
     # Only increment counter for critical errors that affect status
     if critical:
         self._error_count += 1
         # Once error threshold is exceeded, permanently trigger red status
         if self._error_count > 2:
             self._red_status_triggered = True
-    
+
     if DM_OWNER_ON_ERRORS:
         guild_info = f"\nGuild ID: `{guild_id}`" if guild_id else ""
-        
+
         # Determine message based on error type and threshold
         if not critical:
             # Non-critical errors don't affect status

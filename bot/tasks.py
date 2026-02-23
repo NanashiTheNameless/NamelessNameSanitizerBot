@@ -43,7 +43,11 @@ async def member_sweep(self):
                     "Member sweep rate limit/HTTP error in %s: %s", guild.name, e
                 )
             # Mark as non-critical - upstream/rate-limit errors shouldn't trigger red status
-            self._track_error(f"Member sweep HTTP error in {guild.name}: {e}", guild.id, critical=False)
+            self._track_error(
+                f"Member sweep HTTP error in {guild.name}: {e}",
+                guild.id,
+                critical=False,
+            )
         if processed and DEBUG_MODE:
             log.info("Sweep processed %d members in %s", processed, guild.name)
 
