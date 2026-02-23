@@ -5,6 +5,7 @@
 import asyncio
 import logging
 import os
+import time
 
 import commentjson  # type: ignore
 import discord  # type: ignore
@@ -169,24 +170,59 @@ def load_status_messages(self):
             )
 
 
-def track_error(self, error_msg: str = "Unknown error", guild_id: int | None = None):
+def track_error(self, error_msg: str = "Unknown error", guild_id: int | None = None, critical: bool = True):
     """Track an error occurrence for status color determination.
 
     Args:
         error_msg: Description of the error that occurred
         guild_id: Optional guild ID where the error occurred
+        critical: If True, this error counts toward red status threshold.
+                  If False, error is logged to DMs but won't trigger red status.
     """
-    self._error_count += 1
-    if DM_OWNER_ON_ERRORS and self._error_count > 2:
-        # Create task to DM owner without blocking
+    # Reset error count if an hour has passed (but don't reset red status flag)
+    current_time = time.time()
+    if current_time - self._last_error_reset >= 3600:  # 3600 seconds = 1 hour
+        self._error_count = 0
+        self._last_error_reset = current_time
+    
+    # Only increment counter for critical errors that affect status
+    if critical:
+        self._error_count += 1
+        # Once error threshold is exceeded, permanently trigger red status
+        if self._error_count > 2:
+            self._red_status_triggered = True
+    
+    if DM_OWNER_ON_ERRORS:
         guild_info = f"\nGuild ID: `{guild_id}`" if guild_id else ""
-        asyncio.create_task(
-            self._dm_owner(
-                f"**Bot Error Alert** ({self._error_count} errors)\n"
-                f"Error: {error_msg}{guild_info}\n"
-                f"Status: Bot is now in DnD mode (red status)"
+        
+        # Determine message based on error type and threshold
+        if not critical:
+            # Non-critical errors don't affect status
+            asyncio.create_task(
+                self._dm_owner(
+                    f"**Bot Error Alert (non-critical)**\n"
+                    f"Error: {error_msg}{guild_info}\n"
+                    f"Status: Bot status unchanged"
+                )
             )
-        )
+        elif critical and self._error_count <= 2:
+            # Critical error but below threshold
+            asyncio.create_task(
+                self._dm_owner(
+                    f"**Bot Error Alert** ({self._error_count} errors)\n"
+                    f"Error: {error_msg}{guild_info}\n"
+                    f"Status: Bot status normal (threshold not exceeded)"
+                )
+            )
+        elif critical and self._error_count > 2:
+            # Critical error that triggers red status
+            asyncio.create_task(
+                self._dm_owner(
+                    f"**Bot Error Alert** ({self._error_count} errors)\n"
+                    f"Error: {error_msg}{guild_info}\n"
+                    f"Status: Bot is now in DnD mode (red status)"
+                )
+            )
 
 
 def get_bot_status(self) -> discord.Status:
@@ -203,8 +239,8 @@ def get_bot_status(self) -> discord.Status:
     if self._config_error:
         return discord.Status.dnd
 
-    # If more than 2 errors, show red status (persists until restart)
-    if self._error_count > 2:
+    # If red status has been triggered, persist it until restart
+    if self._red_status_triggered:
         return discord.Status.dnd
 
     # If outdated, show yellow/idle status

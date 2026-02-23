@@ -127,6 +127,7 @@ class SanitizerBot(discord.Client):
         self._current_status_index = 0
         self._error_count = 0
         self._last_error_reset = 0.0
+        self._red_status_triggered = False  # Once True, persists until restart
         self._config_error = False
         self._pending_owner_dms: list[str] = []  # Queue DMs to send on ready
 
@@ -190,9 +191,9 @@ class SanitizerBot(discord.Client):
         load_status_messages(self)
 
     def _track_error(
-        self, error_msg: str = "Unknown error", guild_id: int | None = None
+        self, error_msg: str = "Unknown error", guild_id: int | None = None, critical: bool = True
     ):
-        track_error(self, error_msg, guild_id)
+        track_error(self, error_msg, guild_id, critical)
 
     def _get_bot_status(self) -> discord.Status:
         return get_bot_status(self)
