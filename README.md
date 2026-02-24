@@ -71,7 +71,7 @@ Replace `YOUR_APP_ID` with your APPLICATION_ID. Adjust `permissions` as needed, 
 
 Click to install the bot to your guild (server):
 
-[Install NamelessNameSanitizerBot](<https://nnsb.namelessnanashi.dev/install/>)
+[Install NamelessNameSanitizerBot](<https://nnsb.namelessnanashi.dev/install>)
 
 ## Run with Docker Compose
 
@@ -294,8 +294,8 @@ Behavior
 
 Related policies:
 
-- [Privacy Policy](<https://nnsb.namelessnanashi.dev/PrivacyPolicy/>)
-- [Terms of Service](<https://nnsb.namelessnanashi.dev/TermsOfService/>)
+- [Privacy Policy](<https://nnsb.namelessnanashi.dev/PrivacyPolicy>)
+- [Terms of Service](<https://nnsb.namelessnanashi.dev/TermsOfService>)
 
 ## License & Credits
 
