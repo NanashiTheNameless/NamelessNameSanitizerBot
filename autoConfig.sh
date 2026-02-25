@@ -152,7 +152,7 @@ FALLBACK_LABEL=$(prompt_with_default "Fallback name for sanitized accounts" "Ill
 
 echo
 echo "Advanced Configuration (if you are unsure use the default):"
-COOLDOWN_TTL_SEC=$(prompt_with_default "How long to remember user cooldowns (seconds)" "864000")
+COOLDOWN_TTL_SEC=$(prompt_with_default "How long to remember user cooldowns (seconds)" "86400")
 SWEEP_INTERVAL_SEC=$(prompt_with_default "Check for name changes every N seconds" "60")
 DM_OWNER_ON_GUILD_EVENTS=$(prompt_with_default "Send DM when bot joins/leaves a server (true/false)" "true")
 DM_OWNER_ON_ERRORS=$(prompt_with_default "Send DM when errors trigger DnD status (true/false)" "true")

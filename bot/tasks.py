@@ -14,14 +14,15 @@ log = logging.getLogger("sanitizerbot")
 
 @tasks.loop(seconds=SWEEP_INTERVAL_SEC)
 async def member_sweep(self):
-    for guild in list(self.guilds):
-        # Periodically clear expired cooldowns to minimize data retention
-        if self.db:
-            try:
-                await self.db.clear_expired_cooldowns(COOLDOWN_TTL_SEC)
-            except Exception as e:
-                log.debug("clear_expired_cooldowns failed: %s", e)
+    # Periodically clear expired cooldowns to minimize data retention.
+    # Run once per sweep cycle (not once per guild) to avoid redundant DB work.
+    if self.db:
+        try:
+            await self.db.clear_expired_cooldowns(COOLDOWN_TTL_SEC)
+        except Exception as e:
+            log.debug("clear_expired_cooldowns failed: %s", e)
 
+    for guild in list(self.guilds):
         settings = GuildSettings(guild.id)
         if self.db:
             try:

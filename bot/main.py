@@ -86,7 +86,7 @@ def _graceful_exit(signame):
 
 for _sig in ("SIGINT", "SIGTERM"):
     try:
-        signal.signal(getattr(signal, _sig), lambda *_: _graceful_exit(_sig))
+        signal.signal(getattr(signal, _sig), lambda *_, s=_sig: _graceful_exit(s))
     except Exception:
         pass
 

@@ -22,11 +22,8 @@ from .admin_utils import (
     is_bot_admin,
     is_guild_admin,
 )
-from .admin_utils import owner_destructive_check as admin_owner_destructive_check
-from .admin_utils import resolve_target_guild as admin_resolve_target_guild
 from .autocomplete import (
     ac_blacklisted_guild_id,
-    ac_bool_value,
     ac_check_count_value,
     ac_fallback_mode,
     ac_guild_id,
@@ -701,9 +698,6 @@ class SanitizerBot(discord.Client):
     async def _ac_policy_key(self, interaction: discord.Interaction, current: str):
         return await ac_policy_key(self, interaction, current)
 
-    async def _ac_bool_value(self, interaction: discord.Interaction, current: str):
-        return await ac_bool_value(self, interaction, current)
-
     async def _ac_int_value(self, interaction: discord.Interaction, current: str):
         return await ac_int_value(self, interaction, current)
 
@@ -738,14 +732,6 @@ class SanitizerBot(discord.Client):
 
     async def _command_cooldown_check(self, interaction: discord.Interaction) -> bool:
         return await command_cooldown_check(self, interaction)
-
-    async def _resolve_target_guild(
-        self, interaction: discord.Interaction, server_id: Optional[str]
-    ) -> Optional[int]:
-        return await admin_resolve_target_guild(self, interaction, server_id)
-
-    async def _owner_destructive_check(self, interaction: discord.Interaction) -> bool:
-        return await admin_owner_destructive_check(self, interaction)
 
     async def cmd_set_setting(
         self,
@@ -1793,36 +1779,6 @@ class SanitizerBot(discord.Client):
             if isinstance(ch, (discord.TextChannel, discord.Thread)):
                 try:
                     await ch.send(content)  # type: ignore
-                    sent += 1
-                except Exception:
-                    pass
-        return sent
-
-    async def _append_to_recent_log_messages(self, content: str) -> int:
-        """Send content as a new message to configured logging channels.
-
-        Sends a new message instead of trying to edit existing messages.
-        Returns the number of messages that were sent.
-        """
-        sent = 0
-        for guild in list(self.guilds):
-            # Fetch the logging channel configured for this guild
-            try:
-                settings = await self.db.get_settings(guild.id)
-                ch_id = settings.logging_channel_id
-            except Exception:
-                ch_id = None
-            if not ch_id:
-                continue
-            ch = guild.get_channel(ch_id)
-            if ch is None:
-                try:
-                    ch = await guild.fetch_channel(ch_id)
-                except Exception:
-                    ch = None
-            if isinstance(ch, (discord.TextChannel, discord.Thread)):
-                try:
-                    await ch.send(content)
                     sent += 1
                 except Exception:
                     pass
