@@ -33,7 +33,7 @@ def register_owner_commands(self):
     @app_commands.describe(
         server_id="The guild (server) ID to blacklist",
         reason="Optional reason for blacklisting",
-        confirm="Type true to confirm",
+        confirm="Type True to confirm",
     )
     @app_commands.autocomplete(server_id=self._ac_guild_id)
     async def _blacklist_server(
@@ -83,7 +83,7 @@ def register_owner_commands(self):
         description="Bot Owner Only: Delete a user's stored data across all guilds (servers) (cooldowns/admin entries)",
     )
     @app_commands.default_permissions()
-    @app_commands.describe(confirm="Type true to confirm deletion of user data")
+    @app_commands.describe(confirm="Type True to confirm deletion of user data")
     async def _owner_delete_user_data(
         interaction: discord.Interaction,
         user: discord.User,
@@ -103,7 +103,7 @@ def register_owner_commands(self):
     )
     @app_commands.default_permissions()
     @app_commands.describe(
-        attach_file="Optional: attach the report as a file (default: false)",
+        attach_file="Optional: attach the report as a file (default: False)",
     )
     async def _dm_admin_report(
         interaction: discord.Interaction, attach_file: Optional[bool] = False
@@ -116,7 +116,7 @@ def register_owner_commands(self):
     )
     @app_commands.default_permissions()
     @app_commands.describe(
-        attach_file="Optional: attach each report as a file (default: false)",
+        attach_file="Optional: attach each report as a file (default: False)",
     )
     async def _dm_all_reports(
         interaction: discord.Interaction, attach_file: Optional[bool] = False
@@ -129,7 +129,7 @@ def register_owner_commands(self):
     )
     @app_commands.default_permissions()
     @app_commands.describe(
-        attach_file="Optional: attach full list as a file when large (default: false)",
+        attach_file="Optional: attach full list as a file when large (default: False)",
     )
     async def _dm_blacklisted_servers(
         interaction: discord.Interaction, attach_file: Optional[bool] = False
@@ -142,7 +142,7 @@ def register_owner_commands(self):
     )
     @app_commands.default_permissions()
     @app_commands.describe(
-        attach_file="Optional: attach the report as a file (default: false)",
+        attach_file="Optional: attach the report as a file (default: False)",
     )
     async def _dm_server_settings(
         interaction: discord.Interaction, attach_file: Optional[bool] = False
@@ -154,7 +154,7 @@ def register_owner_commands(self):
         description="Bot Owner Only: Disable the sanitizer bot in all guilds (servers)",
     )
     @app_commands.default_permissions()
-    @app_commands.describe(confirm="Type true to confirm global disable of the bot")
+    @app_commands.describe(confirm="Type True to confirm global disable of the bot")
     async def _global_disable(
         interaction: discord.Interaction, confirm: Optional[bool] = False
     ):
@@ -166,7 +166,7 @@ def register_owner_commands(self):
     )
     @app_commands.default_permissions()
     @app_commands.describe(
-        confirm="Type true to confirm deletion of ALL user data globally"
+        confirm="Type True to confirm deletion of ALL user data globally"
     )
     async def _global_delete_user_data(
         interaction: discord.Interaction,
@@ -180,7 +180,7 @@ def register_owner_commands(self):
     )
     @app_commands.default_permissions()
     @app_commands.describe(
-        confirm="Type true to confirm removal of all bot admins globally"
+        confirm="Type True to confirm removal of all bot admins globally"
     )
     async def _global_nuke_bot_admins(
         interaction: discord.Interaction, confirm: Optional[bool] = False
@@ -192,7 +192,7 @@ def register_owner_commands(self):
         description="Bot Owner Only: Reset all sanitizer settings to defaults across all guilds (servers)",
     )
     @app_commands.default_permissions()
-    @app_commands.describe(confirm="Type true to confirm resetting settings globally")
+    @app_commands.describe(confirm="Type True to confirm resetting settings globally")
     async def _global_reset_settings(
         interaction: discord.Interaction, confirm: Optional[bool] = False
     ):
@@ -204,7 +204,7 @@ def register_owner_commands(self):
     )
     @app_commands.default_permissions()
     @app_commands.describe(
-        server_id="The guild (server) ID to leave", confirm="Type true to confirm"
+        server_id="The guild (server) ID to leave", confirm="Type True to confirm"
     )
     @app_commands.autocomplete(server_id=self._ac_guild_id)
     async def _leave_server(
@@ -235,7 +235,7 @@ def register_owner_commands(self):
     @app_commands.default_permissions()
     @app_commands.describe(
         server_id="Optional guild (server) ID to target; required in DMs or to nuke another guild (server)",
-        confirm="Type true to confirm removal of all bot admins",
+        confirm="Type True to confirm removal of all bot admins",
     )
     @app_commands.autocomplete(server_id=self._ac_guild_id)
     async def _nuke_bot_admins(
@@ -268,7 +268,7 @@ def register_owner_commands(self):
     @app_commands.default_permissions()
     @app_commands.describe(
         server_id="The guild (server) ID to unblacklist",
-        confirm="Type true to confirm",
+        confirm="Type True to confirm",
     )
     @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
     async def _unblacklist_server(

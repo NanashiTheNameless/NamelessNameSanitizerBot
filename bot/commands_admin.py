@@ -24,7 +24,7 @@ def register_admin_commands(self):
         description="Bot Admin Only: Clear bypass role(s)",
     )
     @app_commands.default_permissions(manage_nicknames=True)
-    @app_commands.describe(confirm="Type true to confirm clearing bypass role(s)")
+    @app_commands.describe(confirm="Type True to confirm clearing bypass role(s)")
     async def _clear_bypass_role(
         interaction: discord.Interaction, confirm: Optional[bool] = False
     ):
@@ -43,7 +43,7 @@ def register_admin_commands(self):
         description="Bot Admin Only: Clear the logging channel",
     )
     @app_commands.default_permissions(manage_nicknames=True)
-    @app_commands.describe(confirm="Type true to confirm clearing the logging channel")
+    @app_commands.describe(confirm="Type True to confirm clearing the logging channel")
     async def _clear_logging_channel(
         interaction: discord.Interaction, confirm: Optional[bool] = False
     ):
@@ -84,7 +84,7 @@ def register_admin_commands(self):
     @app_commands.default_permissions(manage_nicknames=True)
     @app_commands.describe(
         server_id="Optional guild (server) ID to reset; required in DMs or to target another guild (server)",
-        confirm="Type true to confirm",
+        confirm="Type True to confirm",
     )
     @app_commands.autocomplete(server_id=self._ac_guild_id)
     async def _reset_settings(
@@ -172,7 +172,7 @@ def register_admin_commands(self):
 
     @self.tree.command(
         name="set-keep-spaces",
-        description="Set or view whether to keep original spacing (true) or normalize spaces (false)",
+        description="Set or view whether to keep original spacing (True) or normalize spaces (False)",
     )
     @app_commands.default_permissions(manage_nicknames=True)
     async def _set_keep_spaces(
