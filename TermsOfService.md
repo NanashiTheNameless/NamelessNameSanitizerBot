@@ -1,6 +1,6 @@
 # Terms of Service
 
-Last updated: 2026-02-18 (YYYY-MM-DD)
+Last updated: 2026-02-25 (YYYY-MM-DD)
 
 By adding or using NamelessNameSanitizerBot ("The Bot") in your Discord server, you agree to these terms.
 
@@ -27,7 +27,7 @@ Do not use The Bot to break laws, harass people, evade Discord policies, attack/
 
 ### Anonymous self-hosting telemetry (opt-out)
 
-To assess adoption by counting how many instances are actively running, The Bot sends a tiny census event once on startup and every 2 hours (UTC). Please see the Privacy Policy for more info.
+To assess adoption by counting how many instances are actively running, The Bot sends a tiny census event once on startup and every 2 hours (UTC). Please see the [Privacy Policy](<https://nnsb.namelessnanashi.dev/PrivacyPolicy/>) for more info.
 
 ## Changes & availability
 
@@ -38,7 +38,7 @@ To assess adoption by counting how many instances are actively running, The Bot 
 
 ## Policy Consistency for Forks / Self-Hosted Instances
 
-Any public fork, re-deployment, or self-hosted instance of The Bot that interacts with third parties MUST adopt verbatim (word-for-word) the official Terms of Service, Privacy Policy, and License provided with this software, except for purely cosmetic formatting adjustments (for example, heading styles or link formatting) and substitution of the operational contact method. Substantive changes, omissions, or additions are prohibited unless separately and conspicuously approved in writing by the original maintainers. If you cannot or will not comply, do not expose The Bot (or any derivative) for third-party use (This includes in Public guilds or guilds with more than 100 users).
+Any public fork, re-deployment, or self-hosted instance of The Bot that interacts with third parties MUST adopt verbatim (word-for-word) the official [Terms of Service](<https://nnsb.namelessnanashi.dev/TermsOfService/>), [Privacy Policy](<https://nnsb.namelessnanashi.dev/PrivacyPolicy/>), and [License](<https://nnsb.namelessnanashi.dev/license/>) provided with this software, except for purely cosmetic formatting adjustments (for example, heading styles or link formatting) and substitution of the operational contact method. Substantive changes, omissions, or additions are prohibited unless separately and conspicuously approved in writing by the original maintainers. If you cannot or will not comply, do not expose The Bot (or any derivative) for third-party use (This includes in Public guilds or guilds with more than 100 users).
 
 ## Liability
 
@@ -50,7 +50,7 @@ You agree to indemnify and hold maintainers/contributors harmless from claims ar
 
 ## Ending use
 
-Admins can remove The Bot any time. We may suspend or terminate access if misuse or harm occurs.
+Admins can remove The Bot any time. We may suspend or terminate access at any time as per the [License](<https://nnsb.namelessnanashi.dev/license/>).
 
 ## Open-Source
 
