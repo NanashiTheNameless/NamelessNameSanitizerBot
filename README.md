@@ -193,8 +193,8 @@ Status checks run at startup and the status updates during the regular status me
 - /unblacklist-server [server_id:str] [confirm:bool] - Remove a guild (server) from blacklist.
 - /blacklist-set-reason [server_id:str] [reason:str] - Set or clear a reason for a blacklisted guild (server).
 - /blacklist-set-name [server_id:str] [name:str] - Set or clear a display name for a blacklisted guild (server).
- -/dm-blacklisted-servers [attach_file:bool] - DM the bot owner a list of blacklisted guild (server) IDs & reasons. Optional `attach_file` (defaults to False). When True, the bot sends the report as a file and does not include inline text.
- -/dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to False). When `attach_file=True`, the bot uploads three separate files - `admin-report.txt`, `server-settings-report.txt`, and `blacklist-report.txt` - and does not include inline text. When `attach_file=False`, reports are sent as messages with safe chunking.
+- /dm-blacklisted-servers [attach_file:bool] - DM the bot owner a list of blacklisted guild (server) IDs & reasons. Optional `attach_file` (defaults to False). When True, the bot sends the report as a file and does not include inline text.
+- /dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to False). When `attach_file=True`, the bot uploads three separate files - `admin-report.txt`, `server-settings-report.txt`, and `blacklist-report.txt` - and does not include inline text. When `attach_file=False`, reports are sent as messages with safe chunking.
 - /leave-server [server_id:str] [confirm:bool] - Leave a guild (server) and delete its stored configuration/admin data.
 - /dm-admin-report - DM a multi-message report of guilds (servers) and bot admins.
 - /dm-server-settings - DM a multi-message list of all guild (server) settings (paste-friendly key=value pairs).
