@@ -255,6 +255,27 @@ def get_bot_status(self) -> discord.Status:
     return discord.Status.online
 
 
+def _is_transient_presence_error(error: Exception) -> bool:
+    """Return True for expected websocket transport close/reconnect races."""
+    if isinstance(
+        error,
+        (
+            discord.ConnectionClosed,
+            ConnectionResetError,
+            BrokenPipeError,
+        ),
+    ):
+        return True
+    msg = str(error).lower()
+    transient_markers = (
+        "cannot write to closing transport",
+        "closing transport",
+        "websocket is closed",
+        "connection reset by peer",
+    )
+    return any(marker in msg for marker in transient_markers)
+
+
 async def status_cycle(self):
     """Cycle through status messages with dynamic durations."""
     await self.wait_until_ready()
@@ -269,6 +290,10 @@ async def status_cycle(self):
 
     while not self.is_closed():
         try:
+            # on_ready can fire again after reconnect; wait for a healthy session.
+            if not self.is_ready():
+                await self.wait_until_ready()
+
             if not self._status_messages:
                 await asyncio.sleep(30)
                 continue
@@ -300,6 +325,15 @@ async def status_cycle(self):
             )
 
         except Exception as e:
+            if self.is_closed():
+                log.debug("[STATUS] Status cycle stopping during shutdown: %s", e)
+                break
+            if _is_transient_presence_error(e):
+                log.debug(
+                    "[STATUS] Transient presence update failure during reconnect: %s", e
+                )
+                await asyncio.sleep(5)
+                continue
             log.error(f"[STATUS] Failed to update status: {e}")
             track_error(self, f"Status cycle update failed: {e}")
             await asyncio.sleep(30)  # Wait before retrying

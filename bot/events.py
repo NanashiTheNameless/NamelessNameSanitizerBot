@@ -2,6 +2,7 @@
 # https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md
 """Event handlers for SanitizerBot."""
 
+import asyncio
 import logging
 from typing import Optional
 
@@ -96,13 +97,17 @@ async def on_ready(self):
         except Exception as e:
             log.debug("Failed purging unknown guild data: %s", e)
 
-    log.info("[STATUS] Starting status cycling task.")
-    import asyncio
+    if self._status_cycle_task is None or self._status_cycle_task.done():
+        log.info("[STATUS] Starting status cycling task.")
+        self._status_cycle_task = asyncio.create_task(self.status_cycle())
+    else:
+        log.debug("[STATUS] Status cycling task already running; skipping start.")
 
-    asyncio.create_task(self.status_cycle())
-
-    log.info("[STATUS] Starting member sweep background task.")
-    self.member_sweep.start()  # type: ignore
+    if not self.member_sweep.is_running():  # type: ignore
+        log.info("[STATUS] Starting member sweep background task.")
+        self.member_sweep.start()  # type: ignore
+    else:
+        log.debug("[STATUS] Member sweep background task already running; skipping.")
 
     # Send any pending owner DMs that were queued during initialization
     if hasattr(self, "_pending_owner_dms") and self._pending_owner_dms:

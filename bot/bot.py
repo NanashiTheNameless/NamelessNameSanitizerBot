@@ -127,6 +127,7 @@ class SanitizerBot(discord.Client):
         self._red_status_triggered = False  # Once True, persists until restart
         self._config_error = False
         self._pending_owner_dms: list[str] = []  # Queue DMs to send on ready
+        self._status_cycle_task: asyncio.Task[None] | None = None
 
         # Validate owner is configured
         if not OWNER_ID:
@@ -479,7 +480,17 @@ class SanitizerBot(discord.Client):
         await status_cycle(self)
 
     async def close(self):
-        self.member_sweep.cancel()  # type: ignore
+        if self.member_sweep.is_running():  # type: ignore
+            self.member_sweep.cancel()  # type: ignore
+        if self._status_cycle_task and not self._status_cycle_task.done():
+            self._status_cycle_task.cancel()
+            try:
+                await self._status_cycle_task
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                log.debug("[STATUS] Failed cancelling status cycle task: %s", e)
+        self._status_cycle_task = None
         await super().close()
 
     def _is_guild_admin(self, member: discord.Member) -> bool:
