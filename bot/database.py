@@ -75,8 +75,7 @@ class Database:
         assert self.pool is not None
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
-                await cur.execute(
-                    f"""
+                await cur.execute(f"""
                 CREATE TABLE IF NOT EXISTS guild_settings (
                     guild_id BIGINT PRIMARY KEY,
                     check_length INTEGER NOT NULL DEFAULT {CHECK_LENGTH},
@@ -92,27 +91,22 @@ class Database:
                     enforce_bots BOOLEAN NOT NULL DEFAULT {'TRUE' if ENFORCE_BOTS else 'FALSE'},
                     fallback_mode TEXT NOT NULL DEFAULT '{FALLBACK_MODE}'
                 );
-                """
-                )
+                """)
             async with conn.cursor() as cur:
-                await cur.execute(
-                    """
+                await cur.execute("""
                 CREATE TABLE IF NOT EXISTS user_cooldowns (
                     user_id BIGINT PRIMARY KEY,
                     timestamp DOUBLE PRECISION NOT NULL
                 );
-                """
-                )
+                """)
             async with conn.cursor() as cur:
-                await cur.execute(
-                    """
+                await cur.execute("""
                 CREATE TABLE IF NOT EXISTS guild_admins (
                     guild_id BIGINT NOT NULL,
                     user_id BIGINT NOT NULL,
                     PRIMARY KEY (guild_id, user_id)
                 );
-                """
-                )
+                """)
             async with conn.cursor() as cur:
                 await cur.execute(
                     f"ALTER TABLE guild_settings ADD COLUMN IF NOT EXISTS sanitize_emoji BOOLEAN NOT NULL DEFAULT {'TRUE' if SANITIZE_EMOJI else 'FALSE'}"
@@ -123,27 +117,23 @@ class Database:
                 )
             # Blacklist table for guilds the bot should automatically leave/avoid
             async with conn.cursor() as cur:
-                await cur.execute(
-                    """
+                await cur.execute("""
                 CREATE TABLE IF NOT EXISTS blacklist_guilds (
                     guild_id BIGINT PRIMARY KEY,
                     name TEXT,
                     reason TEXT
                 );
-                """
-                )
+                """)
             # Ensure 'name' column exists for older installs
             async with conn.cursor() as cur:
                 await cur.execute(
                     "ALTER TABLE blacklist_guilds ADD COLUMN IF NOT EXISTS name TEXT"
                 )
             async with conn.cursor(row_factory=rows.tuple_row) as cur:
-                await cur.execute(
-                    """
+                await cur.execute("""
                     SELECT column_name FROM information_schema.columns
                     WHERE table_name = 'guild_settings'
-                    """
-                )
+                    """)
                 cols = await cur.fetchall()
             colset = {r[0] for r in cols}
             renames = {
