@@ -302,13 +302,8 @@ Related policies:
 See [LICENSE.md](<./LICENSE.md>).
 
 [All Major Contributors](<./CONTRIBUTORS.md>)
-
 [All Other Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/graphs/contributors>)
 
-## AI agents
+## Note on contributions from AI
 
-If you're using an AI assistant to help with this repo, see:
-
-- [AGENTS.md](<./AGENTS.md>) - general guidance for LLM agents working in this repo
-- [CLAUDE.md](<./CLAUDE.md>) - provider-specific notes for Anthropic Claude
-- [COPILOT.md](<./COPILOT.md>) - provider-specific notes for GitHub Copilot in VS Code
+AI-generated pull requests are not accepted. All pull requests must be authored by a human, include a clear description of the changes, include tests or verification steps where applicable, and follow the project's contribution guidelines.
