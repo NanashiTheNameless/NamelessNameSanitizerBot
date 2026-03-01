@@ -18,8 +18,8 @@
 - [ ] Tests added/updated (if applicable)
 - [ ] Existing tests pass
 - Manual verification steps:
-	1.
-	2.
+ 1.
+ 2.
 
 ## Risk & Rollback
 
