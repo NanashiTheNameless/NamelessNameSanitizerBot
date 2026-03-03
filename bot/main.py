@@ -38,6 +38,7 @@ log.setLevel(_LOG_LEVEL)
 # Suppress PyNaCl warning when not installed
 logging.getLogger("discord.client").setLevel(logging.ERROR)
 logging.getLogger("discord.opus").setLevel(logging.ERROR)
+logging.getLogger("davey").setLevel(logging.ERROR)
 
 # Validate Discord token on startup
 validate_discord_token(DISCORD_TOKEN)  # type: ignore
