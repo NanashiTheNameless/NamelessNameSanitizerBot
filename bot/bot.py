@@ -925,8 +925,12 @@ class SanitizerBot(discord.Client):
             has_pending_min = "min_nick_length" in pending_updates
             has_pending_max = "max_nick_length" in pending_updates
             if has_pending_min or has_pending_max:
-                proposed_min = int(pending_updates.get("min_nick_length", current_min_len))
-                proposed_max = int(pending_updates.get("max_nick_length", current_max_len))
+                proposed_min = int(
+                    pending_updates.get("min_nick_length", current_min_len)
+                )
+                proposed_max = int(
+                    pending_updates.get("max_nick_length", current_max_len)
+                )
                 if proposed_min > proposed_max:
                     if has_pending_min and has_pending_max:
                         errors.append(
@@ -1533,7 +1537,9 @@ class SanitizerBot(discord.Client):
         mode = getattr(settings, "fallback_mode", "default")
         text = f"fallback_label set to '{lab}'."
         if mode == "randomized":
-            text += "\nWarning: This label will be ignored while fallback_mode=randomized."
+            text += (
+                "\nWarning: This label will be ignored while fallback_mode=randomized."
+            )
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)
