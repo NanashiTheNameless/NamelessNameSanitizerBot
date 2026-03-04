@@ -113,7 +113,7 @@ async def on_ready(self):
     if hasattr(self, "_pending_owner_dms") and self._pending_owner_dms:
         for dm_content in self._pending_owner_dms:
             try:
-                await self._dm_owner(dm_content)
+                await self._dm_owner(dm_content, respect_guild_event_optout=False)
             except Exception as e:
                 log.debug(f"Failed to send pending owner DM: {e}")
         self._pending_owner_dms.clear()

@@ -38,6 +38,8 @@ from .config import (
     APPLICATION_ID,
     DATABASE_URL,
     DM_OWNER_ON_GUILD_EVENTS,
+    MAX_NICK_LENGTH,
+    MIN_NICK_LENGTH,
     OWNER_ID,
     GuildSettings,
     parse_bool_str,
@@ -199,8 +201,10 @@ class SanitizerBot(discord.Client):
     def _get_bot_status(self) -> discord.Status:
         return get_bot_status(self)
 
-    async def _dm_owner(self, content: str) -> bool:
-        if not DM_OWNER_ON_GUILD_EVENTS:
+    async def _dm_owner(
+        self, content: str, respect_guild_event_optout: bool = True
+    ) -> bool:
+        if respect_guild_event_optout and not DM_OWNER_ON_GUILD_EVENTS:
             return False
         if not OWNER_ID:
             return False
@@ -353,6 +357,13 @@ class SanitizerBot(discord.Client):
         guild = member.guild
         me = guild.me
 
+        if me is None:
+            log.debug(
+                "Guild self member is unavailable for guild %s; skipping sanitize.",
+                guild.id,
+            )
+            return False
+
         if not me.guild_permissions.manage_nicknames:
             log.warning("Missing Manage Nicknames permission.")
             return False
@@ -491,6 +502,11 @@ class SanitizerBot(discord.Client):
             except Exception as e:
                 log.debug("[STATUS] Failed cancelling status cycle task: %s", e)
         self._status_cycle_task = None
+        if self.db:
+            try:
+                await self.db.close()
+            except Exception as e:
+                log.debug("Failed closing database pool: %s", e)
         await super().close()
 
     def _is_guild_admin(self, member: discord.Member) -> bool:
@@ -779,6 +795,8 @@ class SanitizerBot(discord.Client):
                 return
 
         settings = await self.db.get_settings(target_gid)
+        current_min_len = int(getattr(settings, "min_nick_length", MIN_NICK_LENGTH))
+        current_max_len = int(getattr(settings, "max_nick_length", MAX_NICK_LENGTH))
         warn_disabled = None
         if not settings.enabled:
             warn_disabled = "Note: The sanitizer is currently disabled in this server. Changes will apply after a bot admin runs `/enable-sanitizer`."
@@ -832,6 +850,8 @@ class SanitizerBot(discord.Client):
             updated = []
             will_enable = False
             errors = []
+            pending_updates: dict[str, object] = {}
+            update_order: list[str] = []
             for tok in tokens:
                 k, v_raw = tok.split("=", 1)
                 raw_k = k.strip().lower()
@@ -848,10 +868,14 @@ class SanitizerBot(discord.Client):
                         "cooldown_seconds",
                     }:
                         v = int(v_raw)
-                        if k == "min_nick_length" and v > 8:
-                            v = 8
-                        if k == "max_nick_length" and v > 32:
-                            v = 32
+                        if k == "check_length":
+                            v = max(0, v)
+                        if k == "min_nick_length":
+                            v = min(8, max(0, v))
+                        if k == "max_nick_length":
+                            v = min(32, max(1, v))
+                        if k == "cooldown_seconds":
+                            v = max(0, v)
                     elif k in {
                         "preserve_spaces",
                         "sanitize_emoji",
@@ -859,8 +883,6 @@ class SanitizerBot(discord.Client):
                         "enabled",
                     }:
                         v = parse_bool_str(v_raw)
-                        if k == "enabled" and bool(v) is True:
-                            will_enable = True
                     elif k == "logging_channel_id":
                         v = (
                             int(v_raw)
@@ -894,10 +916,69 @@ class SanitizerBot(discord.Client):
                     else:
                         errors.append(f"Unsupported key: {k}")
                         continue
+                    pending_updates[k] = v
+                    if k not in update_order:
+                        update_order.append(k)
+                except Exception as e:
+                    errors.append(f"{k}: {e}")
+
+            has_pending_min = "min_nick_length" in pending_updates
+            has_pending_max = "max_nick_length" in pending_updates
+            if has_pending_min or has_pending_max:
+                proposed_min = int(pending_updates.get("min_nick_length", current_min_len))
+                proposed_max = int(pending_updates.get("max_nick_length", current_max_len))
+                if proposed_min > proposed_max:
+                    if has_pending_min and has_pending_max:
+                        errors.append(
+                            f"min_nick_length ({proposed_min}) cannot be greater than max_nick_length ({proposed_max})"
+                        )
+                        pending_updates.pop("min_nick_length", None)
+                        pending_updates.pop("max_nick_length", None)
+                    elif has_pending_min:
+                        errors.append(
+                            f"min_nick_length ({proposed_min}) cannot be greater than max_nick_length ({proposed_max})"
+                        )
+                        pending_updates.pop("min_nick_length", None)
+                    else:
+                        errors.append(
+                            f"max_nick_length ({proposed_max}) cannot be less than min_nick_length ({proposed_min})"
+                        )
+                        pending_updates.pop("max_nick_length", None)
+                    update_order = [k for k in update_order if k in pending_updates]
+
+            if (
+                "min_nick_length" in pending_updates
+                and "max_nick_length" in pending_updates
+            ):
+                min_v = int(pending_updates["min_nick_length"])
+                max_v = int(pending_updates["max_nick_length"])
+                try:
+                    await self.db.set_min_max_lengths(target_gid, min_v, max_v)
+                    if update_order.index("min_nick_length") < update_order.index(
+                        "max_nick_length"
+                    ):
+                        updated.append(f"min_nick_length={min_v}")
+                        updated.append(f"max_nick_length={max_v}")
+                    else:
+                        updated.append(f"max_nick_length={max_v}")
+                        updated.append(f"min_nick_length={min_v}")
+                except Exception as e:
+                    errors.append(f"min_nick_length/max_nick_length: {e}")
+                pending_updates.pop("min_nick_length", None)
+                pending_updates.pop("max_nick_length", None)
+
+            for k in update_order:
+                if k not in pending_updates:
+                    continue
+                v = pending_updates[k]
+                try:
                     await self.db.set_setting(target_gid, k, v)
+                    if k == "enabled" and bool(v) is True:
+                        will_enable = True
                     updated.append(f"{k}={v}")
                 except Exception as e:
                     errors.append(f"{k}: {e}")
+
             msg = []
             if updated:
                 msg.append("Updated: " + ", ".join(updated))
@@ -947,6 +1028,8 @@ class SanitizerBot(discord.Client):
                 cur = s.logging_channel_id
             elif key == "bypass_role_id":
                 cur = self._get_bypass_role_list(s)
+            elif key == "fallback_label":
+                cur = s.fallback_label or "Illegal Name"
             else:
                 await interaction.response.send_message(
                     "Unsupported setting.", ephemeral=True
@@ -971,10 +1054,14 @@ class SanitizerBot(discord.Client):
                 "cooldown_seconds",
             }:
                 v = int(value)
-                if key == "min_nick_length" and v > 8:
-                    v = 8
-                if key == "max_nick_length" and v > 32:
-                    v = 32
+                if key == "check_length":
+                    v = max(0, v)
+                if key == "min_nick_length":
+                    v = min(8, max(0, v))
+                if key == "max_nick_length":
+                    v = min(32, max(1, v))
+                if key == "cooldown_seconds":
+                    v = max(0, v)
             elif key in {
                 "preserve_spaces",
                 "sanitize_emoji",
@@ -1019,6 +1106,20 @@ class SanitizerBot(discord.Client):
                     "Unsupported setting.", ephemeral=True
                 )
                 return
+
+            if key == "min_nick_length" and int(v) > current_max_len:
+                await interaction.response.send_message(
+                    f"min_nick_length ({v}) cannot be greater than max_nick_length ({current_max_len}).",
+                    ephemeral=True,
+                )
+                return
+            if key == "max_nick_length" and int(v) < current_min_len:
+                await interaction.response.send_message(
+                    f"max_nick_length ({v}) cannot be less than min_nick_length ({current_min_len}).",
+                    ephemeral=True,
+                )
+                return
+
             await self.db.set_setting(target_gid, key, v)
             # Build a friendly display of the value that was set
             if key == "logging_channel_id":
@@ -1406,8 +1507,8 @@ class SanitizerBot(discord.Client):
             cur = settings.fallback_label or "Illegal Name"
             mode = getattr(settings, "fallback_mode", "default")
             text = f"Current fallback_label: {cur}"
-            if mode in ("randomized", "username"):
-                text += "\nNote: fallback_label is ignored while fallback_mode is set to randomized or username."
+            if mode == "randomized":
+                text += "\nNote: fallback_label is ignored while fallback_mode is set to randomized."
             if warn_disabled:
                 text = f"{text}\n{warn_disabled}"
             await interaction.response.send_message(text, ephemeral=True)
@@ -1431,8 +1532,8 @@ class SanitizerBot(discord.Client):
         await self.db.set_setting(interaction.guild.id, "fallback_label", lab)
         mode = getattr(settings, "fallback_mode", "default")
         text = f"fallback_label set to '{lab}'."
-        if mode in ("randomized", "username"):
-            text += "\nWarning: This label will be ignored while fallback_mode=randomized or fallback_mode=username."
+        if mode == "randomized":
+            text += "\nWarning: This label will be ignored while fallback_mode=randomized."
         if warn_disabled:
             text = f"{text}\n{warn_disabled}"
         await interaction.response.send_message(text, ephemeral=True)

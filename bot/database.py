@@ -67,9 +67,22 @@ class Database:
     async def connect(self):
         if not self.dsn:
             raise RuntimeError("DATABASE_URL is not configured")
-        # Create an async psycopg connection pool and open it explicitly
-        self.pool = AsyncConnectionPool(self.dsn, min_size=1, max_size=5, open=False)
+        # Reuse an existing open pool across reconnects.
+        if self.pool is None:
+            self.pool = AsyncConnectionPool(
+                self.dsn, min_size=1, max_size=5, open=False
+            )
+        if not getattr(self.pool, "closed", True):
+            return
         await self.pool.open()  # type: ignore
+
+    async def close(self):
+        if self.pool is None:
+            return
+        try:
+            await self.pool.close()  # type: ignore
+        finally:
+            self.pool = None
 
     async def init(self):
         assert self.pool is not None
@@ -278,6 +291,32 @@ class Database:
                     )
                 return GuildSettings(guild_id=guild_id)
 
+    async def set_min_max_lengths(self, guild_id: int, min_len: int, max_len: int):
+        assert self.pool is not None
+        try:
+            min_v = min(8, max(0, int(min_len)))
+        except Exception:
+            raise ValueError("min_nick_length must be an integer")
+        try:
+            max_v = min(32, max(1, int(max_len)))
+        except Exception:
+            raise ValueError("max_nick_length must be an integer")
+        if min_v > max_v:
+            raise ValueError(
+                f"min_nick_length ({min_v}) cannot be greater than max_nick_length ({max_v})"
+            )
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "INSERT INTO guild_settings (guild_id) VALUES (%s) ON CONFLICT (guild_id) DO NOTHING",
+                    (guild_id,),
+                )
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "UPDATE guild_settings SET min_nick_length = %s, max_nick_length = %s WHERE guild_id=%s",
+                    (min_v, max_v, guild_id),
+                )
+
     async def set_setting(self, guild_id: int, key: str, value):
         assert self.pool is not None
 
@@ -305,32 +344,56 @@ class Database:
         col = columns.get(key)
         if not col:
             raise ValueError(f"Unsupported setting: {key}")
+        if col == "check_length":
+            try:
+                iv = int(value)
+            except Exception:
+                raise ValueError("check_length must be an integer")
+            value = max(0, iv)
+        if col == "cooldown_seconds":
+            try:
+                iv = int(value)
+            except Exception:
+                raise ValueError("cooldown_seconds must be an integer")
+            value = max(0, iv)
         if col == "min_nick_length":
             try:
                 iv = int(value)
             except Exception:
                 raise ValueError("min_nick_length must be an integer")
-            # Clamp to upper bound 8 if exceeded
-            if iv > 8:
-                value = 8
-            else:
-                value = iv
+            # Clamp to [0, 8]
+            value = min(8, max(0, iv))
         if col == "max_nick_length":
             try:
                 iv = int(value)
             except Exception:
                 raise ValueError("max_nick_length must be an integer")
-            # Clamp to upper bound 32 if exceeded
-            if iv > 32:
-                value = 32
-            else:
-                value = iv
+            # Clamp to [1, 32]
+            value = min(32, max(1, iv))
         async with self.pool.connection() as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
                     "INSERT INTO guild_settings (guild_id) VALUES (%s) ON CONFLICT (guild_id) DO NOTHING",
                     (guild_id,),
                 )
+            if col in {"min_nick_length", "max_nick_length"}:
+                async with conn.cursor(row_factory=rows.tuple_row) as cur:
+                    await cur.execute(
+                        "SELECT min_nick_length, max_nick_length FROM guild_settings WHERE guild_id=%s",
+                        (guild_id,),
+                    )
+                    row = await cur.fetchone()
+                if row:
+                    existing_min = int(row[0])
+                    existing_max = int(row[1])
+                    if col == "min_nick_length" and int(value) > existing_max:
+                        raise ValueError(
+                            f"min_nick_length ({value}) cannot be greater than max_nick_length ({existing_max})"
+                        )
+                    if col == "max_nick_length" and int(value) < existing_min:
+                        raise ValueError(
+                            f"max_nick_length ({value}) cannot be less than min_nick_length ({existing_min})"
+                        )
             if col == "bypass_role_id":
                 normalized = _normalize_bypass_role_value(value)
                 async with conn.cursor() as cur:

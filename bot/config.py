@@ -45,7 +45,7 @@ def parse_bool_str(val: str) -> bool:
 # Configuration values from environment
 COOLDOWN_SECONDS = getenv_int("COOLDOWN_SECONDS", 30)
 CHECK_LENGTH = getenv_int("CHECK_LENGTH", 0)
-MIN_NICK_LENGTH = getenv_int("MIN_NICK_LENGTH", 2)
+MIN_NICK_LENGTH = getenv_int("MIN_NICK_LENGTH", 3)
 MAX_NICK_LENGTH = getenv_int("MAX_NICK_LENGTH", 32)
 PRESERVE_SPACES = getenv_bool("PRESERVE_SPACES", True)
 SANITIZE_EMOJI = getenv_bool("SANITIZE_EMOJI", True)

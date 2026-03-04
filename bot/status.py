@@ -207,7 +207,8 @@ def track_error(
                 self._dm_owner(
                     f"**Bot Error Alert (non-critical)**\n"
                     f"Error: {error_msg}{guild_info}\n"
-                    f"Status: Bot status unchanged"
+                    f"Status: Bot status unchanged",
+                    respect_guild_event_optout=False,
                 )
             )
         elif critical and self._error_count <= 2:
@@ -216,7 +217,8 @@ def track_error(
                 self._dm_owner(
                     f"**Bot Error Alert** ({self._error_count} errors)\n"
                     f"Error: {error_msg}{guild_info}\n"
-                    f"Status: Bot status normal (threshold not exceeded)"
+                    f"Status: Bot status normal (threshold not exceeded)",
+                    respect_guild_event_optout=False,
                 )
             )
         elif critical and self._error_count > 2:
@@ -225,7 +227,8 @@ def track_error(
                 self._dm_owner(
                     f"**Bot Error Alert** ({self._error_count} errors)\n"
                     f"Error: {error_msg}{guild_info}\n"
-                    f"Status: Bot is now in DnD mode (red status)"
+                    f"Status: Bot is now in DnD mode (red status)",
+                    respect_guild_event_optout=False,
                 )
             )
 
