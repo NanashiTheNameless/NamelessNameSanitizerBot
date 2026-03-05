@@ -53,7 +53,10 @@ Policy defaults (used until changed per-guild (server) via commands)
 
 Runtime
 
-- SWEEP_INTERVAL_SEC: integer, default 60 - periodic sweep interval seconds
+- SWEEP_INTERVAL_SEC: integer, default 120 - periodic sweep interval seconds
+- SWEEP_GUILD_DELAY_SEC: integer, default 1 - delay between guild sweeps to reduce burst API traffic
+- SWEEP_FETCH_MAX_RETRIES: integer, default 3 - retries for transient sweep fetch HTTP failures (429/5xx)
+- SWEEP_RETRY_BASE_SEC: integer, default 2 - exponential backoff base for sweep retries
 - LOG_LEVEL: DEBUG|INFO|WARNING|ERROR - overrides default logging level (INFO)
 - DM_OWNER_ON_GUILD_EVENTS: True|False, default True - if True, the bot will DM the owner on guild (server) join/leave events
 
@@ -236,6 +239,7 @@ Status checks run at startup and the status updates during the regular status me
   - Check the bot's "Manage Nicknames" permission and role hierarchy
   - The bot's role should be above the roles of users you want it to modify
   - Confirm SWEEP_INTERVAL_SEC and that the member isn't on cooldown
+  - If you see intermittent `503 Service Unavailable` during sweeps, increase `SWEEP_INTERVAL_SEC`, keep `SWEEP_GUILD_DELAY_SEC` >= 1, and leave sweep retries enabled
   - Ensure the user doesn't have any bypass role(s) and logging indicates attempts
 
 - If you're the owner and destructive commands appear rate-limited unexpectedly, check OWNER_DESTRUCTIVE_COOLDOWN_SECONDS.

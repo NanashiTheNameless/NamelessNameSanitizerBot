@@ -153,7 +153,10 @@ FALLBACK_LABEL=$(prompt_with_default "Fallback name for sanitized accounts" "Ill
 echo
 echo "Advanced Configuration (if you are unsure use the default):"
 COOLDOWN_TTL_SEC=$(prompt_with_default "How long to remember user cooldowns (seconds)" "86400")
-SWEEP_INTERVAL_SEC=$(prompt_with_default "Check for name changes every N seconds" "60")
+SWEEP_INTERVAL_SEC=$(prompt_with_default "Check for name changes every N seconds" "120")
+SWEEP_GUILD_DELAY_SEC=$(prompt_with_default "Pause between guild sweeps (seconds)" "1")
+SWEEP_FETCH_MAX_RETRIES=$(prompt_with_default "Retry count for transient sweep HTTP failures" "3")
+SWEEP_RETRY_BASE_SEC=$(prompt_with_default "Base retry delay for sweep HTTP retries (seconds)" "2")
 DM_OWNER_ON_GUILD_EVENTS=$(prompt_with_default "Send DM when bot joins/leaves a server (true/false)" "true")
 DM_OWNER_ON_ERRORS=$(prompt_with_default "Send DM when errors trigger DnD status (true/false)" "true")
 COMMAND_COOLDOWN_SECONDS=$(prompt_with_default "Cooldown per user for slash commands (seconds)" "2")
@@ -207,6 +210,9 @@ COOLDOWN_TTL_SEC=$COOLDOWN_TTL_SEC
 
 # Background sweep configuration.
 SWEEP_INTERVAL_SEC=$SWEEP_INTERVAL_SEC
+SWEEP_GUILD_DELAY_SEC=$SWEEP_GUILD_DELAY_SEC
+SWEEP_FETCH_MAX_RETRIES=$SWEEP_FETCH_MAX_RETRIES
+SWEEP_RETRY_BASE_SEC=$SWEEP_RETRY_BASE_SEC
 
 # Whether the bot should DM the owner when it joins or leaves a guild.
 # Set to false to disable owner notifications for these events.

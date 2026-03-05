@@ -65,7 +65,10 @@ OWNER_ID = int(os.getenv("OWNER_ID", "0") or "0")
 DATABASE_URL = os.getenv("DATABASE_URL")
 _APP_ID = os.getenv("APPLICATION_ID", "").strip()
 APPLICATION_ID = int(_APP_ID) if _APP_ID.isdigit() else None
-SWEEP_INTERVAL_SEC = getenv_int("SWEEP_INTERVAL_SEC", 60)
+SWEEP_INTERVAL_SEC = getenv_int("SWEEP_INTERVAL_SEC", 120)
+SWEEP_FETCH_MAX_RETRIES = max(0, getenv_int("SWEEP_FETCH_MAX_RETRIES", 3))
+SWEEP_RETRY_BASE_SEC = max(1, getenv_int("SWEEP_RETRY_BASE_SEC", 2))
+SWEEP_GUILD_DELAY_SEC = max(0, getenv_int("SWEEP_GUILD_DELAY_SEC", 1))
 
 
 @dataclass
