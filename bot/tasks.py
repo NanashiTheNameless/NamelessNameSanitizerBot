@@ -34,7 +34,9 @@ def _compute_retry_delay(exc: discord.HTTPException, attempt: int) -> float:
     return min(SWEEP_RETRY_BASE_SEC * (2**attempt), 30.0)
 
 
-async def sweep_guild_members(self, guild: discord.Guild, settings: GuildSettings, source: str):
+async def sweep_guild_members(
+    self, guild: discord.Guild, settings: GuildSettings, source: str
+):
     """Sweep one guild with bounded retries for transient HTTP failures."""
     for attempt in range(SWEEP_FETCH_MAX_RETRIES + 1):
         processed = 0
@@ -49,7 +51,10 @@ async def sweep_guild_members(self, guild: discord.Guild, settings: GuildSetting
                 processed += 1
             return processed, changed, None
         except discord.HTTPException as e:
-            if not _is_retryable_http_exception(e) or attempt >= SWEEP_FETCH_MAX_RETRIES:
+            if (
+                not _is_retryable_http_exception(e)
+                or attempt >= SWEEP_FETCH_MAX_RETRIES
+            ):
                 return processed, changed, e
             delay = _compute_retry_delay(e, attempt)
             log.warning(
