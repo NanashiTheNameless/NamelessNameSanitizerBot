@@ -130,6 +130,8 @@ class SanitizerBot(discord.Client):
         self._red_status_triggered = False  # Once True, persists until restart
         self._config_error = False
         self._pending_owner_dms: list[str] = []  # Queue DMs to send on ready
+        # Guild IDs explicitly left via owner command; consumed in on_guild_remove.
+        self._owner_requested_leave_guild_ids: set[int] = set()
         self._status_cycle_task: asyncio.Task[None] | None = None
         self._sweep_lock = asyncio.Lock()
         self._sweep_running = False
@@ -2501,11 +2503,10 @@ class SanitizerBot(discord.Client):
             except Exception:
                 pass
         try:
+            self._owner_requested_leave_guild_ids.add(guild.id)
             await guild.leave()
-            await self._dm_owner(
-                f"Left guild: {guild.name} ({guild.id}) - Requested by bot owner."
-            )
         except Exception:
+            self._owner_requested_leave_guild_ids.discard(guild.id)
             # As a fallback, try to kick self if possible
             try:
                 me = guild.me

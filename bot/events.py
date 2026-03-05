@@ -191,8 +191,15 @@ async def on_guild_remove(self, guild: discord.Guild):
             log.debug(
                 "Failed to clear stored data for removed guild %s: %s", guild.id, e
             )
-    # Notify owner that the bot left the guild
-    await self._dm_owner(f"Left guild: {guild.name} ({guild.id})")
+    # Notify owner that the bot left the guild (single path, with optional reason suffix).
+    owner_requested = False
+    try:
+        owner_requested = guild.id in self._owner_requested_leave_guild_ids
+        self._owner_requested_leave_guild_ids.discard(guild.id)
+    except Exception:
+        owner_requested = False
+    suffix = " - Requested by bot owner." if owner_requested else ""
+    await self._dm_owner(f"Left guild: {guild.name} ({guild.id}){suffix}")
 
 
 async def on_member_join(self, member: discord.Member):
