@@ -80,48 +80,54 @@ async def member_sweep(self):
         except Exception as e:
             log.debug("clear_expired_cooldowns failed: %s", e)
 
-    if self._sweep_lock.locked():
+    if self._sweep_running:
         log.debug("Member sweep skipped because another sweep is already running.")
         return
 
-    async with self._sweep_lock:
-        guilds = list(self.guilds)
-        for idx, guild in enumerate(guilds):
-            settings = GuildSettings(guild.id)
-            if self.db:
-                try:
-                    settings = await self.db.get_settings(guild.id)
-                except Exception as e:
-                    log.debug("Failed to get settings for guild %s: %s", guild.id, e)
-            if not settings.enabled:
-                continue
+    self._sweep_running = True
+    try:
+        async with self._sweep_lock:
+            guilds = list(self.guilds)
+            for idx, guild in enumerate(guilds):
+                settings = GuildSettings(guild.id)
+                if self.db:
+                    try:
+                        settings = await self.db.get_settings(guild.id)
+                    except Exception as e:
+                        log.debug(
+                            "Failed to get settings for guild %s: %s", guild.id, e
+                        )
+                if not settings.enabled:
+                    continue
 
-            processed, changed, sweep_error = await sweep_guild_members(
-                self, guild, settings, source="sweep"
-            )
-            if sweep_error:
-                if DEBUG_MODE:
-                    log.warning(
-                        "Member sweep rate limit/HTTP error in %s: %s",
-                        guild.name,
-                        sweep_error,
+                processed, changed, sweep_error = await sweep_guild_members(
+                    self, guild, settings, source="sweep"
+                )
+                if sweep_error:
+                    if DEBUG_MODE:
+                        log.warning(
+                            "Member sweep rate limit/HTTP error in %s: %s",
+                            guild.name,
+                            sweep_error,
+                        )
+                    # Mark as non-critical - upstream/rate-limit errors shouldn't trigger red status
+                    self._track_error(
+                        f"Member sweep HTTP error in {guild.name}: {sweep_error}",
+                        guild.id,
+                        critical=False,
                     )
-                # Mark as non-critical - upstream/rate-limit errors shouldn't trigger red status
-                self._track_error(
-                    f"Member sweep HTTP error in {guild.name}: {sweep_error}",
-                    guild.id,
-                    critical=False,
-                )
-            elif processed and DEBUG_MODE:
-                log.info(
-                    "Sweep processed %d members and changed %d in %s",
-                    processed,
-                    changed,
-                    guild.name,
-                )
+                elif processed and DEBUG_MODE:
+                    log.info(
+                        "Sweep processed %d members and changed %d in %s",
+                        processed,
+                        changed,
+                        guild.name,
+                    )
 
-            if SWEEP_GUILD_DELAY_SEC > 0 and idx < len(guilds) - 1:
-                await asyncio.sleep(SWEEP_GUILD_DELAY_SEC)
+                if SWEEP_GUILD_DELAY_SEC > 0 and idx < len(guilds) - 1:
+                    await asyncio.sleep(SWEEP_GUILD_DELAY_SEC)
+    finally:
+        self._sweep_running = False
 
 
 @member_sweep.before_loop

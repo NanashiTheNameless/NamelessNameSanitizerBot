@@ -132,6 +132,7 @@ class SanitizerBot(discord.Client):
         self._pending_owner_dms: list[str] = []  # Queue DMs to send on ready
         self._status_cycle_task: asyncio.Task[None] | None = None
         self._sweep_lock = asyncio.Lock()
+        self._sweep_running = False
 
         # Validate owner is configured
         if not OWNER_ID:
@@ -703,16 +704,20 @@ class SanitizerBot(discord.Client):
             return
         # Defer while sweeping
         await interaction.response.defer(ephemeral=True)
-        if self._sweep_lock.locked():
+        if self._sweep_running:
             await interaction.followup.send(
                 "A sweep is already running (scheduled or manual). Try again after it finishes.",
                 ephemeral=True,
             )
             return
-        async with self._sweep_lock:
-            processed, changed, sweep_error = await sweep_guild_members(
-                self, interaction.guild, settings, source="manual-sweep"
-            )
+        self._sweep_running = True
+        try:
+            async with self._sweep_lock:
+                processed, changed, sweep_error = await sweep_guild_members(
+                    self, interaction.guild, settings, source="manual-sweep"
+                )
+        finally:
+            self._sweep_running = False
         if sweep_error:
             await interaction.followup.send(
                 f"Sweep encountered an HTTP error after processing {processed} member(s): {sweep_error}",
