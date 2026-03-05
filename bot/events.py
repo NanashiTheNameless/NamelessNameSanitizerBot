@@ -37,13 +37,8 @@ async def on_ready(self):
         log.info("[STARTUP] Logged in as %s (%s)", self.user, self.user.id)
         log.info("[STARTUP] Connected to %d guild(s)", len(self.guilds))
 
-    if APPLICATION_ID:
-        invite = f"https://discord.com/oauth2/authorize?client_id={APPLICATION_ID}&scope=bot%20applications.commands&permissions=134217728&integration_type=0"
-        log.info(f"[INFO] Bot invite link: {invite}")
-    else:
-        log.warning(
-            "[INFO] APPLICATION_ID is not set. Set it in your .env to generate a bot invite link."
-        )
+    invite = f"https://discord.com/oauth2/authorize?client_id={APPLICATION_ID}&scope=bot%20applications.commands&permissions=134217728&integration_type=0"
+    log.info(f"[INFO] Bot invite link: {invite}")
     if not self.guilds:
         log.warning("[STATUS] No guilds detected. Bot is not in any servers.")
 
@@ -89,7 +84,9 @@ async def on_ready(self):
     if self.db:
         try:
             known_ids = {g.id for g in self.guilds}
-            removed = await self.db.purge_unknown_guilds(known_ids)
+            removed = await self.db.purge_unknown_guilds(
+                known_ids, allow_empty_known_ids=True
+            )
             if removed:
                 log.info(
                     "[CLEANUP] Purged stored data for %d unknown guild(s).", removed

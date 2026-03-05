@@ -25,7 +25,7 @@ import sys
 import discord  # type: ignore
 
 from .bot import SanitizerBot
-from .config import DISCORD_TOKEN, validate_discord_token
+from .config import DISCORD_TOKEN, validate_application_id, validate_discord_token
 
 log = logging.getLogger("sanitizerbot")
 logging.basicConfig(level=logging.INFO)
@@ -42,6 +42,7 @@ logging.getLogger("davey").setLevel(logging.ERROR)
 
 # Validate Discord token on startup
 validate_discord_token(DISCORD_TOKEN)  # type: ignore
+validate_application_id(os.getenv("APPLICATION_ID"))
 
 
 def main():

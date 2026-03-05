@@ -42,6 +42,18 @@ def parse_bool_str(val: str) -> bool:
     return False
 
 
+def parse_bool_strict(val: str) -> bool:
+    """Parse a case-insensitive boolean string and raise on invalid input."""
+    v = (val or "").strip().lower()
+    if v in ("1", "true", "yes", "on", "t", "y"):
+        return True
+    if v in ("0", "false", "no", "off", "f", "n"):
+        return False
+    raise ValueError(
+        f"Invalid boolean value: {val!r}. Use one of true/false, yes/no, on/off, 1/0."
+    )
+
+
 # Configuration values from environment
 COOLDOWN_SECONDS = getenv_int("COOLDOWN_SECONDS", 30)
 CHECK_LENGTH = getenv_int("CHECK_LENGTH", 0)
@@ -131,3 +143,34 @@ def validate_discord_token(token: str):
         log.warning(
             "DISCORD_TOKEN first segment did not decode via base64; continuing. If login fails, regenerate the token."
         )
+
+
+def validate_application_id(app_id: str | None):
+    """Validate Discord Application ID (client ID)."""
+    raw = (app_id or "").strip()
+    if not raw:
+        log.error("Missing APPLICATION_ID in environment.")
+        sys.exit(1)
+
+    placeholders = {
+        "0",
+        "replace_with_your_application_id",
+        "your_application_id_here",
+    }
+    if raw.lower() in placeholders:
+        log.error(
+            "APPLICATION_ID looks like a placeholder; please set your real Discord Application (Client) ID."
+        )
+        sys.exit(1)
+
+    if any(ch.isspace() for ch in raw):
+        log.error("APPLICATION_ID contains whitespace; use only the numeric ID.")
+        sys.exit(1)
+
+    if not raw.isdigit():
+        log.error("APPLICATION_ID must be numeric (Discord Application/Client ID).")
+        sys.exit(1)
+
+    if len(raw) < 17 or len(raw) > 20:
+        log.error("APPLICATION_ID appears invalid (expected 17-20 digits).")
+        sys.exit(1)

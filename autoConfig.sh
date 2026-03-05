@@ -44,27 +44,29 @@ prompt_basic() {
 	echo "$input_value"
 }
 
-# Function to validate Discord user ID format
-validate_owner_id() {
-	local owner_id="$1"
+# Function to validate Discord snowflake IDs (owner/application IDs)
+validate_discord_id() {
+	local id_name="$1"
+	local id_value="$2"
+	local id_desc="$3"
 
-	if [[ -z "$owner_id" ]]; then
-		echo "Error: OWNER_ID is missing." >&2
+	if [[ -z "$id_value" ]]; then
+		echo "Error: ${id_name} is missing." >&2
 		return 1
 	fi
 
-	if [[ "$owner_id" =~ [[:space:]] ]]; then
-		echo "Error: OWNER_ID contains whitespace." >&2
+	if [[ "$id_value" =~ [[:space:]] ]]; then
+		echo "Error: ${id_name} contains whitespace." >&2
 		return 1
 	fi
 
-	if ! [[ "$owner_id" =~ ^[0-9]+$ ]]; then
-		echo "Error: OWNER_ID must be numeric (a Discord user ID)." >&2
+	if ! [[ "$id_value" =~ ^[0-9]+$ ]]; then
+		echo "Error: ${id_name} must be numeric (${id_desc})." >&2
 		return 1
 	fi
 
-	if [[ ${#owner_id} -lt 17 ]] || [[ ${#owner_id} -gt 20 ]]; then
-		echo "Error: OWNER_ID appears invalid (should be 17-20 digits)." >&2
+	if [[ ${#id_value} -lt 17 ]] || [[ ${#id_value} -gt 20 ]]; then
+		echo "Error: ${id_name} appears invalid (should be 17-20 digits)." >&2
 		return 1
 	fi
 
@@ -119,12 +121,18 @@ while :; do
 done
 while :; do
 	OWNER_ID=$(prompt_basic "Your Discord user ID (you will be the bot owner)")
-	if validate_owner_id "$OWNER_ID"; then
+	if validate_discord_id "OWNER_ID" "$OWNER_ID" "a Discord user ID"; then
 		break
 	fi
 	echo "Validation failed. Please enter a valid Discord user ID again."
 done
-APPLICATION_ID=$(prompt_with_default "Application ID from Discord Developer Portal (for invite links and the API)" "0")
+while :; do
+	APPLICATION_ID=$(prompt_basic "Application ID from Discord Developer Portal (required)")
+	if validate_discord_id "APPLICATION_ID" "$APPLICATION_ID" "Discord Application/Client ID"; then
+		break
+	fi
+	echo "Validation failed. Please enter a valid Discord Application ID again."
+done
 
 echo
 echo "Database Configuration:"
@@ -191,7 +199,7 @@ POSTGRES_DB=bot # Don't change this
 POSTGRES_USER=$POSTGRES_USER # Don't change this
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD # Don't change this
 
-# Application (client) ID used to generate invite links. Optional but recommended.
+# Application (client) ID used for invite links, slash command registration, and the API. Required.
 APPLICATION_ID=$APPLICATION_ID
 
 # Policy defaults (can be overridden per-guild via slash commands).

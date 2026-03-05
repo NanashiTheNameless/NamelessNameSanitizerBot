@@ -42,7 +42,7 @@ from .config import (
     MIN_NICK_LENGTH,
     OWNER_ID,
     GuildSettings,
-    parse_bool_str,
+    parse_bool_strict,
 )
 from .database import Database
 from .events import (
@@ -107,9 +107,12 @@ class SanitizerCommandTree(discord.app_commands.CommandTree):
 
 class SanitizerBot(discord.Client):
     def __init__(self, intents: discord.Intents):
-        kwargs = {"intents": intents}
-        if APPLICATION_ID:
-            kwargs["application_id"] = APPLICATION_ID
+        if not APPLICATION_ID:
+            raise ValueError(
+                "APPLICATION_ID environment variable is not set. "
+                "Set APPLICATION_ID to your Discord Application (Client) ID."
+            )
+        kwargs = {"intents": intents, "application_id": APPLICATION_ID}
         super().__init__(**kwargs)
         self.db = Database(DATABASE_URL) if DATABASE_URL else None
         self.tree = SanitizerCommandTree(self)
@@ -891,7 +894,7 @@ class SanitizerBot(discord.Client):
                         "enforce_bots",
                         "enabled",
                     }:
-                        v = parse_bool_str(v_raw)
+                        v = parse_bool_strict(v_raw)
                     elif k == "logging_channel_id":
                         v = (
                             int(v_raw)
@@ -1081,7 +1084,7 @@ class SanitizerBot(discord.Client):
                 "enforce_bots",
                 "enabled",
             }:
-                v = parse_bool_str(value)
+                v = parse_bool_strict(value)
             elif key == "fallback_mode":
                 mv = value.strip().lower()
                 if mv not in {"default", "randomized", "static"}:
@@ -1099,7 +1102,7 @@ class SanitizerBot(discord.Client):
                 if value.strip().lower() in {"none", "null", "unset"}:
                     v = None
                 else:
-                    v = value
+                    v = self._parse_bypass_role_list(value)
             elif key == "fallback_label":
                 lab = value.strip()
                 if lab.lower() in {"none", "null", "unset"}:
@@ -1138,7 +1141,10 @@ class SanitizerBot(discord.Client):
             if key == "logging_channel_id":
                 display = f"<#{v}>" if v else "None"
             elif key == "bypass_role_id":
-                ids = self._parse_bypass_role_list(str(v)) if v else []
+                if isinstance(v, (list, tuple, set)):
+                    ids = [int(x) for x in v]
+                else:
+                    ids = self._parse_bypass_role_list(str(v)) if v else []
                 display = ", ".join(f"<@&{rid}>" for rid in ids) if ids else "None"
             elif isinstance(v, bool):
                 display = "True" if v else "False"
@@ -1196,6 +1202,11 @@ class SanitizerBot(discord.Client):
     async def cmd_set_check_count(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
             warn_disabled = None
@@ -1211,6 +1222,11 @@ class SanitizerBot(discord.Client):
     async def cmd_set_min_nick_length(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
             warn_disabled = None
@@ -1226,6 +1242,11 @@ class SanitizerBot(discord.Client):
     async def cmd_set_max_nick_length(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
             warn_disabled = None
@@ -1241,6 +1262,11 @@ class SanitizerBot(discord.Client):
     async def cmd_set_keep_spaces(
         self, interaction: discord.Interaction, value: Optional[bool] = None
     ):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
             warn_disabled = None
@@ -1258,6 +1284,11 @@ class SanitizerBot(discord.Client):
     async def cmd_set_cooldown_seconds(
         self, interaction: discord.Interaction, value: Optional[int] = None
     ):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
             warn_disabled = None
@@ -1273,6 +1304,11 @@ class SanitizerBot(discord.Client):
     async def cmd_set_emoji_sanitization(
         self, interaction: discord.Interaction, value: Optional[bool] = None
     ):
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
         if value is None:
             s = await self.db.get_settings(interaction.guild.id)  # type: ignore
             warn_disabled = None

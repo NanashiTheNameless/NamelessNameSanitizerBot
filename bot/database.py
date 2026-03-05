@@ -8,6 +8,7 @@ user cooldowns, bot admins, and blacklisted guilds.
 """
 
 import time
+import re
 from typing import Optional
 
 from psycopg import rows  # type: ignore
@@ -32,6 +33,15 @@ def now():
 
 
 def _normalize_bypass_role_value(value) -> str | None:
+    def _extract_role_id(raw) -> str:
+        try:
+            return str(int(raw))
+        except Exception:
+            match = re.search(r"\d+", str(raw or ""))
+            if not match:
+                raise ValueError(f"Invalid role id: {raw}")
+            return str(int(match.group(0)))
+
     if value is None:
         return None
     if isinstance(value, int):
@@ -40,7 +50,7 @@ def _normalize_bypass_role_value(value) -> str | None:
         ids: list[str] = []
         for item in value:
             try:
-                ids.append(str(int(item)))
+                ids.append(_extract_role_id(item))
             except Exception as e:
                 raise ValueError(f"Invalid role id: {item}") from e
         return ",".join(ids) if ids else None
@@ -52,7 +62,7 @@ def _normalize_bypass_role_value(value) -> str | None:
         ids: list[str] = []
         for tok in tokens:
             try:
-                ids.append(str(int(tok)))
+                ids.append(_extract_role_id(tok))
             except Exception as e:
                 raise ValueError(f"Invalid role id: {tok}") from e
         return ",".join(ids) if ids else None
@@ -575,16 +585,26 @@ class Database:
                 await cur.execute("DELETE FROM guild_settings")
                 return int(cur.rowcount or 0)
 
-    async def purge_unknown_guilds(self, known_guild_ids: set[int]) -> int:
+    async def purge_unknown_guilds(
+        self, known_guild_ids: set[int], allow_empty_known_ids: bool = False
+    ) -> int:
         """Delete stored data for guilds that are not in known_guild_ids.
 
         Removes from guild_admins and guild_settings. Returns total rows deleted.
         """
         assert self.pool is not None
-        if not known_guild_ids:
-            return 0
         total = 0
         async with self.pool.connection() as conn:
+            if not known_guild_ids:
+                if not allow_empty_known_ids:
+                    return 0
+                async with conn.cursor() as cur:
+                    await cur.execute("DELETE FROM guild_admins")
+                    total += int(cur.rowcount or 0)
+                async with conn.cursor() as cur:
+                    await cur.execute("DELETE FROM guild_settings")
+                    total += int(cur.rowcount or 0)
+                return total
             # Delete admin rows first
             async with conn.cursor() as cur:
                 await cur.execute(

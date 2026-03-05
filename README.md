@@ -30,12 +30,12 @@ If you want a production-friendly, self-hosting optimized setup (pre-tuned Docke
 Required
 
 - DISCORD_TOKEN: Discord bot token
+- OWNER_ID: Discord user ID of the bot owner
+- APPLICATION_ID: Discord Application (Client) ID (used for invite links, slash command registration, and API identity)
 
 Recommended
 
 - DATABASE_URL: e.g., `postgresql://bot:bot@db:5432/bot` (matches the included docker-compose)
-- OWNER_ID: Discord user ID of the bot owner (can manage bot admins and global actions). If unset, the bot uses a built-in fallback owner ID.
-- APPLICATION_ID: Discord Application (Client) ID; optional at runtime. When set, the bot prints an invite URL on startup.
 
 Policy defaults (used until changed per-guild (server) via commands)
 
@@ -100,7 +100,7 @@ Copy `.env.example` to `.env` and edit it:
 cp .env.example .env
 ```
 
-At minimum, set `DISCORD_TOKEN`. For Docker Compose, the default `DATABASE_URL` already matches the included Postgres service.
+At minimum, set `DISCORD_TOKEN`, `OWNER_ID`, and `APPLICATION_ID`. `DATABASE_URL` is also required by the bot; in Docker Compose it is injected automatically to match the included Postgres service.
 
 ### 2. Start the services
 
@@ -199,7 +199,7 @@ Status checks run at startup and the status updates during the regular status me
 - /dm-blacklisted-servers [attach_file:bool] - DM the bot owner a list of blacklisted guild (server) IDs & reasons. Optional `attach_file` (defaults to False). When True, the bot sends the report as a file and does not include inline text.
 - /dm-admin-report - DM a multi-message report of guilds (servers) and bot admins.
 - /dm-server-settings - DM a multi-message list of all guild (server) settings (paste-friendly key=value pairs).
-- /dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to False). When `attach_file=True`, the bot uploads three separate files - `admin-report.txt`, `server-settings-report.txt`, and `blacklist-report.txt` - and does not include inline text. When `attach_file=False`, reports are sent as messages with safe chunking.
+- /dm-all-reports [attach_file:bool] - DM the bot owner all reports at once. Optional `attach_file` (defaults to False). When `attach_file=True`, the bot uploads three separate files - `admin-report.md`, `server-settings-report.md`, and `blacklist-report.md` - and does not include inline text. When `attach_file=False`, reports are sent as messages with safe chunking.
 - /delete-user-data [user:@User] - Purge a user's stored data globally (cooldowns/admin entries).
 - /nuke-bot-admins [server_id:str] [confirm:bool] - Remove all bot admins for a guild (server) (current guild (server) if omitted in-guild; server_id required in DMs). Requires confirm=True.
 - /leave-server [server_id:str] [confirm:bool] - Leave a guild (server) and delete its stored configuration/admin data.
