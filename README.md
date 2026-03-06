@@ -262,7 +262,7 @@ This bot uses a **two-tier authorization system** to protect sensitive commands:
 
 ## Security & privacy
 
-See [SECURITY.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot-Docker/blob/main/SECURITY.md>) in this repo and the policies on the project site:
+See [SECURITY.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/SECURITY.md>) in this repo and the policies on the project site:
 
 - The bot does not log message content and doesn't require the Message Content intent.
 - Logging channel (if set) only receives a short notice when a nickname is changed.
@@ -303,9 +303,9 @@ Related policies:
 
 ## License & Credits
 
-See [LICENSE.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot-Docker/blob/main/LICENSE.md>).
+See [LICENSE.md](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md>).
 
-- [All Major Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot-Docker/blob/main/CONTRIBUTORS.md>)
+- [All Major Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/CONTRIBUTORS.md>)
 - [All Other Contributors](<https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/graphs/contributors>)
 
 ## Note on contributions from AI
