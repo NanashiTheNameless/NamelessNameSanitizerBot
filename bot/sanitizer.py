@@ -97,6 +97,24 @@ def count_non_emoji_clusters(s: str) -> int:
     return count
 
 
+def truncate_to_grapheme_boundary(s: str, max_len: int) -> str:
+    """Trim to a codepoint limit without splitting a grapheme cluster."""
+    if max_len <= 0:
+        return ""
+    if len(s) <= max_len:
+        return s
+
+    kept: list[str] = []
+    current_len = 0
+    for cluster in re.findall(r"\X", s):
+        cluster_len = len(cluster)
+        if current_len + cluster_len > max_len:
+            break
+        kept.append(cluster)
+        current_len += cluster_len
+    return "".join(kept)
+
+
 def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
     _full = remove_marks_and_controls(name, settings.sanitize_emoji)
     _full = filter_allowed_chars(_full, settings.sanitize_emoji)
@@ -121,7 +139,9 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
             # default mode returns empty to trigger username attempt
             candidate = ""
         if len(candidate) > settings.max_nick_length:
-            candidate = candidate[: settings.max_nick_length]
+            candidate = truncate_to_grapheme_boundary(
+                candidate, settings.max_nick_length
+            )
         return candidate, True
 
     head = name
@@ -177,7 +197,7 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
             candidate = ""
 
     if len(candidate) > settings.max_nick_length:
-        candidate = candidate[: settings.max_nick_length]
+        candidate = truncate_to_grapheme_boundary(candidate, settings.max_nick_length)
 
     # Strip candidate before min length validation to match what Discord will store
     # Discord normalizes nicknames by trimming whitespace
@@ -206,6 +226,8 @@ def sanitize_name(name: str, settings: GuildSettings) -> Tuple[str, bool]:
                 # default mode returns empty to trigger username attempt
                 candidate = ""
             if len(candidate) > settings.max_nick_length:
-                candidate = candidate[: settings.max_nick_length]
+                candidate = truncate_to_grapheme_boundary(
+                    candidate, settings.max_nick_length
+                )
 
     return candidate, used_fallback

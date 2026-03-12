@@ -65,7 +65,7 @@ ENFORCE_BOTS = getenv_bool("ENFORCE_BOTS", False)
 FALLBACK_MODE = os.getenv("FALLBACK_MODE", "default").strip().lower()
 if FALLBACK_MODE not in ("default", "randomized", "static"):
     FALLBACK_MODE = "default"
-FALLBACK_LABEL = os.getenv("FALLBACK_LABEL", "Illegal Name").strip()
+FALLBACK_LABEL = os.getenv("FALLBACK_LABEL", "Illegal Name").strip() or "Illegal Name"
 COOLDOWN_TTL_SEC = getenv_int("COOLDOWN_TTL_SEC", max(86400, COOLDOWN_SECONDS * 10))
 DM_OWNER_ON_GUILD_EVENTS = getenv_bool("DM_OWNER_ON_GUILD_EVENTS", True)
 DM_OWNER_ON_ERRORS = getenv_bool("DM_OWNER_ON_ERRORS", True)

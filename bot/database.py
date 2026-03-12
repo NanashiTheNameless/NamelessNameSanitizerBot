@@ -18,6 +18,7 @@ from .config import (
     CHECK_LENGTH,
     COOLDOWN_SECONDS,
     ENFORCE_BOTS,
+    FALLBACK_LABEL,
     FALLBACK_MODE,
     MAX_NICK_LENGTH,
     MIN_NICK_LENGTH,
@@ -284,6 +285,10 @@ class Database:
                 )
                 row = await cur.fetchone()
                 if row:
+                    fallback_label = row.get("fallback_label")
+                    if not str(fallback_label or "").strip():
+                        fallback_label = FALLBACK_LABEL
+                    fallback_mode = row.get("fallback_mode") or FALLBACK_MODE
                     return GuildSettings(
                         guild_id=row["guild_id"],
                         check_length=row["check_length"],
@@ -295,9 +300,9 @@ class Database:
                         enabled=row["enabled"],
                         logging_channel_id=row.get("logging_channel_id"),
                         bypass_role_id=row.get("bypass_role_id"),
-                        fallback_label=row.get("fallback_label"),
+                        fallback_label=fallback_label,
                         enforce_bots=row.get("enforce_bots", False),
-                        fallback_mode=row.get("fallback_mode", FALLBACK_MODE),
+                        fallback_mode=fallback_mode,
                     )
                 return GuildSettings(guild_id=guild_id)
 
@@ -527,6 +532,30 @@ class Database:
                 if not row:
                     return None
                 return row[0], row[1]
+
+    async def set_blacklisted_guild_reason(
+        self, guild_id: int, reason: Optional[str]
+    ) -> int:
+        assert self.pool is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "UPDATE blacklist_guilds SET reason=%s WHERE guild_id=%s",
+                    (reason, guild_id),
+                )
+                return int(cur.rowcount or 0)
+
+    async def set_blacklisted_guild_name(
+        self, guild_id: int, name: Optional[str]
+    ) -> int:
+        assert self.pool is not None
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "UPDATE blacklist_guilds SET name=%s WHERE guild_id=%s",
+                    (name, guild_id),
+                )
+                return int(cur.rowcount or 0)
 
     async def is_admin(self, guild_id: int, user_id: int) -> bool:
         if OWNER_ID and user_id == OWNER_ID:

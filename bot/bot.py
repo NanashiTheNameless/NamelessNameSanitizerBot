@@ -302,7 +302,12 @@ class SanitizerBot(discord.Client):
     async def on_message(self, message: discord.Message):
         await on_message(self, message)
 
-    async def _sanitize_member(self, member: discord.Member, source: str) -> bool:
+    async def _sanitize_member(
+        self,
+        member: discord.Member,
+        source: str,
+        ignore_disabled: bool = False,
+    ) -> bool:
         # Don't sanitize if a configuration error is active
         if self._config_error:
             return False
@@ -320,7 +325,7 @@ class SanitizerBot(discord.Client):
             if not settings.enforce_bots:
                 return False
 
-        if not settings.enabled:
+        if not settings.enabled and not ignore_disabled:
             return False
 
         bypass_ids = self._get_bypass_role_list(settings)
@@ -328,7 +333,16 @@ class SanitizerBot(discord.Client):
             return False
 
         if self.db:
-            last_ts = await self.db.get_cooldown(member.id)
+            try:
+                last_ts = await self.db.get_cooldown(member.id)
+            except Exception as e:
+                last_ts = None
+                log.debug(
+                    "Failed to load cooldown for user %s in guild %s: %s",
+                    member.id,
+                    member.guild.id,
+                    e,
+                )
             if last_ts is not None and now() - last_ts < settings.cooldown_seconds:
                 return False
 
@@ -385,7 +399,15 @@ class SanitizerBot(discord.Client):
                 nick=candidate, reason=f"Name Sanitized by NNSB due to {source}"
             )
             if self.db:
-                await self.db.set_cooldown(member.id, now())
+                try:
+                    await self.db.set_cooldown(member.id, now())
+                except Exception as e:
+                    log.debug(
+                        "Failed to store cooldown for user %s in guild %s: %s",
+                        member.id,
+                        member.guild.id,
+                        e,
+                    )
             log.info("Edited nickname: %s -> %s [%s]", name_now, candidate, source)
 
             if settings.logging_channel_id:
@@ -418,11 +440,12 @@ class SanitizerBot(discord.Client):
         member: discord.Member,
         settings: GuildSettings,
         candidate: str,
+        ignore_disabled: bool = False,
     ) -> list[str]:
         reasons: list[str] = []
 
         # General state checks
-        if not settings.enabled:
+        if not settings.enabled and not ignore_disabled:
             reasons.append("The sanitizer is disabled in this server.")
 
         if member.bot:
@@ -663,13 +686,15 @@ class SanitizerBot(discord.Client):
             await interaction.response.send_message(msg, ephemeral=True)
             return
 
-        did_change = await self._sanitize_member(member, source="command")
+        did_change = await self._sanitize_member(
+            member, source="command", ignore_disabled=True
+        )
         if did_change:
             msg = f"Nickname updated: `{current_name}` -> `{candidate}`."
         else:
             # Provide explicit reasons why it could not change
             reasons = await self._diagnose_sanitize_blockers(
-                member, settings, candidate
+                member, settings, candidate, ignore_disabled=True
             )
             if reasons:
                 bullets = "\n".join(f"- {r}" for r in reasons)
@@ -2242,10 +2267,16 @@ class SanitizerBot(discord.Client):
             return
         # Upsert: preserve name, update reason
         try:
-            await self.db.add_blacklisted_guild(gid, reason=reason, name=None)
+            updated = await self.db.set_blacklisted_guild_reason(gid, reason)
         except Exception as e:
             await interaction.response.send_message(
                 f"Failed to set blacklist reason: {e}",
+                ephemeral=True,
+            )
+            return
+        if not updated:
+            await interaction.response.send_message(
+                f"Server ID {gid} is not blacklisted.",
                 ephemeral=True,
             )
             return
@@ -2279,10 +2310,16 @@ class SanitizerBot(discord.Client):
             return
         # Upsert: preserve reason, update name
         try:
-            await self.db.add_blacklisted_guild(gid, reason=None, name=name)
+            updated = await self.db.set_blacklisted_guild_name(gid, name)
         except Exception as e:
             await interaction.response.send_message(
                 f"Failed to set blacklist name: {e}",
+                ephemeral=True,
+            )
+            return
+        if not updated:
+            await interaction.response.send_message(
+                f"Server ID {gid} is not blacklisted.",
                 ephemeral=True,
             )
             return
