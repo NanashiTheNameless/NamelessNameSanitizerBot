@@ -235,8 +235,14 @@ def _verify_release_build_success_sync(tag: str) -> bool:
                 if head_branch == tag:
                     return True
 
-                # workflow_dispatch runs can still be tied back to a release tag
-                # when the workflow itself runs against that tag's commit.
+                # workflow_dispatch runs are associated with the selected ref,
+                # not necessarily the published image tag.
+                display_title = run.get("display_title")
+                if display_title == f"Publish image tag {tag}":
+                    return True
+
+                # Tag-push runs and older dispatch behavior can still be tied
+                # back to a release tag by the tag commit SHA.
                 head_sha = run.get("head_sha")
                 if tag_commit_sha and head_sha == tag_commit_sha:
                     return True
