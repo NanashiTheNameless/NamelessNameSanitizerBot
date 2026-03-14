@@ -1,0 +1,29 @@
+name: Image Publish Tag (GHCR)
+
+"on":
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: Image tag to publish, for example v0.1.2.3
+        required: true
+        type: string
+      git_ref:
+        description: Optional git ref to build from. Leave blank to use the version tag as the checkout ref.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    uses: ./.github/workflows/image-publish-reusable.yml
+    with:
+      publish_name: Build and Push Tag
+      checkout_ref: ${{ inputs.git_ref != '' && inputs.git_ref || (github.event_name == 'workflow_dispatch' && inputs.version_tag || github.ref) }}
+      image_version: ${{ github.event_name == 'workflow_dispatch' && inputs.version_tag || github.ref_name }}
+      docker_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.version_tag || github.ref_name }}
+      latest: false

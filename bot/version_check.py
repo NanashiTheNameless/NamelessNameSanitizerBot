@@ -13,6 +13,7 @@ import asyncio
 import json
 import logging
 import os
+import urllib.parse
 import urllib.request
 from typing import Optional
 
@@ -20,8 +21,39 @@ log = logging.getLogger(__name__)
 
 _DEFAULT_VERSION_FILE = "/app/.image_version"
 _DEFAULT_GIT_SHA_FILE = "/app/.git_sha"
-_GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/releases/latest"
-_GITHUB_IMAGE_PUBLISH_WORKFLOW_RUNS_URL = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/actions/workflows/image-publish-ghcr.yml/runs?branch=main&status=completed&per_page=5"
+_GITHUB_API_BASE_URL = (
+    "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot"
+)
+_GITHUB_LATEST_RELEASE_URL = f"{_GITHUB_API_BASE_URL}/releases/latest"
+_GITHUB_LATEST_WORKFLOW_FILE = "image-publish-latest.yml"
+_GITHUB_TAG_WORKFLOW_FILE = "image-publish-tag.yml"
+
+
+def _github_workflow_runs_url(workflow_file: str, **params: object) -> str:
+    query = urllib.parse.urlencode(params)
+    url = f"{_GITHUB_API_BASE_URL}/actions/workflows/{workflow_file}/runs"
+    return f"{url}?{query}" if query else url
+
+
+def _github_tag_ref_url(tag: str) -> str:
+    return f"{_GITHUB_API_BASE_URL}/git/ref/tags/{urllib.parse.quote(tag, safe='')}"
+
+
+def _github_tag_object_url(tag_sha: str) -> str:
+    return f"{_GITHUB_API_BASE_URL}/git/tags/{urllib.parse.quote(tag_sha, safe='')}"
+
+
+def _fetch_github_json_sync(url: str) -> Optional[object]:
+    headers = {
+        "User-Agent": "NamelessNameSanitizerBot/VersionCheck",
+        "Accept": "application/vnd.github+json",
+    }
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
 
 
 def _env_truthy(value: Optional[str]) -> bool:
@@ -109,84 +141,105 @@ def _parse_semver(tag: str) -> Optional[tuple[int, int, int, int]]:
 
 
 def _fetch_latest_successful_workflow_sha_sync() -> Optional[str]:
-    """Fetch the latest successful image-publish-ghcr.yml workflow SHA."""
-    url = _GITHUB_IMAGE_PUBLISH_WORKFLOW_RUNS_URL
-    headers = {
-        "User-Agent": "NamelessNameSanitizerBot/VersionCheck",
-        "Accept": "application/vnd.github+json",
-    }
-    req = urllib.request.Request(url, headers=headers, method="GET")
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = resp.read().decode("utf-8")
-            payload = json.loads(data)
-            if isinstance(payload, dict):
-                runs = payload.get("workflow_runs")
-                if isinstance(runs, list):
-                    for run in runs:
-                        if not isinstance(run, dict):
-                            continue
-                        if run.get("conclusion") != "success":
-                            continue
-                        sha = run.get("head_sha")
-                        if isinstance(sha, str) and sha.strip():
-                            return sha.strip()
-    except Exception:
-        pass
+    """Fetch the latest successful image-publish-latest.yml workflow SHA."""
+    url = _github_workflow_runs_url(
+        _GITHUB_LATEST_WORKFLOW_FILE,
+        branch="main",
+        status="completed",
+        per_page=5,
+    )
+    payload = _fetch_github_json_sync(url)
+    if isinstance(payload, dict):
+        runs = payload.get("workflow_runs")
+        if isinstance(runs, list):
+            for run in runs:
+                if not isinstance(run, dict):
+                    continue
+                if run.get("conclusion") != "success":
+                    continue
+                sha = run.get("head_sha")
+                if isinstance(sha, str) and sha.strip():
+                    return sha.strip()
     return None
 
 
 def _fetch_latest_release_sync() -> Optional[str]:
     """Fetch latest release tag from GitHub."""
     url = _GITHUB_LATEST_RELEASE_URL
-    headers = {
-        "User-Agent": "NamelessNameSanitizerBot/VersionCheck",
-        "Accept": "application/vnd.github+json",
-    }
-    req = urllib.request.Request(url, headers=headers, method="GET")
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = resp.read().decode("utf-8")
-            payload = json.loads(data)
-            if isinstance(payload, dict):
-                tag = payload.get("tag_name")
-                if isinstance(tag, str) and tag.strip():
-                    return tag.strip()
-    except Exception:
-        pass
+    payload = _fetch_github_json_sync(url)
+    if isinstance(payload, dict):
+        tag = payload.get("tag_name")
+        if isinstance(tag, str) and tag.strip():
+            return tag.strip()
     return None
+
+
+def _fetch_tag_commit_sha_sync(tag: str) -> Optional[str]:
+    payload = _fetch_github_json_sync(_github_tag_ref_url(tag))
+    if not isinstance(payload, dict):
+        return None
+
+    git_object = payload.get("object")
+    if not isinstance(git_object, dict):
+        return None
+
+    object_type = git_object.get("type")
+    object_sha = git_object.get("sha")
+    if not isinstance(object_sha, str) or not object_sha.strip():
+        return None
+
+    if object_type == "commit":
+        return object_sha.strip()
+    if object_type != "tag":
+        return None
+
+    tag_payload = _fetch_github_json_sync(_github_tag_object_url(object_sha.strip()))
+    if not isinstance(tag_payload, dict):
+        return None
+
+    tagged_object = tag_payload.get("object")
+    if not isinstance(tagged_object, dict):
+        return None
+
+    tagged_object_type = tagged_object.get("type")
+    tagged_object_sha = tagged_object.get("sha")
+    if tagged_object_type != "commit":
+        return None
+    if not isinstance(tagged_object_sha, str) or not tagged_object_sha.strip():
+        return None
+    return tagged_object_sha.strip()
 
 
 def _verify_release_build_success_sync(tag: str) -> bool:
     """Verify that a release tag has a successful workflow build.
 
-    Checks if the tag has a corresponding successful image-publish-ghcr.yml workflow run.
+    Checks if the tag has a corresponding successful image-publish-tag.yml workflow run.
     """
-    url = "https://api.github.com/repos/NanashiTheNameless/NamelessNameSanitizerBot/actions/workflows/image-publish-ghcr.yml/runs?event=push&per_page=10"
-    headers = {
-        "User-Agent": "NamelessNameSanitizerBot/VersionCheck",
-        "Accept": "application/vnd.github+json",
-    }
-    req = urllib.request.Request(url, headers=headers, method="GET")
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = resp.read().decode("utf-8")
-            payload = json.loads(data)
-            if isinstance(payload, dict):
-                runs = payload.get("workflow_runs")
-                if isinstance(runs, list):
-                    for run in runs:
-                        if not isinstance(run, dict):
-                            continue
-                        # Check if this run is for the tag
-                        head_branch = run.get("head_branch")
-                        if head_branch != tag:
-                            continue
-                        # Check if the run was successful
-                        if run.get("conclusion") == "success":
-                            return True
-    except Exception:
-        pass
+    tag_commit_sha = _fetch_tag_commit_sha_sync(tag)
+    url = _github_workflow_runs_url(
+        _GITHUB_TAG_WORKFLOW_FILE,
+        status="completed",
+        per_page=50,
+    )
+    payload = _fetch_github_json_sync(url)
+    if isinstance(payload, dict):
+        runs = payload.get("workflow_runs")
+        if isinstance(runs, list):
+            for run in runs:
+                if not isinstance(run, dict):
+                    continue
+                if run.get("conclusion") != "success":
+                    continue
+
+                head_branch = run.get("head_branch")
+                if head_branch == tag:
+                    return True
+
+                # workflow_dispatch runs can still be tied back to a release tag
+                # when the workflow itself runs against that tag's commit.
+                head_sha = run.get("head_sha")
+                if tag_commit_sha and head_sha == tag_commit_sha:
+                    return True
     return False
 
 
@@ -199,8 +252,8 @@ async def check_outdated() -> tuple[bool, Optional[str], Optional[str], Optional
     """Return (is_outdated, current, latest, error_message).
 
     Uses GitHub API for efficiency (single API calls per check).
-    Release tags (e.g., v0.0.4.10) query /releases/latest.
-    Latest/dev builds use the last successful image-publish-ghcr.yml run.
+    Release tags (e.g., v0.1.2.3) query /releases/latest.
+    Latest/dev builds use the last successful image-publish-latest.yml run.
 
     DEVELOPMENT is always considered outdated.
     """

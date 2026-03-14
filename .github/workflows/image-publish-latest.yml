@@ -1,0 +1,25 @@
+name: Image Publish Latest (GHCR)
+
+"on":
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: Optional git ref to build from. Leave blank to use the selected branch.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    uses: ./.github/workflows/image-publish-reusable.yml
+    with:
+      publish_name: Build and Push Latest
+      checkout_ref: ${{ inputs.git_ref != '' && inputs.git_ref || github.ref }}
+      image_version: latest
+      docker_tag: latest
+      latest: true
