@@ -168,7 +168,7 @@ SWEEP_RETRY_BASE_SEC=$(prompt_with_default "Base retry delay for sweep HTTP retr
 DM_OWNER_ON_GUILD_EVENTS=$(prompt_with_default "Send DM when bot joins/leaves a server (true/false)" "true")
 DM_OWNER_ON_ERRORS=$(prompt_with_default "Send DM when errors trigger DnD status (true/false)" "true")
 COMMAND_COOLDOWN_SECONDS=$(prompt_with_default "Cooldown per user for slash commands (seconds)" "2")
-OWNER_DESTRUCTIVE_COOLDOWN_SECONDS=$(prompt_with_default "Cooldown for dangerous owner commands (seconds)" "60")
+OWNER_DESTRUCTIVE_COOLDOWN_SECONDS=$(prompt_with_default "Cooldown for dangerous owner commands (seconds)" "30")
 DEBUG_MODE=$(prompt_with_default "Enable detailed output of bot actions for debugging (true/false)" "false")
 NNSB_TELEMETRY_OPTOUT=$(prompt_with_default "Send anonymous hosting presence ping to help the developer assess bot adoption (track active instances) and guide development priorities (0=yes, 1=no)" "0")
 LOG_LEVEL=$(prompt_with_default "Log message detail level: DEBUG/INFO/WARNING/ERROR" "INFO")

@@ -49,7 +49,7 @@ Policy defaults (used until changed per-guild (server) via commands)
 - FALLBACK_MODE: default|randomized|static, default default - how fallback names are chosen when a sanitized result is empty/illegal
 - FALLBACK_LABEL: string, default "Illegal Name" - global default fallback label; used in fallback_mode=static and as the final fallback in default mode
 - COOLDOWN_TTL_SEC: integer, default max(86400, COOLDOWN_SECONDS*10) - retention for per-user cooldown entries; older entries are purged automatically.
-- OWNER_DESTRUCTIVE_COOLDOWN_SECONDS: integer, default 60 - separate cooldown applied only to destructive owner-only commands (e.g. blacklist, unblacklist, global resets) so routine admin actions aren't throttled.
+- OWNER_DESTRUCTIVE_COOLDOWN_SECONDS: integer, default 30 - separate cooldown applied only to destructive owner-only commands (e.g. blacklist, unblacklist, global resets) so routine admin actions aren't throttled.
 
 Runtime
 

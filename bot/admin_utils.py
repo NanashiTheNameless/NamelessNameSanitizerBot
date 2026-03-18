@@ -24,6 +24,7 @@ async def is_bot_admin(self, guild_id: int, user_id: int) -> bool:
 async def command_cooldown_check(self, interaction: discord.Interaction) -> bool:
     """Global per-user command cooldown, bypassed by owner and bot admins.
     Controlled via COMMAND_COOLDOWN_SECONDS; disabled when <= 0.
+    Only checks cooldown, does not apply it (applied after successful execution).
     """
     try:
         cd = int(COMMAND_COOLDOWN_SECONDS)
@@ -43,7 +44,7 @@ async def command_cooldown_check(self, interaction: discord.Interaction) -> bool
                 return True
     except Exception:
         pass
-    # Enforce cooldown
+    # Check cooldown
     now_ts = now()
     last = self._cmd_cooldown_last.get(user_id or 0, 0.0)
     remain = cd - (now_ts - last)
@@ -58,5 +59,4 @@ async def command_cooldown_check(self, interaction: discord.Interaction) -> bool
         except Exception:
             pass
         return False
-    self._cmd_cooldown_last[user_id or 0] = now_ts
     return True
