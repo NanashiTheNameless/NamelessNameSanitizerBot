@@ -88,6 +88,36 @@ except Exception as e:
     log.warning("[VERSION] Disabled: failed to import version check module (%s).", e)
 
 
+def _extract_guild_id(server_id_str: str) -> Optional[int]:
+    """Extract numeric guild ID from server_id string.
+    
+    Handles both formats:
+    - Plain ID: "1483667344130703370"
+    - Labeled format: "<unknown> (1483667344130703370)"
+    
+    Returns the integer ID or None if parsing fails.
+    """
+    if not server_id_str:
+        return None
+    
+    # Try direct parsing first
+    try:
+        return int(server_id_str)
+    except ValueError:
+        pass
+    
+    # Try extracting from labeled format "name (id)"
+    import re
+    match = re.search(r'\((\d+)\)', server_id_str)
+    if match:
+        try:
+            return int(match.group(1))
+        except ValueError:
+            pass
+    
+    return None
+
+
 class SanitizerCommandTree(discord.app_commands.CommandTree):
     async def _call(self, interaction: discord.Interaction) -> None:
         # Track whether the command executed without errors
@@ -2297,9 +2327,8 @@ class SanitizerBot(discord.Client):
                 "Only the bot owner can perform this action.", ephemeral=True
             )
             return
-        try:
-            gid = int(server_id)
-        except Exception:
+        gid = _extract_guild_id(server_id)
+        if gid is None:
             await interaction.response.send_message(
                 f"'{server_id}' is not a valid server ID.",
                 ephemeral=True,
@@ -2340,9 +2369,8 @@ class SanitizerBot(discord.Client):
                 "Only the bot owner can perform this action.", ephemeral=True
             )
             return
-        try:
-            gid = int(server_id)
-        except Exception:
+        gid = _extract_guild_id(server_id)
+        if gid is None:
             await interaction.response.send_message(
                 f"'{server_id}' is not a valid server ID.",
                 ephemeral=True,
