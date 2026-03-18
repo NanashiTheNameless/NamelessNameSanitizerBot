@@ -117,29 +117,34 @@ class SanitizerCommandTree(discord.app_commands.CommandTree):
     async def _apply_command_cooldown(self, interaction: discord.Interaction) -> None:
         """Apply cooldown after successful command execution."""
         from .config import COMMAND_COOLDOWN_SECONDS, OWNER_ID
-        
+
         try:
             cd = int(COMMAND_COOLDOWN_SECONDS)
         except Exception:
             cd = 0
         if cd <= 0:
             return
-        
+
         user = getattr(interaction, "user", None)
         user_id = getattr(user, "id", None)
-        
+
         # Owner bypass
         if OWNER_ID and user_id == OWNER_ID:
             return
-        
+
         # Bot admin bypass (per-guild)
         try:
-            if interaction.guild and self.client and hasattr(self.client, "db") and self.client.db:
+            if (
+                interaction.guild
+                and self.client
+                and hasattr(self.client, "db")
+                and self.client.db
+            ):
                 if await self.client.db.is_admin(interaction.guild.id, user_id):  # type: ignore[arg-type]
                     return
         except Exception:
             pass
-        
+
         # Set cooldown for this user
         if self.client and hasattr(self.client, "_cmd_cooldown_last"):
             self.client._cmd_cooldown_last[user_id or 0] = now()
