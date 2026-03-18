@@ -90,31 +90,32 @@ except Exception as e:
 
 def _extract_guild_id(server_id_str: str) -> Optional[int]:
     """Extract numeric guild ID from server_id string.
-    
+
     Handles both formats:
     - Plain ID: "1483667344130703370"
     - Labeled format: "<unknown> (1483667344130703370)"
-    
+
     Returns the integer ID or None if parsing fails.
     """
     if not server_id_str:
         return None
-    
+
     # Try direct parsing first
     try:
         return int(server_id_str)
     except ValueError:
         pass
-    
+
     # Try extracting from labeled format "name (id)"
     import re
-    match = re.search(r'\((\d+)\)', server_id_str)
+
+    match = re.search(r"\((\d+)\)", server_id_str)
     if match:
         try:
             return int(match.group(1))
         except ValueError:
             pass
-    
+
     return None
 
 
@@ -147,29 +148,34 @@ class SanitizerCommandTree(discord.app_commands.CommandTree):
     async def _apply_command_cooldown(self, interaction: discord.Interaction) -> None:
         """Apply cooldown after successful command execution."""
         from .config import COMMAND_COOLDOWN_SECONDS, OWNER_ID
-        
+
         try:
             cd = int(COMMAND_COOLDOWN_SECONDS)
         except Exception:
             cd = 0
         if cd <= 0:
             return
-        
+
         user = getattr(interaction, "user", None)
         user_id = getattr(user, "id", None)
-        
+
         # Owner bypass
         if OWNER_ID and user_id == OWNER_ID:
             return
-        
+
         # Bot admin bypass (per-guild)
         try:
-            if interaction.guild and self.client and hasattr(self.client, "db") and self.client.db:
+            if (
+                interaction.guild
+                and self.client
+                and hasattr(self.client, "db")
+                and self.client.db
+            ):
                 if await self.client.db.is_admin(interaction.guild.id, user_id):  # type: ignore[arg-type]
                     return
         except Exception:
             pass
-        
+
         # Set cooldown for this user
         if self.client and hasattr(self.client, "_cmd_cooldown_last"):
             self.client._cmd_cooldown_last[user_id or 0] = now()
