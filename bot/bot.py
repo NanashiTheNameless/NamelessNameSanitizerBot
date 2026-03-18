@@ -2319,13 +2319,20 @@ class SanitizerBot(discord.Client):
         interaction: discord.Interaction,
         server_id: str,
         reason: Optional[str] = None,
+        confirm: Optional[bool] = False,
     ):
-        if not await owner_destructive_check(self, interaction):
-            return
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
             )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=True to proceed.",
+                ephemeral=True,
+            )
+            return
+        if not await owner_destructive_check(self, interaction):
             return
         gid = _extract_guild_id(server_id)
         if gid is None:
@@ -2361,13 +2368,20 @@ class SanitizerBot(discord.Client):
         interaction: discord.Interaction,
         server_id: str,
         name: Optional[str] = None,
+        confirm: Optional[bool] = False,
     ):
-        if not await owner_destructive_check(self, interaction):
-            return
         if not OWNER_ID or interaction.user.id != OWNER_ID:
             await interaction.response.send_message(
                 "Only the bot owner can perform this action.", ephemeral=True
             )
+            return
+        if not confirm:
+            await interaction.response.send_message(
+                "Confirmation required: pass confirm=True to proceed.",
+                ephemeral=True,
+            )
+            return
+        if not await owner_destructive_check(self, interaction):
             return
         gid = _extract_guild_id(server_id)
         if gid is None:

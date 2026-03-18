@@ -52,14 +52,16 @@ def register_owner_commands(self):
     @app_commands.describe(
         server_id="Guild (server) ID whose blacklist name to set",
         name="New display name (empty to clear)",
+        confirm="Type True to confirm",
     )
     @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
     async def _set_blacklist_name(
         interaction: discord.Interaction,
         server_id: str,
         name: Optional[str] = None,
+        confirm: Optional[bool] = False,
     ):
-        await self.cmd_set_blacklist_name(interaction, server_id, name)
+        await self.cmd_set_blacklist_name(interaction, server_id, name, confirm)
 
     @self.tree.command(
         name="blacklist-set-reason",
@@ -69,14 +71,16 @@ def register_owner_commands(self):
     @app_commands.describe(
         server_id="Guild (server) ID whose blacklist reason to set",
         reason="New reason text (empty to clear)",
+        confirm="Type True to confirm",
     )
     @app_commands.autocomplete(server_id=self._ac_blacklisted_guild_id)
     async def _set_blacklist_reason(
         interaction: discord.Interaction,
         server_id: str,
         reason: Optional[str] = None,
+        confirm: Optional[bool] = False,
     ):
-        await self.cmd_set_blacklist_reason(interaction, server_id, reason)
+        await self.cmd_set_blacklist_reason(interaction, server_id, reason, confirm)
 
     @self.tree.command(
         name="delete-user-data",
@@ -91,7 +95,7 @@ def register_owner_commands(self):
     ):
         if not confirm:
             await interaction.response.send_message(
-                "Confirmation required: Pass confirm=True to delete user data.",
+                "Confirmation required: pass confirm=True to proceed.",
                 ephemeral=True,
             )
             return
