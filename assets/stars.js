@@ -1,4 +1,4 @@
-// This software is licensed under NNCL v1.3 see LICENSE.md for more info
+// This software is licensed under NNCL v1.4 see LICENSE.md for more info
 // https://nnsb.namelessnanashi.dev/license
 // Semi-Lightweight starfield, shared across pages
 
