@@ -1,4 +1,4 @@
-# This software is licensed under NNCL v1.3 see LICENSE.md for more info
+# This software is licensed under NNCL v1.4 see LICENSE.md for more info
 # https://github.com/NanashiTheNameless/NamelessNameSanitizerBot/blob/main/LICENSE.md
 """
 Nickname sanitization helpers using the 'regex' package for Unicode handling.
