@@ -11,6 +11,10 @@ run-name: Publish image tag ${{ github.event_name == 'workflow_dispatch' && inpu
         required: true
         type: string
 
+concurrency:
+  group: image-publish-tag-ghcr
+  cancel-in-progress: false
+
 jobs:
   publish:
     permissions:

@@ -9,6 +9,10 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: image-publish-latest-ghcr
+  cancel-in-progress: false
+
 jobs:
   publish:
     uses: ./.github/workflows/image-publish-reusable.yml
