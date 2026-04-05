@@ -452,6 +452,13 @@ class SanitizerBot(discord.Client):
         if candidate == name_now:
             return False
 
+        # Discord trims nickname whitespace on write; treat an unchanged stored
+        # guild nickname as a no-op so we do not spend cooldown on it.
+        target_nick = candidate.strip() or None
+        if target_nick == member.nick:
+            return False
+        target_nick_display = target_nick if target_nick is not None else "<cleared>"
+
         guild = member.guild
         me = guild.me
 
@@ -472,7 +479,7 @@ class SanitizerBot(discord.Client):
 
         try:
             await member.edit(
-                nick=candidate, reason=f"Name Sanitized by NNSB due to {source}"
+                nick=target_nick, reason=f"Name Sanitized by NNSB due to {source}"
             )
             if self.db:
                 try:
@@ -484,7 +491,12 @@ class SanitizerBot(discord.Client):
                         member.guild.id,
                         e,
                     )
-            log.info("Edited nickname: %s -> %s [%s]", name_now, candidate, source)
+            log.info(
+                "Edited nickname: %s -> %s [%s]",
+                name_now,
+                target_nick_display,
+                source,
+            )
 
             if settings.logging_channel_id:
                 ch = member.guild.get_channel(settings.logging_channel_id)
@@ -497,7 +509,7 @@ class SanitizerBot(discord.Client):
                         ch = None
                 if isinstance(ch, (discord.TextChannel, discord.Thread)):
                     try:
-                        log_msg = f"Nickname updated: {member.mention} - `{name_now}` -> `{candidate}` (via {source})"
+                        log_msg = f"Nickname updated: {member.mention} - `{name_now}` -> `{target_nick_display}` (via {source})"
                         # Append outdated warning if available
                         if self._outdated_message:
                             log_msg += f"\n\n{self._outdated_message}"
