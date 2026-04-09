@@ -1,14 +1,6 @@
 # This software is licensed under NNCL v1.4 see LICENSE.md for more info
 
-FROM python:alpine
-
-ARG NNSB_IMAGE_VERSION=dev
-ARG NNSB_IMAGE_DIGEST=
-ARG NNSB_GIT_SHA=unknown
-LABEL org.opencontainers.image.revision=$NNSB_IMAGE_VERSION
-ENV NNSB_IMAGE_VERSION=$NNSB_IMAGE_VERSION
-ENV NNSB_IMAGE_DIGEST=$NNSB_IMAGE_DIGEST
-ENV NNSB_GIT_SHA=$NNSB_GIT_SHA
+FROM python:3.14-alpine
 
 WORKDIR /app
 
@@ -22,6 +14,14 @@ RUN apk add --no-cache tzdata ca-certificates \
     && pip install --root-user-action ignore --no-cache-dir --upgrade "pip>=26" \
     && pip install --root-user-action ignore --no-cache-dir -r requirements.txt \
     && apk del .build-deps
+
+ARG NNSB_IMAGE_VERSION=dev
+ARG NNSB_IMAGE_DIGEST=
+ARG NNSB_GIT_SHA=unknown
+LABEL org.opencontainers.image.revision=$NNSB_IMAGE_VERSION
+ENV NNSB_IMAGE_VERSION=$NNSB_IMAGE_VERSION
+ENV NNSB_IMAGE_DIGEST=$NNSB_IMAGE_DIGEST
+ENV NNSB_GIT_SHA=$NNSB_GIT_SHA
 
 COPY bot ./bot
 
